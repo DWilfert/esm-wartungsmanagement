@@ -12,44 +12,6 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             display: none !important;
         }
         
-        input::placeholder, textarea::placeholder {
-            color: #94a3b8 !important;
-            font-style: italic !important;
-            opacity: 1 !important;
-        }
-        
-        div[data-baseweb="popover"], div[data-baseweb="menu"], ul[data-baseweb="menu"] {
-            background-color: var(--secondary-background-color) !important;
-        }
-        
-        ul[role="listbox"] li, li[role="option"] {
-            background-color: var(--secondary-background-color) !important;
-            color: var(--text-color) !important;
-            font-size: 0.85rem !important;
-        }
-        
-        ul[role="listbox"] li:hover,
-        ul[role="listbox"] li[aria-selected="true"],
-        li[role="option"]:hover,
-        li[role="option"][aria-selected="true"] {
-            background-color: rgba(128, 128, 128, 0.2) !important;
-            color: var(--text-color) !important;
-        }
-        
-        div[data-testid="stElementToolbar"], 
-        div[data-testid="stElementToolbar"] button,
-        span[data-testid="stTooltipHoverTarget"] {
-            background-color: var(--secondary-background-color) !important;
-            color: var(--text-color) !important;
-        }
-        
-        div[data-baseweb="tooltip"], div[role="tooltip"], div.stTooltipContent {
-            background-color: var(--secondary-background-color) !important;
-            color: var(--text-color) !important;
-            border: 1px solid rgba(128, 128, 128, 0.3) !important;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
-        }
-
         div[data-testid="stDataFrame"] {
             background-color: var(--secondary-background-color) !important;
             border: 1px solid rgba(128, 128, 128, 0.25) !important;
@@ -106,10 +68,8 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "c": "Abweichungen bei Wartungs- und Prüfintervallen",
             "d": "Unklare Zuordnung von Anlagen zu Wartungsverträgen",
             "e": "Mängel und technische Auffälligkeiten aus der Anlagenerfassung und Wartungsprotokollen",
-            "view_mode": "Ansichtsmodus:",
             "lbl_standort": "Standort-Filter:",
-            "lbl_ansicht": "Ansicht:",
-            "lbl_select_row": "🎛️ Enterprise-Schnellauswahl für Vertrags-Detailanalyse:"
+            "lbl_ansicht": "Ansicht:"
         }
     else:
         TXT_VA = {
@@ -126,16 +86,14 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "c": "Deviations in maintenance and inspection intervals",
             "d": "Unclear assignment of assets to maintenance contracts",
             "e": "Defects and technical abnormalities from asset registration and maintenance logs",
-            "view_mode": "View Mode:",
             "lbl_standort": "Location Filter:",
-            "lbl_ansicht": "View:",
-            "lbl_select_row": "🎛️ Enterprise Quick Selection for Contract Detail Analysis:"
+            "lbl_ansicht": "View:"
         }
 
     st.subheader(TXT_VA["title"])
     st.markdown(f"<div style='font-size: 13px; color: var(--text-color); opacity: 0.7; margin-bottom: 15px;'>{TXT_VA['desc']}</div>", unsafe_allow_html=True)
 
-    # Sofortige, stabile Demo-Verträge bereitstellen
+    # Stabile Demo-Verträge
     df = pd.DataFrame({
         "id": [i+1 for i in range(10)],
         "anlagenid": [17501 + i for i in range(10)],
@@ -182,39 +140,32 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
         st.info(TXT_VA["no_data"])
         return
         
-    if "kostenpa" in df.columns:
-        total_kosten = pd.to_numeric(df["kostenpa"], errors="coerce").fillna(0.0).sum()
-    else:
-        total_kosten = 0.0
-        
+    total_kosten = pd.to_numeric(df["kostenpa"], errors="coerce").fillna(0.0).sum()
     anzahl_vertraege = len(df)
     avg_kosten = total_kosten / anzahl_vertraege if anzahl_vertraege > 0 else 0.0
 
-    if st.session_state.language == "de":
-        lbl_tbl = ["Bezeichnung", "Firma", "Standort", "Kosten p.a.", "Benchmark p.a.", "Clusterung"]
-    else:
-        lbl_tbl = ["Designation", "Company", "Location", "Cost p.a.", "Benchmark p.a.", "Clustering"]
+    # Wir fügen eine interaktive Checkbox-Spalte ("Details") direkt in die Tabelle ein!
+    df_filtered = df.copy().reset_index(drop=True)
+    df_filtered.insert(0, "🔍 Details", False)
 
-    df_filtered = df[["anlagenid", "bezeichnung", "firma", "standort", "kostenpa", "benchmarkpa", "gewaehrleistung"]].copy().reset_index(drop=True)
-    df_display = df_filtered[["bezeichnung", "firma", "standort", "kostenpa", "benchmarkpa", "gewaehrleistung"]].copy()
+    if st.session_state.language == "de":
+        lbl_tbl = ["🔍 Details", "Bezeichnung", "Firma", "Standort", "Kosten p.a.", "Benchmark p.a.", "Clusterung"]
+    else:
+        lbl_tbl = ["🔍 Details", "Designation", "Company", "Location", "Cost p.a.", "Benchmark p.a.", "Clustering"]
+
+    df_display = df_filtered[["🔍 Details", "bezeichnung", "firma", "standort", "kostenpa", "benchmarkpa", "gewaehrleistung"]].copy()
     
-    if "kostenpa" in df_display.columns:
-        df_display["kostenpa"] = pd.to_numeric(df_display["kostenpa"], errors="coerce").fillna(0.0)
-        df_display["kostenpa"] = df_display["kostenpa"].map('{:,.2f} €'.format)
-        
-    if "benchmarkpa" in df_display.columns:
-        df_display["benchmarkpa"] = pd.to_numeric(df_display["benchmarkpa"], errors="coerce").fillna(0.0)
-        df_display["benchmarkpa"] = df_display["benchmarkpa"].map('{:,.2f} €'.format)
-        
+    df_display["kostenpa"] = pd.to_numeric(df_display["kostenpa"], errors="coerce").fillna(0.0).map('{:,.2f} €'.format)
+    df_display["benchmarkpa"] = pd.to_numeric(df_display["benchmarkpa"], errors="coerce").fillna(0.0).map('{:,.2f} €'.format)
     df_display.columns = lbl_tbl
 
-    # Dashboard-Ansicht oder Fullscreen-Ansicht der Tabelle
     if gewaehlte_ansicht == "🖥️ Fullscreen":
-        st.dataframe(
+        edited_df = st.data_editor(
             df_display,
             width="stretch",
-            height=450, 
-            hide_index=True
+            height=500,
+            hide_index=True,
+            key="editor_fs_vertraege"
         )
     else:
         st.markdown(f'''
@@ -238,29 +189,20 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             
         st.markdown("---")
 
-        st.dataframe(
+        edited_df = st.data_editor(
             df_display,
             width="stretch",
-            height=280,
-            hide_index=True
+            height=300,
+            hide_index=True,
+            key="editor_dash_vertraege"
         )
 
-    st.markdown("<br>", unsafe_allow_html=True)
+    # Prüfen, welche Zeile per Checkbox in der Tabelle angehakt wurde
+    selected_rows = df_filtered.index[edited_df["🔍 Details"] == True].tolist()
 
-    # Professionelle Enterprise-Selectbox mit eleganter visueller Einbettung
-    vertrag_optionen = ["-- Bitte wählen oder Vertrag aus Liste analysieren --" if st.session_state.language == "de" else "-- Please select contract for analysis --"] + df_filtered["bezeichnung"].tolist()
-    
-    col_sel1, col_sel2 = st.columns([7, 3])
-    with col_sel1:
-        ausgewaehlter_vertrag = st.selectbox(
-            TXT_VA["lbl_select_row"], 
-            options=vertrag_optionen, 
-            key="enterprise_vertrag_selector"
-        )
-
-    # Elegante, designte Enterprise-Detailkarte (öffnet sich nur bei Auswahl)
-    if ausgewaehlter_vertrag and not ausgewaehlter_vertrag.startswith("--"):
-        gew_vertrag = df_filtered[df_filtered["bezeichnung"] == ausgewaehlter_vertrag].iloc[0]
+    if selected_rows:
+        row_idx = selected_rows[0]
+        gew_vertrag = df_filtered.iloc[row_idx]
         
         st.markdown(f"""
             <div class="enterprise-detail-card">
