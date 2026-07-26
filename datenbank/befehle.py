@@ -1,13 +1,15 @@
 import mysql.connector
 import streamlit as st
 import pandas as pd
+
 def hole_datenbank_verbindung():
     try:
         return mysql.connector.connect(
             host=st.secrets["mysql"]["host"],
             user=st.secrets["mysql"]["user"],
             password=st.secrets["mysql"]["password"],
-            database=st.secrets["mysql"]["database"]
+            database=st.secrets["mysql"]["database"],
+            connection_timeout=5  # Bricht nach 5 Sekunden ab, statt endlos zu hängen!
         )
     except Exception:
         return None
@@ -20,10 +22,12 @@ def hole_anlagen_daten():
     if conn is not None:
         try:
             df = pd.read_sql("SELECT * FROM anlagen", conn)
+            conn.close()
             if not df.empty:
                 return df
         except Exception:
             pass
+    # Fallback-Daten, damit die App sofort läuft
     return pd.DataFrame({
         "id": [17501 + i for i in range(20)],
         "standort": ["NP" if i % 2 == 0 else "FG" for i in range(20)],
@@ -37,11 +41,12 @@ def hole_wartungsvertraege_daten():
     if conn is not None:
         try:
             df = pd.read_sql("SELECT * FROM wartungsvertraege", conn)
+            conn.close()
             if not df.empty:
                 return df
         except Exception:
             pass
-    # Erweiterte Testdaten inklusive Status/Ampel-Logik für die Timeline und Analysen
+    # Fallback-Daten inklusive Status/Ampel-Logik
     return pd.DataFrame({
         "id": [i+1 for i in range(20)],
         "anlagenid": [17501 + i for i in range(20)],
