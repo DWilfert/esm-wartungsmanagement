@@ -93,7 +93,6 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
     st.subheader(TXT_VA["title"])
     st.markdown(f"<div style='font-size: 13px; color: var(--text-color); opacity: 0.7; margin-bottom: 15px;'>{TXT_VA['desc']}</div>", unsafe_allow_html=True)
 
-    # Stabile Demo-Verträge
     df = pd.DataFrame({
         "id": [i+1 for i in range(10)],
         "anlagenid": [17501 + i for i in range(10)],
@@ -144,9 +143,21 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
     anzahl_vertraege = len(df)
     avg_kosten = total_kosten / anzahl_vertraege if anzahl_vertraege > 0 else 0.0
 
-    # Wir fügen eine interaktive Checkbox-Spalte ("Details") direkt in die Tabelle ein!
+    # Session State für die Auswahl initialisieren, damit immer nur 1 aktiv ist
+    if "last_selected_vertrag_id" not in st.session_state:
+        st.session_state.last_selected_vertrag_id = None
+
     df_filtered = df.copy().reset_index(drop=True)
-    df_filtered.insert(0, "🔍 Details", False)
+    
+    # Prüfen, welcher Datensatz aktuell ausgewählt sein soll
+    selected_flags = []
+    for idx, row in df_filtered.iterrows():
+        if row["id"] == st.session_state.last_selected_vertrag_id:
+            selected_flags.append(True)
+        else:
+            selected_flags.append(False)
+            
+    df_filtered.insert(0, "🔍 Details", selected_flags)
 
     if st.session_state.language == "de":
         lbl_tbl = ["🔍 Details", "Bezeichnung", "Firma", "Standort", "Kosten p.a.", "Benchmark p.a.", "Clusterung"]
@@ -159,13 +170,15 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
     df_display["benchmarkpa"] = pd.to_numeric(df_display["benchmarkpa"], errors="coerce").fillna(0.0).map('{:,.2f} €'.format)
     df_display.columns = lbl_tbl
 
+    editor_key = "editor_fs_vertraege" if gewaehlte_ansicht == "🖥️ Fullscreen" else "editor_dash_vertraege"
+
     if gewaehlte_ansicht == "🖥️ Fullscreen":
         edited_df = st.data_editor(
             df_display,
             width="stretch",
             height=500,
             hide_index=True,
-            key="editor_fs_vertraege"
+            key=editor_key
         )
     else:
         st.markdown(f'''
@@ -194,36 +207,48 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             width="stretch",
             height=300,
             hide_index=True,
-            key="editor_dash_vertraege"
+            key=editor_key
         )
 
-    # Prüfen, welche Zeile per Checkbox in der Tabelle angehakt wurde
-    selected_rows = df_filtered.index[edited_df["🔍 Details"] == True].tolist()
+    # Logik, um sicherzustellen, dass immer nur maximal 1 Häkchen aktiv ist
+    current_selected_rows = df_filtered.index[edited_df["🔍 Details"] == True].tolist()
+    
+    if current_selected_rows:
+        new_row_idx = current_selected_rows[-1] # Nimm das zuletzt angeklickte
+        new_id = df_filtered.iloc[new_row_idx]["id"]
+        if new_id != st.session_state.last_selected_vertrag_id:
+            st.session_state.last_selected_vertrag_id = new_id
+            st.rerun()
+    else:
+        if st.session_state.last_selected_vertrag_id is not None:
+            st.session_state.last_selected_vertrag_id = None
+            st.rerun()
 
-    if selected_rows:
-        row_idx = selected_rows[0]
-        gew_vertrag = df_filtered.iloc[row_idx]
-        
-        st.markdown(f"""
-            <div class="enterprise-detail-card">
-                <h4 style="color: #38bdf8; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid rgba(56,189,248,0.2); padding-bottom: 8px;">
-                    🔍 Enterprise-Detailanalyse: {gew_vertrag['bezeichnung']}
-                </h4>
-                <div style="display: flex; justify-content: space-between; font-size: 13px; line-height: 1.8;">
-                    <div>
-                        <b>Anlagen-ID:</b> {gew_vertrag['anlagenid']}<br>
-                        <b>Standort:</b> {gew_vertrag['standort']}<br>
-                        <b>Wartungsfirma:</b> {gew_vertrag['firma']}
-                    </div>
-                    <div>
-                        <b>Gewerk:</b> {gew_vertrag['gewerksbez']}<br>
-                        <b>Kosten p.a.:</b> {gew_vertrag['kostenpa']:,.2f} €<br>
-                        <b>Benchmark p.a.:</b> {gew_vertrag['benchmarkpa']:,.2f} €
-                    </div>
-                    <div>
-                        <b>Clusterung / Gewährleistung:</b> <span style="color: #34d399; font-weight: bold;">Klasse {gew_vertrag['gewaehrleistung']}</span><br>
-                        <b>Status:</b> <span style="color: #38bdf8;">Aktiv & Überwacht</span>
+    # Detailkarte anzeigen für den aktuell ausgewählten Vertrag
+    if st.session_state.last_selected_vertrag_id is not None:
+        gew_vertrag_match = df_filtered[df_filtered["id"] == st.session_state.last_selected_vertrag_id]
+        if not gew_vertrag_match.empty:
+            gew_vertrag = gew_vertrag_match.iloc[0]
+            st.markdown(f"""
+                <div class="enterprise-detail-card">
+                    <h4 style="color: #38bdf8; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid rgba(56,189,248,0.2); padding-bottom: 8px;">
+                        🔍 Enterprise-Detailanalyse: {gew_vertrag['bezeichnung']}
+                    </h4>
+                    <div style="display: flex; justify-content: space-between; font-size: 13px; line-height: 1.8;">
+                        <div>
+                            <b>Anlagen-ID:</b> {gew_vertrag['anlagenid']}<br>
+                            <b>Standort:</b> {gew_vertrag['standort']}<br>
+                            <b>Wartungsfirma:</b> {gew_vertrag['firma']}
+                        </div>
+                        <div>
+                            <b>Gewerk:</b> {gew_vertrag['gewerksbez']}<br>
+                            <b>Kosten p.a.:</b> {gew_vertrag['kostenpa']:,.2f} €<br>
+                            <b>Benchmark p.a.:</b> {gew_vertrag['benchmarkpa']:,.2f} €
+                        </div>
+                        <div>
+                            <b>Clusterung / Gewährleistung:</b> <span style="color: #34d399; font-weight: bold;">Klasse {gew_vertrag['gewaehrleistung']}</span><br>
+                            <b>Status:</b> <span style="color: #38bdf8;">Aktiv & Überwacht</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
