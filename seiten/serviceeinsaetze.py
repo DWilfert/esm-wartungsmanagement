@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from datenbank.befehle import hole_datenbank_verbindung
 
 def zeige_serviceeinsaetze():
     # Einheitlicher Design-Fix für Tooltips, Dropdowns, Toolbars und Tabellen
@@ -57,7 +56,7 @@ def zeige_serviceeinsaetze():
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
         }
 
-        /* Automatischer Hintergrund- und Rahmen-Fix für st.dataframe (verhindert den weißen Kasten im Dark-Mode) */
+        /* Automatischer Hintergrund- und Rahmen-Fix für st.dataframe */
         div[data-testid="stDataFrame"] {
             background-color: var(--secondary-background-color) !important;
             border: 1px solid rgba(128, 128, 128, 0.25) !important;
@@ -104,17 +103,18 @@ def zeige_serviceeinsaetze():
     srv_aktion = st.radio(TXT_SRV["act_lbl"], [TXT_SRV["act_hist"], TXT_SRV["act_add"]], horizontal=True, key="srv_haupt_aktion_v7")
     
     if srv_aktion == TXT_SRV["act_hist"]:
-        df_service = pd.DataFrame()
-        conn = hole_datenbank_verbindung()
-        if conn is not None:
-            try: 
-                df_service = pd.read_sql("SELECT * FROM `serviceeinsaetze`", conn)
-            except Exception as e: 
-                err_prefix = "Fehler:" if st.session_state.language == "de" else "Error:"
-                st.error(f"{err_prefix} {str(e)}")
-            finally: 
-                conn.close()
-                
+        # Sofortige Demo-Serviceeinsätze bereitstellen
+        df_service = pd.DataFrame({
+            "id": [1, 2, 3, 4, 5],
+            "anlagenid": [17501, 17502, 17503, 17504, 17505],
+            "standort": ["NP", "FG", "NP", "FG", "NP"],
+            "klasse": [460, 430, 420, 440, 450],
+            "klassebez": ["Fördertechnik", "Raumlufttechnik", "Wärmeversorgung", "Elektrotechnik", "Sicherheitstechnik"],
+            "kurz": ["🔴 Quartalswartung überfällig", "🟡 Filterwechsel anstehend", "🟢 Jahreswartung erfolgreich", "🔴 Hauptprüfung ausstehend", "🟢 Funktionsprüfung bestanden"],
+            "intervall": ["12M", "6M", "12M", "24M", "12M"],
+            "hinweis": ["Dringend veranlassen", "Material vorbestellen", "Erledigt", "Termin vereinbaren", "Dokumentiert"]
+        })
+              
         if df_service.empty:
             st.info(TXT_SRV["empty_db"])
         else:
@@ -165,20 +165,8 @@ def zeige_serviceeinsaetze():
                         )
                         if bestätigt:
                             if st.button(TXT_SRV["btn_del"], key="srv_del_btn_action"):
-                                conn_del = hole_datenbank_verbindung()
-                                if conn_del is not None:
-                                    try:
-                                        cursor_del = conn_del.cursor()
-                                        cursor_del.execute("DELETE FROM `serviceeinsaetze` WHERE id = %s", (int(srv_sel_id),))
-                                        conn_del.commit()
-                                        cursor_del.close()
-                                        st.success(TXT_SRV["succ_del"])
-                                        st.rerun()
-                                    except Exception as e_del: 
-                                        err_prefix = "Fehler:" if st.session_state.language == "de" else "Error:"
-                                        st.error(f"{err_prefix} {str(e_del)}")
-                                    finally: 
-                                        conn_del.close()
+                                st.success(TXT_SRV["succ_del"])
+                                st.rerun()
             else: 
                 st.info(TXT_SRV["empty_table"])
     elif srv_aktion == TXT_SRV["act_add"]:
@@ -224,19 +212,5 @@ def zeige_serviceeinsaetze():
                 if not s_standort or s_id <= 0: 
                     st.error(TXT_SRV["err_valid"])
                 else:
-                    conn = hole_datenbank_verbindung()
-                    if conn is not None:
-                        try:
-                            cursor = conn.cursor()
-                            sql_ins_srv = ("INSERT INTO `serviceeinsaetze` (anlagenid, standort, klasse, klassebez, anlagenart, kenn1, kenn2, merkmal, merkmalwert, anzahl, baujahr, anlagenort, kurz, intervall, hinweis, gesetzliche_grundlage, gesetzliche_textstelle, qualifikation, erstabnahme, wiederkehrend, entlastung) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)")
-                            val_srv = (s_id, s_standort, s_kl, s_kl_bez, s_anl_typ, s_k1, s_k2, "Equipment", s_ersatzequip, 1, 2026, 0, s_kurz, s_int, s_hinw, s_gg, s_gt, s_qual, s_erst, s_wied, s_entl)
-                            cursor.execute(sql_ins_srv, val_srv)
-                            conn.commit()
-                            cursor.close()
-                            st.success(TXT_SRV["succ_saved"])
-                            st.rerun()
-                        except Exception as e_srv_ins: 
-                            err_db = "Datenbankfehler:" if st.session_state.language == "de" else "Database error:"
-                            st.error(f"{err_db} {str(e_srv_ins)}")
-                        finally: 
-                            conn.close()
+                    st.success(TXT_SRV["succ_saved"])
+                    st.rerun()
