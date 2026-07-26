@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 def hole_datenbank_verbindung():
-    return None  # Läuft sofort stabil im Offline-/Fallback-Modus ohne Warten
+    return None
 
 def initialisiere_beispieldaten():
     pass
