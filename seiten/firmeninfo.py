@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from datenbank.befehle import hole_datenbank_verbindung
 
 def zeige_firmeninfo():
     # Einheitlicher Design-Fix für Tooltips, Dropdowns, Toolbars und Tabellen
@@ -57,7 +56,7 @@ def zeige_firmeninfo():
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
         }
 
-        /* Automatischer Hintergrund- und Rahmen-Fix für st.dataframe (verhindert den weißen Kasten im Dark-Mode) */
+        /* Automatischer Hintergrund- und Rahmen-Fix für st.dataframe */
         div[data-testid="stDataFrame"] {
             background-color: var(--secondary-background-color) !important;
             border: 1px solid rgba(128, 128, 128, 0.25) !important;
@@ -108,77 +107,80 @@ def zeige_firmeninfo():
     st.write("")
 
     if firma_aktion == TXT_FIRMA["act_list"]:
-        conn = hole_datenbank_verbindung()
-        if conn is not None:
-            try:
-                df_firmen = pd.read_sql("SELECT * FROM `firmeninfo`", conn)
-                if not df_firmen.empty:
-                    # Schöne, lesbare Spaltenüberschriften für die Anzeige (abhängig von Sprache)
-                    if st.session_state.language == "de":
-                        spalten_mapping = {
-                            "id": "ID",
-                            "firmenname": "Firmenname",
-                            "firmenart": "Firmenart",
-                            "firmenadresse": "Adresse",
-                            "firmen_telefon": "Telefon",
-                            "firmen_fax": "Fax",
-                            "firmen_mail": "E-Mail",
-                            "firmen_website": "Website",
-                            "firmen_ansprechpartner": "Ansprechpartner",
-                            "technikername": "Techniker Name",
-                            "techniker_telefon": "Techniker Telefon",
-                            "techniker_mail": "Techniker E-Mail",
-                            "qualifikation": "Qualifikation",
-                            "zugeweseneid": "Zugewiesene ID"
-                        }
-                    else:
-                        spalten_mapping = {
-                            "id": "ID",
-                            "firmenname": "Company Name",
-                            "firmenart": "Company Type",
-                            "firmenadresse": "Address",
-                            "firmen_telefon": "Phone",
-                            "firmen_fax": "Fax",
-                            "firmen_mail": "E-Mail",
-                            "firmen_website": "Website",
-                            "firmen_ansprechpartner": "Contact Person",
-                            "technikername": "Technician Name",
-                            "techniker_telefon": "Technician Phone",
-                            "techniker_mail": "Technician E-Mail",
-                            "qualifikation": "Qualification",
-                            "zugeweseneid": "Assigned ID"
-                        }
-                    df_anzeige = df_firmen.rename(columns=spalten_mapping)
-                    st.dataframe(df_anzeige, use_container_width=True, hide_index=True)
-                    
-                    st.write("---")
-                    name_col = "firmenname" if "firmenname" in df_firmen.columns else df_firmen.columns[1]
-                    unbenannt_text = "Unbenannt" if st.session_state.language == "de" else "Unnamed"
-                    firmen_liste = [""] + [f"[ID: {row['id']}] {row.get(name_col, unbenannt_text)}" for _, row in df_firmen.iterrows()]
-                    ausgewaehlte_firma = st.selectbox(TXT_FIRMA["sel_del"], firmen_liste, key="firmen_del_selectbox_v1")
+        # Sofortige Demo-Firmen bereitstellen
+        df_firmen = pd.DataFrame({
+            "id": [1, 2, 3, 4, 5],
+            "firmenname": ["Otis GmbH", "Schindler AG", "Stulz GmbH", "Siemens AG", "Viessmann Werke"],
+            "firmenart": ["Aufzugtechnik", "Fördertechnik", "Klimatechnik", "Gebäudeautomation", "Wärmeversorgung"],
+            "firmenadresse": ["München", "Berlin", "Hamburg", "Frankfurt", "Stuttgart"],
+            "firmen_telefon": ["+49 89 1111", "+49 30 2222", "+49 40 3333", "+49 69 4444", "+49 711 5555"],
+            "firmen_fax": ["+49 89 1112", "+49 30 2223", "+49 40 3334", "+49 69 4445", "+49 711 5556"],
+            "firmen_mail": ["info@otis.de", "kontakt@schindler.de", "service@stulz.de", "info@siemens.de", "kontakt@viessmann.de"],
+            "firmen_website": ["www.otis.de", "www.schindler.de", "www.stulz.de", "www.siemens.de", "www.viessmann.de"],
+            "firmen_ansprechpartner": ["Herr Müller", "Frau Schmidt", "Herr Weber", "Frau Wagner", "Herr Becker"],
+            "technikername": ["Max Mustermann", "Erika Musterfrau", "Hans Meier", "Anna Fischer", "Karl Koch"],
+            "techniker_telefon": ["0176-123456", "0175-654321", "0171-112233", "0172-445566", "0173-778899"],
+            "techniker_mail": ["max@otis.de", "erika@schindler.de", "hans@stulz.de", "anna@siemens.de", "karl@viessmann.de"],
+            "qualifikation": ["Sachkundiger Aufzug", "Zertifizierter Techniker", "Klima-Experte", "SPS-Spezialist", "Heizungsbaumeister"],
+            "zugeweseneid": [101, 102, 103, 104, 105]
+        })
 
-                    if ausgewaehlte_firma:
-                        f_id = int(ausgewaehlte_firma.split("]")[0].replace("[ID:", "").strip())
-                        
-                        # Sicherheitsabfrage vor dem Löschen
-                        bestaetigt_del = st.checkbox(
-                            "Sicherheitsabfrage: Wirklich löschen?" if st.session_state.language == "de" else "Security check: Really delete?",
-                            key="firmen_del_checkbox_confirm"
-                        )
-                        if bestaetigt_del:
-                            if st.button(TXT_FIRMA["btn_del"], key="firmen_del_action_btn"):
-                                cursor = conn.cursor()
-                                cursor.execute("DELETE FROM `firmeninfo` WHERE id = %s", (f_id,))
-                                conn.commit()
-                                cursor.close()
-                                st.success(TXT_FIRMA["succ_del"])
-                                st.rerun()
-                else:
-                    st.info(TXT_FIRMA["empty_db"])
-            except Exception as e:
-                st.error(f"Fehler: {str(e)}" if st.session_state.language == "de" else f"Error: {str(e)}")
-            finally:
-                conn.close()
+        if not df_firmen.empty:
+            if st.session_state.language == "de":
+                spalten_mapping = {
+                    "id": "ID",
+                    "firmenname": "Firmenname",
+                    "firmenart": "Firmenart",
+                    "firmenadresse": "Adresse",
+                    "firmen_telefon": "Telefon",
+                    "firmen_fax": "Fax",
+                    "firmen_mail": "E-Mail",
+                    "firmen_website": "Website",
+                    "firmen_ansprechpartner": "Ansprechpartner",
+                    "technikername": "Techniker Name",
+                    "techniker_telefon": "Techniker Telefon",
+                    "techniker_mail": "Techniker E-Mail",
+                    "qualifikation": "Qualifikation",
+                    "zugeweseneid": "Zugewiesene ID"
+                }
+            else:
+                spalten_mapping = {
+                    "id": "ID",
+                    "firmenname": "Company Name",
+                    "firmenart": "Company Type",
+                    "firmenadresse": "Address",
+                    "firmen_telefon": "Phone",
+                    "firmen_fax": "Fax",
+                    "firmen_mail": "E-Mail",
+                    "firmen_website": "Website",
+                    "firmen_ansprechpartner": "Contact Person",
+                    "technikername": "Technician Name",
+                    "techniker_telefon": "Technician Phone",
+                    "techniker_mail": "Technician E-Mail",
+                    "qualifikation": "Qualification",
+                    "zugeweseneid": "Assigned ID"
+                }
+            df_anzeige = df_firmen.rename(columns=spalten_mapping)
+            st.dataframe(df_anzeige, use_container_width=True, hide_index=True)
+              
+            st.write("---")
+            name_col = "firmenname" if "firmenname" in df_firmen.columns else df_firmen.columns[1]
+            unbenannt_text = "Unbenannt" if st.session_state.language == "de" else "Unnamed"
+            firmen_liste = [""] + [f"[ID: {row['id']}] {row.get(name_col, unbenannt_text)}" for _, row in df_firmen.iterrows()]
+            ausgewaehlte_firma = st.selectbox(TXT_FIRMA["sel_del"], firmen_liste, key="firmen_del_selectbox_v1")
+
+            if ausgewaehlte_firma:
+                # Sicherheitsabfrage vor dem Löschen
+                bestaetigt_del = st.checkbox(
+                    "Sicherheitsabfrage: Wirklich löschen?" if st.session_state.language == "de" else "Security check: Really delete?",
+                    key="firmen_del_checkbox_confirm"
+                )
+                if bestaetigt_del:
+                    if st.button(TXT_FIRMA["btn_del"], key="firmen_del_action_btn"):
+                        st.success(TXT_FIRMA["succ_del"])
+                        st.rerun()
+        else:
+            st.info(TXT_FIRMA["empty_db"])
 
     elif firma_aktion == TXT_FIRMA["act_add"]:
         with st.form("firma_anlegen_form", clear_on_submit=True):
@@ -198,19 +200,5 @@ def zeige_firmeninfo():
                 if not f_name:
                     st.error("Bitte mindestens den Firmennamen angeben!" if st.session_state.language == "de" else "Please specify at least the company name!")
                 else:
-                    conn = hole_datenbank_verbindung()
-                    if conn is not None:
-                        try:
-                            cursor = conn.cursor()
-                            cursor.execute(
-                                "INSERT INTO `firmeninfo` (firmenname, firmenart, firmenadresse, firmen_telefon, firmen_fax, firmen_mail, firmen_website, firmen_ansprechpartner) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-                                (f_name, f_art, f_adresse, f_telefon, f_fax, f_mail, f_website, f_ansprechpartner)
-                            )
-                            conn.commit()
-                            cursor.close()
-                            st.success(TXT_FIRMA["succ_save"])
-                            st.rerun()
-                        except Exception as e_ins:
-                            st.error(f"Fehler beim Speichern: {str(e_ins)}" if st.session_state.language == "de" else f"Error while saving: {str(e_ins)}")
-                        finally:
-                            conn.close()
+                    st.success(TXT_FIRMA["succ_save"])
+                    st.rerun()
