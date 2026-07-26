@@ -35,7 +35,7 @@ if "language" not in st.session_state:
 if "speicher_modus" not in st.session_state:
     st.session_state.speicher_modus = "manuell"
 
-# Einstellungen beim Start laden (mit Fallback, falls Cloud-Verbindung zur lokalen DB fehlschlägt)
+# Einstellungen beim Start laden (vollständig fehlergeschützt für die Cloud)
 try:
     conn = hole_datenbank_verbindung()
     if conn is not None:
@@ -50,7 +50,6 @@ try:
         cursor.close()
         conn.close()
 except Exception:
-    # Fallback für Cloud/Offline-Betrieb (keine lokale DB erreichbar)
     pass
 
 # --- BILINGUALES MENÜ-WÖRTERBUCH ---
