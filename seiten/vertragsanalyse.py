@@ -196,14 +196,13 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
         
     df_display.columns = lbl_tbl
 
+    # Tabelle ohne automatischen Sprung-Trigger anzeigen
     if gewaehlte_ansicht == "🖥️ Fullscreen":
-        event = st.dataframe(
+        st.dataframe(
             df_display,
             width="stretch",
             height=650, 
-            hide_index=True,
-            selection_mode="single-row",
-            on_select="rerun"
+            hide_index=True
         )
     else:
         st.markdown(f'''
@@ -227,23 +226,9 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             
         st.markdown("---")
 
-        event = st.dataframe(
+        st.dataframe(
             df_display,
             width="stretch",
             height=320,
-            hide_index=True,
-            selection_mode="single-row",
-            on_select="rerun"
+            hide_index=True
         )
-
-    if event and event.get("selection", {}).get("rows"):
-        zeilen_liste = event["selection"]["rows"]
-        if len(zeilen_liste) > 0:
-            echte_zeilen_nummer = zeilen_liste[0]
-            anl_id = df_filtered.iloc[echte_zeilen_nummer]["anlagenid"]
-            
-            if pd.notna(anl_id):
-                st.session_state.ziel_vertrags_id = int(anl_id)
-                st.session_state.app_seite_whitespace = True
-                st.session_state.app_seite_wechseln = True
-                st.rerun()
