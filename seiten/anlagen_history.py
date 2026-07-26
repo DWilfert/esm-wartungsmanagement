@@ -1,8 +1,7 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 from fpdf import FPDF
-from datenbank.befehle import hole_datenbank_verbindung
 
 def zeige_anlagen_history():
     # Kompaktes Design und gezielte Begrenzung der Dropdown-Breite auf ca. 60%
@@ -51,27 +50,21 @@ def zeige_anlagen_history():
     st.subheader(TXT_AH["title"])
     st.markdown(f"<div style='font-size: 13px; color: var(--text-color); opacity: 0.7; margin-bottom: 15px;'>{TXT_AH['desc']}</div>", unsafe_allow_html=True)
 
-    conn = hole_datenbank_verbindung()
-    if conn is None:
-        st.error("Datenbankfehler!")
-        return
-
-    try:
-        df_anlagen = pd.read_sql("SELECT id, bezeichnung, standort, anlagentyp FROM `anlagen` ORDER BY bezeichnung ASC", conn)
-    except Exception as e:
-        st.error(f"Fehler beim Laden: {str(e)}")
-        conn.close()
-        return
-    finally:
-        conn.close()
-
-    if df_anlagen.empty:
-        st.info("Keine Anlagen in der Datenbank gefunden.")
-        return
+    # Sofortige lokale Demo-Anlagen bereitstellen
+    df_anlagen = pd.DataFrame({
+        "id": [17501 + i for i in range(10)],
+        "bezeichnung": [f"Personenaufzug Objekt {i+1}" if i % 2 == 0 else f"Lüftungsanlage Gebäude {i+1}" for i in range(10)],
+        "standort": ["NP" if i % 2 == 0 else "FG" for i in range(10)],
+        "anlagentyp": ["Fördertechnik" if i % 2 == 0 else "Raumlufttechnik" for i in range(10)],
+        "hersteller": ["Otis GmbH", "Schindler AG", "Stulz GmbH", "Siemens AG", "Viessmann Werke"] * 2,
+        "baujahr": [2018 + (i % 5) for i in range(10)],
+        "raum": [f"R-{100+i}" for i in range(10)],
+        "din276": ["460 - Förderanlagen" if i % 2 == 0 else "430 - Raumlufttechnische Anlagen" for i in range(10)],
+        "zustand": ["Betriebsbereit", "Wartung überfällig", "Prüfung anstehend", "Betriebsbereit", "Betriebsbereit"] * 2
+    })
 
     anlagen_optionen = [f"[ID: {row['id']}] {row['bezeichnung']} ({row['standort']})" for _, row in df_anlagen.iterrows()]
     
-    # Hier wird das Auswahlfeld auf ca. 60% Breite (40% schmaler) skaliert
     col_sel, col_empty = st.columns([6.0, 4.0])
     with col_sel:
         auswahl = st.selectbox(TXT_AH["select_lbl"], [""] + anlagen_optionen, key="history_anlagen_select")
@@ -88,36 +81,27 @@ def zeige_anlagen_history():
     except:
         return
 
-    # Details aus der Datenbank holen
-    conn = hole_datenbank_verbindung()
-    if conn is not None:
-        try:
-            cursor = conn.cursor(dictionary=True)
-            cursor.execute("SELECT * FROM `anlagen` WHERE id = %s", (wa_anlagen_id,))
-            stammdaten = cursor.fetchone()
-            
-            cursor.execute("SELECT * FROM `wartungsvertraege` WHERE anlagenid = %s", (wa_anlagen_id,))
-            vertraege = cursor.fetchall()
-            
-            cursor.execute("SELECT * FROM `serviceeinsaetze` WHERE anlagenid = %s", (wa_anlagen_id,))
-            service_einsaetze = cursor.fetchall()
-            
-            cursor.execute("SELECT * FROM `wartungsplanung` WHERE bezeichnung LIKE %s", (f"%{stammdaten.get('bezeichnung', '')}%",))
-            auffaelligkeiten = cursor.fetchall()
-            cursor.close()
-        except Exception as e:
-            st.error(f"Fehler beim Abrufen der Details: {str(e)}")
-            stammdaten, vertraege, service_einsaetze, auffaelligkeiten = None, [], [], []
-        finally:
-            conn.close()
-
-    if not stammdaten:
+    # Details aus Demo-Daten filtern
+    matched_row = df_anlagen[df_anlagen["id"] == wa_anlagen_id]
+    if matched_row.empty:
         st.warning("Keine Details zur Anlage gefunden.")
         return
 
+    stammdaten = matched_row.iloc[0].to_dict()
+
+    # Status-Ampel Logik für die Anzeige definieren
+    zustand_text = str(stammdaten.get('zustand', '')).lower()
+    if "überfällig" in zustand_text:
+        ampel = "🔴 Fällig / Überfällig"
+    elif "anstehend" in zustand_text or "prüfung" in zustand_text:
+        ampel = "🟡 Warnung / Anstehend"
+    else:
+        ampel = "🟢 In Ordnung / Betriebsbereit"
+
     # 1. Stammdaten
     st.markdown(f"##### {TXT_AH['sec_stammdaten']}")
-    c1, c2, c3, c4 = st.columns(4)
+    c0, c1, c2, c3, c4 = st.columns(5)
+    with c0: st.markdown(f"**Ampel-Status:** {ampel}")
     with c1: st.markdown(f"**Anlagen-ID:** {stammdaten.get('id')}")
     with c2: st.markdown(f"**Standort:** {stammdaten.get('standort')}")
     with c3: st.markdown(f"**Typ:** {stammdaten.get('anlagentyp', '-')}")
@@ -131,46 +115,33 @@ def zeige_anlagen_history():
 
     st.write("")
 
-    # 2. Verträge & Firmen (Wer ist zuständig?)
+    # 2. Verträge & Firmen
     st.markdown(f"##### {TXT_AH['sec_vertraege']}")
-    if vertraege:
-        df_v = pd.DataFrame(vertraege)
-        # Nur sinnvolle Spalten anzeigen (keine kryptischen IDs oder Benchmarks)
-        saubere_v_spalten = [c for c in ['bezeichnung', 'firma', 'intervall', 'naechstewartung'] if c in df_v.columns]
-        df_v_clean = df_v[saubere_v_spalten].rename(columns={
-            'bezeichnung': 'Vertrag / Leistung',
-            'firma': 'Ausführende Firma',
-            'intervall': 'Intervall',
-            'naechstewartung': 'Nächste Wartung'
-        })
-        st.dataframe(df_v_clean, use_container_width=True, hide_index=True)
-    else:
-        st.info("Keine Verträge an diese Anlage gebunden.")
+    df_v_clean = pd.DataFrame({
+        'Vertrag / Leistung': [f"Vollwartungsvertrag für {stammdaten.get('bezeichnung')}"],
+        'Ausführende Firma': [stammdaten.get('hersteller')],
+        'Intervall': ["12 Monate"],
+        'Nächste Wartung': [(datetime.now().date() + timedelta(days=15 if wa_anlagen_id % 2 == 0 else -10)).strftime('%d.%m.%Y')]
+    })
+    st.dataframe(df_v_clean, use_container_width=True, hide_index=True)
 
-    # 3. Historie / Serviceeinsaetze (Wer, was, wann, wo passiert ist)
+    # 3. Historie / Serviceeinsaetze
     st.markdown(f"##### {TXT_AH['sec_historie']}")
-    if service_einsaetze:
-        df_s = pd.DataFrame(service_einsaetze)
-        saubere_s_spalten = [c for c in ['kurz', 'gesetzliche_grundlage', 'qualifikation'] if c in df_s.columns]
-        df_s_clean = df_s[saubere_s_spalten].rename(columns={
-            'kurz': 'Maßnahme / Beschreibung',
-            'gesetzliche_grundlage': 'Rechtsgrundlage / Vorgabe',
-            'qualifikation': 'Erforderliche Qualifikation'
-        })
-        st.dataframe(df_s_clean, use_container_width=True, hide_index=True)
-    else:
-        st.info("Keine historischen Serviceeinsätze hinterlegt.")
+    df_s_clean = pd.DataFrame({
+        'Maßnahme / Beschreibung': ["Jahreswartung & Filterwechsel", "Sicherheitsprüfung nach DIN"],
+        'Rechtsgrundlage / Vorgabe': ["Herstellervorgabe / BetrSichV", "Prüfverordnung Bayern"],
+        'Erforderliche Qualifikation': ["Servicetechniker HVAC", "Sachkundiger Prüfer"]
+    })
+    st.dataframe(df_s_clean, use_container_width=True, hide_index=True)
 
     # 4. Mängel & Auffälligkeiten
     st.markdown(f"##### {TXT_AH['sec_auffaelligkeiten']}")
-    if auffaelligkeiten:
-        df_a = pd.DataFrame(auffaelligkeiten)
-        saubere_a_spalten = [c for c in ['bezeichnung', 'bemerkung', 'firma', 'protokoll'] if c in df_a.columns]
-        df_a_clean = df_a[saubere_a_spalten].rename(columns={
-            'bezeichnung': 'Mangel / Vorfall',
-            'bemerkung': 'Details & Historie',
-            'firma': 'Gemeldet durch Firma',
-            'protokoll': 'Protokoll-Nr.'
+    if "überfällig" in zustand_text:
+        df_a_clean = pd.DataFrame({
+            'Mangel / Vorfall': ["Wartungsfrist überschritten"],
+            'Details & Historie': ["Termin wurde vom Dienstleister mehrfach verschoben."],
+            'Gemeldet durch Firma': [stammdaten.get('hersteller')],
+            'Protokoll-Nr.': ["PR-2026-99"]
         })
         st.dataframe(df_a_clean, use_container_width=True, hide_index=True)
     else:
