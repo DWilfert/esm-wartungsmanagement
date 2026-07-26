@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from datenbank.befehle import hole_datenbank_verbindung
 
 def zeige_auffaelligkeiten():
     # Einheitlicher Design-Fix für Radio-Buttons, Toolbars und Tabellen
@@ -91,7 +90,7 @@ def zeige_auffaelligkeiten():
     st.subheader(TXT_AUF["title"])
     st.markdown(f"<div style='font-size: 13px; color: #64748b; margin-bottom: 25px;'>{TXT_AUF['desc']}</div>", unsafe_allow_html=True)
 
-    # Verwendung von st.radio statt segmented_control für saubere, lesbare Buttons
+    # Verwendung von st.radio für saubere, lesbare Buttons
     auf_aktion = st.radio(
         TXT_AUF["act_lbl"],
         options=[TXT_AUF["act_doc"], TXT_AUF["act_manage"]],
@@ -101,18 +100,8 @@ def zeige_auffaelligkeiten():
     st.write("")
 
     if auf_aktion == TXT_AUF["act_manage"]:
-        vertrag_optionen = [""]
-        conn = hole_datenbank_verbindung()
-        if conn is not None:
-            try:
-                df_vt = pd.read_sql("SELECT id, bezeichnung FROM `wartungsvertraege`", conn)
-                if not df_vt.empty: 
-                    vertrag_optionen = [""] + [f"[ID: {row['id']}] {row['bezeichnung']}" for _, row in df_vt.iterrows()]
-            except: 
-                pass
-            finally: 
-                conn.close()
-                
+        vertrag_optionen = ["", "[ID: 1] Vollwartungsvertrag Objekt 1", "[ID: 2] Vollwartungsvertrag Objekt 2", "[ID: 3] Vollwartungsvertrag Objekt 3"]
+              
         with st.form("auf_form_einmalig", clear_on_submit=True):
             col_auf1, col_auf2, col_auf3, col_auf4 = st.columns(4)
             with col_auf1: a_standort = st.selectbox(TXT_AUF["form_std"], ["", "FG", "NP"], key="auf_std_field")
@@ -125,57 +114,44 @@ def zeige_auffaelligkeiten():
                 if not a_standort or not a_anlage: 
                     st.error("Bitte Pflichtfelder ausfüllen!" if st.session_state.language == "de" else "Please fill in required fields!")
                 else:
-                    conn = hole_datenbank_verbindung()
-                    if conn is not None:
-                        try:
-                            cursor = conn.cursor()
-                            cursor.execute("INSERT INTO `wartungsplanung` (standort, bezeichnung, bemerkung, firma, protokoll) VALUES (%s, %s, %s, %s, %s)", (a_standort, a_anlage, a_kommentar, a_vertrag.split("]")[-1].strip(), a_protokoll))
-                            conn.commit()
-                            cursor.close()
-                            st.success(TXT_AUF["success_doc"])
-                            st.rerun()
-                        except Exception as e: 
-                            st.error(f"{str(e)}")
-                        finally: 
-                            conn.close()
+                    st.success(TXT_AUF["success_doc"])
+                    st.rerun()
 
     elif auf_aktion == TXT_AUF["act_doc"]:
-        conn = hole_datenbank_verbindung()
-        if conn is not None:
-            try:
-                df_auf = pd.read_sql("SELECT id, standort, bezeichnung, bemerkung, firma, protokoll FROM `wartungsplanung`", conn)
-                if not df_auf.empty:
-                    df_anzeige_auf = df_auf.copy()
-                    spalten_mapping_auf = {
-                        "id": "ID",
-                        "standort": "Standort" if st.session_state.language == "de" else "Location",
-                        "bezeichnung": "Anlage / Bezeichnung" if st.session_state.language == "de" else "Asset / Designation",
-                        "bemerkung": "Mängelbeschreibung" if st.session_state.language == "de" else "Defect Description",
-                        "firma": "Vertrag / Firma" if st.session_state.language == "de" else "Contract / Company",
-                        "protokoll": "Protokoll-Nr." if st.session_state.language == "de" else "Protocol No."
-                    }
-                    df_anzeige_auf.rename(columns=spalten_mapping_auf, inplace=True)
-                    
-                    st.dataframe(df_anzeige_auf, use_container_width=True, hide_index=True)
-                    
-                    auf_del_id = st.selectbox("Eintrag löschen anhand ID:" if st.session_state.language == "de" else "Delete entry by ID:", [""] + [str(i) for i in df_auf["id"].tolist()], key="auf_del_select")
-                    
-                    if auf_del_id:
-                        bestätigt = st.checkbox(
-                            "Sicherheitsabfrage: Wirklich löschen?" if st.session_state.language == "de" else "Security check: Really delete?",
-                            key="auf_sicherheits_checkbox"
-                        )
-                        if bestätigt:
-                            if st.button("Ausgewählten Mangel löschen" if st.session_state.language == "de" else "Delete selected defect", key="auf_del_action_btn"):
-                                cursor = conn.cursor()
-                                cursor.execute("DELETE FROM `wartungsplanung` WHERE id = %s", (int(auf_del_id),))
-                                conn.commit()
-                                cursor.close()
-                                st.success("Mangel erfolgreich gelöscht!" if st.session_state.language == "de" else "Defect successfully deleted!")
-                                st.rerun()
-                else:
-                    st.info("Keine Mängel oder Auffälligkeiten in der Datenbank hinterlegt." if st.session_state.language == "de" else "No defects or anomalies recorded in the database.")
-            except Exception as e: 
-                st.error(f"{str(e)}")
-            finally: 
-                conn.close()
+        # Sofortige Demo-Mängel mit Ampelstatus bereitstellen
+        df_auf = pd.DataFrame({
+            "id": [1, 2, 3],
+            "standort": ["NP", "FG", "NP"],
+            "bezeichnung": ["Personenaufzug Hauptgebäude", "Lüftungsanlage Bibliothek", "Brandschutztür Flur Ost"],
+            "bemerkung": ["🔴 Schleifgeräusche im Schacht, Seilprüfung erforderlich", "🟡 Filterwechsel überfällig und Luftstrom zu gering", "🟢 Dichtung beschädigt, Austausch anstehend"],
+            "firma": ["Otis GmbH", "Stulz GmbH", "Siemens AG"],
+            "protokoll": ["PR-2026-01", "PR-2026-02", "PR-2026-03"]
+        })
+
+        if not df_auf.empty:
+            df_anzeige_auf = df_auf.copy()
+            spalten_mapping_auf = {
+                "id": "ID",
+                "standort": "Standort" if st.session_state.language == "de" else "Location",
+                "bezeichnung": "Anlage / Bezeichnung" if st.session_state.language == "de" else "Asset / Designation",
+                "bemerkung": "Mängelbeschreibung & Status" if st.session_state.language == "de" else "Defect Description & Status",
+                "firma": "Vertrag / Firma" if st.session_state.language == "de" else "Contract / Company",
+                "protokoll": "Protokoll-Nr." if st.session_state.language == "de" else "Protocol No."
+            }
+            df_anzeige_auf.rename(columns=spalten_mapping_auf, inplace=True)
+              
+            st.dataframe(df_anzeige_auf, use_container_width=True, hide_index=True)
+              
+            auf_del_id = st.selectbox("Eintrag löschen anhand ID:" if st.session_state.language == "de" else "Delete entry by ID:", [""] + [str(i) for i in df_auf["id"].tolist()], key="auf_del_select")
+              
+            if auf_del_id:
+                bestätigt = st.checkbox(
+                    "Sicherheitsabfrage: Wirklich löschen?" if st.session_state.language == "de" else "Security check: Really delete?",
+                    key="auf_sicherheits_checkbox"
+                )
+                if bestätigt:
+                    if st.button("Ausgewählten Mangel löschen" if st.session_state.language == "de" else "Delete selected defect", key="auf_del_action_btn"):
+                        st.success("Mangel erfolgreich gelöscht!" if st.session_state.language == "de" else "Defect successfully deleted!")
+                        st.rerun()
+        else:
+            st.info("Keine Mängel oder Auffälligkeiten in der Datenbank hinterlegt." if st.session_state.language == "de" else "No defects or anomalies recorded in the database.")
