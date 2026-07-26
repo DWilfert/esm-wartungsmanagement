@@ -196,13 +196,15 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
         
     df_display.columns = lbl_tbl
 
-    # Tabelle ohne automatischen Sprung-Trigger anzeigen
+    # Tabelle mit aktiviertem on_select, aber ohne den harten Rerun-Sprung zur Startseite
     if gewaehlte_ansicht == "🖥️ Fullscreen":
-        st.dataframe(
+        event = st.dataframe(
             df_display,
             width="stretch",
             height=650, 
-            hide_index=True
+            hide_index=True,
+            selection_mode="single-row",
+            on_select="rerun"
         )
     else:
         st.markdown(f'''
@@ -226,9 +228,32 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             
         st.markdown("---")
 
-        st.dataframe(
+        event = st.dataframe(
             df_display,
             width="stretch",
             height=320,
-            hide_index=True
+            hide_index=True,
+            selection_mode="single-row",
+            on_select="rerun"
         )
+
+    # Sichere Detailansicht direkt unter der Tabelle, statt unkontrolliert umzuspringen
+    if event and event.get("selection", {}).get("rows"):
+        zeilen_liste = event["selection"]["rows"]
+        if len(zeilen_liste) > 0:
+            echte_zeilen_nummer = zeilen_liste[0]
+            gew_vertrag = df_filtered.iloc[echte_zeilen_nummer]
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown(f"#### 🔍 Vertrags-Details: {gew_vertrag['bezeichnung']}")
+            
+            col_d1, col_d2, col_d3 = st.columns(3)
+            with col_d1:
+                st.markdown(f"**Anlagen-ID:** {gew_vertrag['anlagenid']}")
+                st.markdown(f"**Standort:** {gew_vertrag['standort']}")
+            with col_d2:
+                st.markdown(f"**Wartungsfirma:** {gew_vertrag['firma']}")
+                st.markdown(f"**Gewerk:** {gew_vertrag['gewerksbez']}")
+            with col_d3:
+                st.markdown(f"**Kosten p.a.:** {gew_vertrag['kostenpa']:,.2f} €")
+                st.markdown(f"**Gewährleistung / Cluster:** {gew_vertrag['gewaehrleistung']}")
