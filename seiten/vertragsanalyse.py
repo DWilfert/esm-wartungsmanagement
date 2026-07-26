@@ -46,7 +46,7 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             border: 1px solid rgba(56, 189, 248, 0.4);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             border-radius: 6px;
-            padding: 8px 12px;
+            padding: 10px 15px;
             margin-top: 0px;
             height: 100%;
             display: flex;
@@ -180,7 +180,6 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
                 </div>
             ''', unsafe_allow_html=True)
 
-    # Maximales Tabellenfenster ohne Linien-Verschwendung
     st.dataframe(
         df_display,
         width="stretch",
@@ -190,8 +189,8 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Auswahlfeld links und Detailanzeige exakt in derselben Zeile nebeneinander
-    col_select, col_card = st.columns([3, 7])
+    # Exakte 50/50 Aufteilung (oder 4/8) für absolute Symmetrie in einer Zeile
+    col_select, col_card = st.columns([4, 8])
     
     with col_select:
         vertrag_namen = [""] + df_filtered["bezeichnung"].tolist()
