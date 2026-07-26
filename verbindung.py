@@ -8,7 +8,8 @@ def hole_datenbank_verbindung():
             host=st.secrets["mysql"]["host"],
             user=st.secrets["mysql"]["user"],
             password=st.secrets["mysql"]["password"],
-            database=st.secrets["mysql"]["database"]
+            database=st.secrets["mysql"]["database"],
+            port=int(st.secrets["mysql"]["port"])
         )
     except Exception:
         return None
