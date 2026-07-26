@@ -46,8 +46,7 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             border: 1px solid rgba(56, 189, 248, 0.4);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             border-radius: 6px;
-            padding: 10px 15px;
-            margin-top: 0px;
+            padding: 6px 12px;
             height: 100%;
             display: flex;
             flex-direction: column;
@@ -72,8 +71,7 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "d": "Unklare Zuordnung von Anlagen zu Wartungsverträgen",
             "e": "Mängel und technische Auffälligkeiten aus der Anlagenerfassung und Wartungsprotokollen",
             "lbl_standort": "Standort-Filter:",
-            "lbl_ansicht": "Ansicht:",
-            "lbl_detail": "Detailansicht"
+            "lbl_ansicht": "Ansicht:"
         }
     else:
         TXT_VA = {
@@ -91,8 +89,7 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "d": "Unclear assignment of assets to maintenance contracts",
             "e": "Defects and technical abnormalities from asset registration and maintenance logs",
             "lbl_standort": "Location Filter:",
-            "lbl_ansicht": "View:",
-            "lbl_detail": "Detailed View"
+            "lbl_ansicht": "View:"
         }
 
     st.subheader(TXT_VA["title"])
@@ -189,22 +186,29 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Exakte 50/50 Aufteilung (oder 4/8) für absolute Symmetrie in einer Zeile
-    col_select, col_card = st.columns([4, 8])
+    # Perfekt ausgerichtete Zeile: Info-Symbol ganz links, Auswahlfenster, Detailkarte
+    col_icon, col_select, col_card = st.columns([0.6, 3.4, 8])
     
+    with col_icon:
+        st.markdown("""
+            <div style="font-size: 1.2rem; text-align: center; padding-top: 28px;">
+                ℹ️
+            </div>
+        """, unsafe_allow_html=True)
+
     with col_select:
         vertrag_namen = [""] + df_filtered["bezeichnung"].tolist()
-        ausgewaehlter_vertrag = st.selectbox(TXT_VA["lbl_detail"], options=vertrag_namen, key="enterprise_direct_select")
+        ausgewaehlter_vertrag = st.selectbox("", options=vertrag_namen, key="enterprise_direct_select", label_visibility="collapsed")
 
     with col_card:
         if ausgewaehlter_vertrag:
             gew_vertrag = df_filtered[df_filtered["bezeichnung"] == ausgewaehlter_vertrag].iloc[0]
             st.markdown(f"""
                 <div class="enterprise-detail-card">
-                    <div style="font-size: 11px; font-weight: bold; color: #38bdf8; margin-bottom: 3px;">
-                        🔍 {gew_vertrag['bezeichnung']}
+                    <div style="font-size: 11px; font-weight: bold; color: #38bdf8; margin-bottom: 2px;">
+                        {gew_vertrag['bezeichnung']}
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 10px; line-height: 1.3; opacity: 0.9;">
+                    <div style="display: flex; justify-content: space-between; font-size: 10px; line-height: 1.2; opacity: 0.9;">
                         <div>ID: {gew_vertrag['anlagenid']} | Ort: {gew_vertrag['standort']} | Firma: {gew_vertrag['firma']}</div>
                         <div>Gewerk: {gew_vertrag['gewerksbez']} | Kosten: {gew_vertrag['kostenpa']:,.2f} €</div>
                         <div>Cluster: <span style="color: #34d399; font-weight: bold;">{gew_vertrag['gewaehrleistung']}</span></div>
