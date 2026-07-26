@@ -1,0 +1,250 @@
+import streamlit as st
+import pandas as pd
+from datenbank.befehle import hole_datenbank_verbindung
+
+def zeige_vertragsanalyse(v_id_auswahl=""):
+    st.markdown("""
+        <style>
+        input, select, textarea, div[data-baseweb="select"] span, label, .stRadio div {
+            font-size: 0.82rem !important;
+        }
+        
+        div[data-testid="InputInstructions"] {
+            display: none !important;
+        }
+        
+        input::placeholder, textarea::placeholder {
+            color: #94a3b8 !important;
+            font-style: italic !important;
+            opacity: 1 !important;
+        }
+        
+        div[data-baseweb="popover"], div[data-baseweb="menu"], ul[data-baseweb="menu"] {
+            background-color: var(--secondary-background-color) !important;
+        }
+        
+        ul[role="listbox"] li, li[role="option"] {
+            background-color: var(--secondary-background-color) !important;
+            color: var(--text-color) !important;
+            font-size: 0.85rem !important;
+        }
+        
+        ul[role="listbox"] li:hover,
+        ul[role="listbox"] li[aria-selected="true"],
+        li[role="option"]:hover,
+        li[role="option"][aria-selected="true"] {
+            background-color: rgba(128, 128, 128, 0.2) !important;
+            color: var(--text-color) !important;
+        }
+        
+        div[data-testid="stElementToolbar"], 
+        div[data-testid="stElementToolbar"] button,
+        span[data-testid="stTooltipHoverTarget"] {
+            background-color: var(--secondary-background-color) !important;
+            color: var(--text-color) !important;
+        }
+        
+        div[data-baseweb="tooltip"], div[role="tooltip"], div.stTooltipContent {
+            background-color: var(--secondary-background-color) !important;
+            color: var(--text-color) !important;
+            border: 1px solid rgba(128, 128, 128, 0.3) !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        div[data-testid="stDataFrame"] {
+            background-color: var(--secondary-background-color) !important;
+            border: 1px solid rgba(128, 128, 128, 0.25) !important;
+            border-radius: 0.5rem;
+            padding: 4px;
+        }
+
+        .buchhaltung-info-zeile {
+            display: flex;
+            gap: 30px;
+            background-color: var(--secondary-background-color);
+            padding: 8px 14px;
+            border-radius: 6px;
+            border: 1px solid rgba(128, 128, 128, 0.15);
+            font-size: 11px;
+            font-style: italic;
+            color: var(--text-color);
+            opacity: 0.85;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        
+        /* Filter-Container komplett transparent gemacht, damit der Balken verschwindet */
+        .filter-container {
+            background-color: transparent !important;
+            padding: 0px !important;
+            border: none !important;
+            margin-bottom: 15px;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    if st.session_state.language == "de":
+        TXT_VA = {
+            "title": "📊 Vertragsanalyse",
+            "desc": "Kaufmännische Auswertung von Wartungs-, Service-, Garantie- und Reparaturverträgen.",
+            "stat_total": "Gesamtkosten p.a.",
+            "stat_count": "Verträge Gesamt",
+            "stat_avg": "Ø-Wert pro Vertrag",
+            "no_data": "Keine Vertragsdaten zur Analyse vorhanden.",
+            "filter_all": "Alle",
+            "info_title": "📋 Maßnahmen-Leitfaden & Clusterung einblenden",
+            "a": "Abweichungen zwischen Anlagenbestand, Verträgen und Wartungsprotokollen",
+            "b": "Unvollständige oder fehlende Wartungs- und Prüfprotokolle",
+            "c": "Abweichungen bei Wartungs- und Prüfintervallen",
+            "d": "Unklare Zuordnung von Anlagen zu Wartungsverträgen",
+            "e": "Mängel und technische Auffälligkeiten aus der Anlagenerfassung und Wartungsprotokollen",
+            "view_mode": "Ansichtsmodus:",
+            "lbl_standort": "Standort-Filter:",
+            "lbl_ansicht": "Ansicht:"
+        }
+    else:
+        TXT_VA = {
+            "title": "📊 Contract Analysis",
+            "desc": "Commercial evaluation of maintenance, service, warranty, and repair contracts.",
+            "stat_total": "Total Cost p.a.",
+            "stat_count": "Total Contracts",
+            "stat_avg": "Ø Value per Contract",
+            "no_data": "No contract data available for analysis.",
+            "filter_all": "All",
+            "info_title": "📋 Show Action Guide & Clustering",
+            "a": "Discrepancies between asset inventory, contracts, and maintenance logs",
+            "b": "Incomplete or missing maintenance and inspection protocols",
+            "c": "Deviations in maintenance and inspection intervals",
+            "d": "Unclear assignment of assets to maintenance contracts",
+            "e": "Defects and technical abnormalities from asset registration and maintenance logs",
+            "view_mode": "View Mode:",
+            "lbl_standort": "Location Filter:",
+            "lbl_ansicht": "View:"
+        }
+
+    st.subheader(TXT_VA["title"])
+    st.markdown(f"<div style='font-size: 13px; color: var(--text-color); opacity: 0.7; margin-bottom: 15px;'>{TXT_VA['desc']}</div>", unsafe_allow_html=True)
+
+    df = pd.DataFrame()
+    conn = hole_datenbank_verbindung()
+    if conn is not None:
+        try:
+            df = pd.read_sql("SELECT * FROM `wartungsvertraege`", conn)
+        except:
+            pass
+        finally:
+            conn.close()
+
+    if df.empty:
+        st.info(TXT_VA["no_data"])
+        return
+
+    with st.container():
+        st.markdown('<div class="filter-container">', unsafe_allow_html=True)
+        col_ctrl1, col_ctrl2 = st.columns(2)
+        
+        with col_ctrl1:
+            standort_optionen = [TXT_VA["filter_all"], "NP", "FG"]
+            ausgewaehlter_standort = st.radio(
+                TXT_VA["lbl_standort"], 
+                options=standort_optionen, 
+                horizontal=True,
+                key="va_standort_radio"
+            )
+
+        with col_ctrl2:
+            opt_ansicht = ["📊 Dashboard", "🖥️ Fullscreen"] if st.session_state.language == "de" else ["📊 Dashboard", "🖥️ Fullscreen"]
+            gewaehlte_ansicht = st.radio(
+                TXT_VA["lbl_ansicht"],
+                options=opt_ansicht,
+                horizontal=True,
+                key="va_view_mode_radio"
+            )
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    if ausgewaehlter_standort != TXT_VA["filter_all"] and ausgewaehlter_standort is not None:
+        df = df[df["standort"] == ausgewaehlter_standort]
+
+    if df.empty:
+        st.info(TXT_VA["no_data"])
+        return
+        
+    # FIX: Sicheres Berechnen der Gesamtkosten, ignoriert leere Datenbank-Felder (NULL/None)
+    if "kostenpa" in df.columns:
+        total_kosten = pd.to_numeric(df["kostenpa"], errors="coerce").fillna(0.0).sum()
+    else:
+        total_kosten = 0.0
+        
+    anzahl_vertraege = len(df)
+    avg_kosten = total_kosten / anzahl_vertraege if anzahl_vertraege > 0 else 0.0
+
+    if st.session_state.language == "de":
+        lbl_tbl = ["Bezeichnung", "Firma", "Standort", "Kosten p.a.", "Benchmark p.a.", "Clusterung"]
+    else:
+        lbl_tbl = ["Designation", "Company", "Location", "Cost p.a.", "Benchmark p.a.", "Clustering"]
+
+    df_filtered = df[["anlagenid", "bezeichnung", "firma", "standort", "kostenpa", "benchmarkpa", "gewaehrleistung"]].copy().reset_index(drop=True)
+    df_display = df_filtered[["bezeichnung", "firma", "standort", "kostenpa", "benchmarkpa", "gewaehrleistung"]].copy()
+    
+    # FIX: Behandeln von "NoneType" (MySQL NULL), bevor die Währungs-Formatierung angewandt wird
+    if "kostenpa" in df_display.columns:
+        df_display["kostenpa"] = pd.to_numeric(df_display["kostenpa"], errors="coerce").fillna(0.0)
+        df_display["kostenpa"] = df_display["kostenpa"].map('{:,.2f} €'.format)
+        
+    if "benchmarkpa" in df_display.columns:
+        df_display["benchmarkpa"] = pd.to_numeric(df_display["benchmarkpa"], errors="coerce").fillna(0.0)
+        df_display["benchmarkpa"] = df_display["benchmarkpa"].map('{:,.2f} €'.format)
+        
+    df_display.columns = lbl_tbl
+
+    if gewaehlte_ansicht == "🖥️ Fullscreen":
+        event = st.dataframe(
+            df_display,
+            width="stretch",
+            height=650, 
+            hide_index=True,
+            selection_mode="single-row",
+            on_select="rerun"
+        )
+    else:
+        st.markdown(f'''
+            <div class="buchhaltung-info-zeile">
+                <div><strong>{TXT_VA["stat_total"]}:</strong> <em>{total_kosten:,.2f} €</em></div>
+                <div><strong>{TXT_VA["stat_count"]}:</strong> <em>{anzahl_vertraege}</em></div>
+                <div><strong>{TXT_VA["stat_avg"]}:</strong> <em>{avg_kosten:,.2f} €</em></div>
+            </div>
+        ''', unsafe_allow_html=True)
+
+        with st.expander(TXT_VA['info_title'], expanded=False):
+            st.markdown(f'''
+                <div style='font-size: 12px; line-height: 1.6;'>
+                    <strong>A:</strong> {TXT_VA['a']}<br>
+                    <strong>B:</strong> {TXT_VA['b']}<br>
+                    <strong>C:</strong> {TXT_VA['c']}<br>
+                    <strong>D:</strong> {TXT_VA['d']}<br>
+                    <strong>E:</strong> {TXT_VA['e']}
+                </div>
+            ''', unsafe_allow_html=True)
+            
+        st.markdown("---")
+
+        event = st.dataframe(
+            df_display,
+            width="stretch",
+            height=320,
+            hide_index=True,
+            selection_mode="single-row",
+            on_select="rerun"
+        )
+
+    if event and event.get("selection", {}).get("rows"):
+        zeilen_liste = event["selection"]["rows"]
+        if len(zeilen_liste) > 0:
+            echte_zeilen_nummer = zeilen_liste[0]
+            anl_id = df_filtered.iloc[echte_zeilen_nummer]["anlagenid"]
+            
+            if pd.notna(anl_id):
+                st.session_state.ziel_vertrags_id = int(anl_id)
+                st.session_state.app_seite_whitespace = True
+                st.session_state.app_seite_wechseln = True
+                st.rerun()
