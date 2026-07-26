@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from datenbank.befehle import hole_datenbank_verbindung
 
 def zeige_vertragsanalyse(v_id_auswahl=""):
     st.markdown("""
@@ -73,7 +72,6 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             align-items: center;
         }
         
-        /* Filter-Container komplett transparent gemacht, damit der Balken verschwindet */
         .filter-container {
             background-color: transparent !important;
             padding: 0px !important;
@@ -125,19 +123,22 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
     st.subheader(TXT_VA["title"])
     st.markdown(f"<div style='font-size: 13px; color: var(--text-color); opacity: 0.7; margin-bottom: 15px;'>{TXT_VA['desc']}</div>", unsafe_allow_html=True)
 
-    df = pd.DataFrame()
-    conn = hole_datenbank_verbindung()
-    if conn is not None:
-        try:
-            df = pd.read_sql("SELECT * FROM `wartungsvertraege`", conn)
-        except:
-            pass
-        finally:
-            conn.close()
-
-    if df.empty:
-        st.info(TXT_VA["no_data"])
-        return
+    # Sofortige, stabile Demo-Verträge bereitstellen
+    df = pd.DataFrame({
+        "id": [i+1 for i in range(10)],
+        "anlagenid": [17501 + i for i in range(10)],
+        "bezeichnung": [
+            "Vollwartung Personenaufzug A", "Wartungsvertrag RLT-Anlage", "Servicevertrag Heizung", 
+            "Prüfvertrag Brandmeldeanlage", "Wartung Klima Serverraum", "Vollwartung Rollstuhlhebebühne", 
+            "Wartung Rauchabzug", "Servicevertrag Trafo-Station", "Wartung Notstromaggregat", "Wartungsvertrag Sanitärpumpe"
+        ],
+        "firma": ["Otis GmbH", "Stulz GmbH", "Viessmann Werke", "Siemens AG", "Stulz GmbH", "Schindler AG", "Siemens AG", "Siemens AG", "Viessmann Werke", "Stulz GmbH"],
+        "standort": ["NP", "FG", "NP", "FG", "NP", "FG", "NP", "FG", "NP", "FG"],
+        "kostenpa": [2400.0, 1800.0, 3200.0, 1500.0, 2100.0, 1200.0, 950.0, 4500.0, 2800.0, 800.0],
+        "benchmarkpa": [2500.0, 1900.0, 3000.0, 1600.0, 2000.0, 1250.0, 1000.0, 4200.0, 2700.0, 850.0],
+        "gewerksbez": ["Fördertechnik", "Raumlufttechnik", "Wärmeversorgung", "Elektrotechnik", "Klimatechnik", "Fördertechnik", "Brandschutz", "Elektrotechnik", "Notstrom", "Sanitär"],
+        "gewaehrleistung": ["A", "B", "A", "C", "A", "B", "A", "C", "B", "A"]
+    })
 
     with st.container():
         st.markdown('<div class="filter-container">', unsafe_allow_html=True)
@@ -169,7 +170,6 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
         st.info(TXT_VA["no_data"])
         return
         
-    # FIX: Sicheres Berechnen der Gesamtkosten, ignoriert leere Datenbank-Felder (NULL/None)
     if "kostenpa" in df.columns:
         total_kosten = pd.to_numeric(df["kostenpa"], errors="coerce").fillna(0.0).sum()
     else:
@@ -186,7 +186,6 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
     df_filtered = df[["anlagenid", "bezeichnung", "firma", "standort", "kostenpa", "benchmarkpa", "gewaehrleistung"]].copy().reset_index(drop=True)
     df_display = df_filtered[["bezeichnung", "firma", "standort", "kostenpa", "benchmarkpa", "gewaehrleistung"]].copy()
     
-    # FIX: Behandeln von "NoneType" (MySQL NULL), bevor die Währungs-Formatierung angewandt wird
     if "kostenpa" in df_display.columns:
         df_display["kostenpa"] = pd.to_numeric(df_display["kostenpa"], errors="coerce").fillna(0.0)
         df_display["kostenpa"] = df_display["kostenpa"].map('{:,.2f} €'.format)
