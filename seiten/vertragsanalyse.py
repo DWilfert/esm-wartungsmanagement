@@ -45,10 +45,10 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
             border: 1px solid rgba(56, 189, 248, 0.4);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
-            margin-bottom: 20px;
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin-top: 10px;
+            margin-bottom: 10px;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -69,7 +69,8 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "d": "Unklare Zuordnung von Anlagen zu Wartungsverträgen",
             "e": "Mängel und technische Auffälligkeiten aus der Anlagenerfassung und Wartungsprotokollen",
             "lbl_standort": "Standort-Filter:",
-            "lbl_ansicht": "Ansicht:"
+            "lbl_ansicht": "Ansicht:",
+            "lbl_detail": "Detailansicht"
         }
     else:
         TXT_VA = {
@@ -87,7 +88,8 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "d": "Unclear assignment of assets to maintenance contracts",
             "e": "Defects and technical abnormalities from asset registration and maintenance logs",
             "lbl_standort": "Location Filter:",
-            "lbl_ansicht": "View:"
+            "lbl_ansicht": "View:",
+            "lbl_detail": "Detailed View"
         }
 
     st.subheader(TXT_VA["title"])
@@ -175,46 +177,44 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
                 </div>
             ''', unsafe_allow_html=True)
             
-        st.markdown("---")
+        # Dünne Trennlinie (st.markdown("---")) komplett entfernt für maximalen Platz!
 
-    # Native, saubere Streamlit-Tabelle im modernen Enterprise-Look
+    # Größeres Tabellenfenster ohne Scroll-Stress
     st.dataframe(
         df_display,
         width="stretch",
-        height=400 if gewaehlte_ansicht == "🖥️ Fullscreen" else 280,
+        height=520 if gewaehlte_ansicht == "🖥️ Fullscreen" else 420,
         hide_index=True
     )
 
-    # Direktes, klares Auswahl-Segment für die Detailanalyse darunter
+    # Auswahlfeld extrem kompakt (70% kleiner / schmales Spaltenlayout) und passend beschriftet
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Wir nutzen hier direkte Buttons für jeden Eintrag in einer sauberen horizontalen Leiste oder direkt als Übersicht
-    col_det_header, col_det_action = st.columns([3, 1])
-    with col_det_header:
-        vertrag_namen = df_filtered["bezeichnung"].tolist()
-        ausgewaehlter_vertrag = st.selectbox("", options=vertrag_namen, key="enterprise_direct_select", label_visibility="collapsed")
+    col_space, col_select = st.columns([7, 3])
+    with col_select:
+        vertrag_namen = [""] + df_filtered["bezeichnung"].tolist()
+        ausgewaehlter_vertrag = st.selectbox(TXT_VA["lbl_detail"], options=vertrag_namen, key="enterprise_direct_select")
 
     if ausgewaehlter_vertrag:
         gew_vertrag = df_filtered[df_filtered["bezeichnung"] == ausgewaehlter_vertrag].iloc[0]
         st.markdown(f"""
             <div class="enterprise-detail-card">
-                <h4 style="color: #38bdf8; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid rgba(56,189,248,0.2); padding-bottom: 8px;">
-                    🔍 Enterprise-Detailanalyse: {gew_vertrag['bezeichnung']}
-                </h4>
-                <div style="display: flex; justify-content: space-between; font-size: 13px; line-height: 1.8;">
+                <div style="font-size: 12px; font-weight: bold; color: #38bdf8; margin-bottom: 6px;">
+                    🔍 Detailansicht: {gew_vertrag['bezeichnung']}
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 11px; line-height: 1.5;">
                     <div>
-                        <b>Anlagen-ID:</b> {gew_vertrag['anlagenid']}<br>
-                        <b>Standort:</b> {gew_vertrag['standort']}<br>
-                        <b>Wartungsfirma:</b> {gew_vertrag['firma']}
+                        <b>ID:</b> {gew_vertrag['anlagenid']} | 
+                        <b>Standort:</b> {gew_vertrag['standort']} | 
+                        <b>Firma:</b> {gew_vertrag['firma']}
                     </div>
                     <div>
-                        <b>Gewerk:</b> {gew_vertrag['gewerksbez']}<br>
-                        <b>Kosten p.a.:</b> {gew_vertrag['kostenpa']:,.2f} €<br>
-                        <b>Benchmark p.a.:</b> {gew_vertrag['benchmarkpa']:,.2f} €
+                        <b>Gewerk:</b> {gew_vertrag['gewerksbez']} | 
+                        <b>Kosten p.a.:</b> {gew_vertrag['kostenpa']:,.2f} €
                     </div>
                     <div>
-                        <b>Clusterung / Gewährleistung:</b> <span style="color: #34d399; font-weight: bold;">Klasse {gew_vertrag['gewaehrleistung']}</span><br>
-                        <b>Status:</b> <span style="color: #38bdf8;">Aktiv & Überwacht</span>
+                        <b>Cluster:</b> <span style="color: #34d399; font-weight: bold;">{gew_vertrag['gewaehrleistung']}</span> | 
+                        <b>Status:</b> <span style="color: #38bdf8;">Aktiv</span>
                     </div>
                 </div>
             </div>
