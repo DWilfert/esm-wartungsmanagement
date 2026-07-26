@@ -71,7 +71,8 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "d": "Unklare Zuordnung von Anlagen zu Wartungsverträgen",
             "e": "Mängel und technische Auffälligkeiten aus der Anlagenerfassung und Wartungsprotokollen",
             "lbl_standort": "Standort-Filter:",
-            "lbl_ansicht": "Ansicht:"
+            "lbl_ansicht": "Ansicht:",
+            "select_placeholder": "-- Vertrag auswählen --"
         }
     else:
         TXT_VA = {
@@ -89,7 +90,8 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "d": "Unclear assignment of assets to maintenance contracts",
             "e": "Defects and technical abnormalities from asset registration and maintenance logs",
             "lbl_standort": "Location Filter:",
-            "lbl_ansicht": "View:"
+            "lbl_ansicht": "View:",
+            "select_placeholder": "-- Select contract --"
         }
 
     st.subheader(TXT_VA["title"])
@@ -186,7 +188,7 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Symbol exakt auf die Höhe des Auswahlfeldes ausgerichtet (ca. 7px Padding oben)
+    # Info-Symbol und Auswahlfeld mit echtem Leereintrag als Standard
     col_icon, col_select, col_card = st.columns([0.5, 3.5, 8])
     
     with col_icon:
@@ -197,11 +199,11 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
         """, unsafe_allow_html=True)
 
     with col_select:
-        vertrag_namen = [""] + df_filtered["bezeichnung"].tolist()
-        ausgewaehlter_vertrag = st.selectbox("", options=vertrag_namen, key="enterprise_direct_select", label_visibility="collapsed")
+        vertrag_namen = [TXT_VA["select_placeholder"]] + df_filtered["bezeichnung"].tolist()
+        ausgewaehlter_vertrag = st.selectbox("", options=vertrag_namen, index=0, key="enterprise_direct_select", label_visibility="collapsed")
 
     with col_card:
-        if ausgewaehlter_vertrag:
+        if ausgewaehlter_vertrag and ausgewaehlter_vertrag != TXT_VA["select_placeholder"]:
             gew_vertrag = df_filtered[df_filtered["bezeichnung"] == ausgewaehlter_vertrag].iloc[0]
             st.markdown(f"""
                 <div class="enterprise-detail-card">
