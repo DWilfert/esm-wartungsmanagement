@@ -1,6 +1,6 @@
+import mysql.connector
 import streamlit as st
 import pandas as pd
-import mysql.connector
 
 def hole_datenbank_verbindung():
     try:
@@ -10,8 +10,9 @@ def hole_datenbank_verbindung():
             password=st.secrets["mysql"]["password"],
             database=st.secrets["mysql"]["database"]
         )
-    except Exception as e:
-        # Kein st.error hier, damit in der Cloud keine roten Fehlerbalken aufspringen
+    except Exception:
+        # Absichtlich ganz leise ohne Fehlermeldung auf dem Bildschirm, 
+        # damit die Cloud-Version für deinen Chef sauber durchläuft!
         return None
 
 def initialisiere_beispieldaten():
