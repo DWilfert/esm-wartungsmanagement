@@ -44,11 +44,14 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
         .enterprise-detail-card {
             background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
             border: 1px solid rgba(56, 189, 248, 0.4);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-            border-radius: 8px;
-            padding: 10px 15px;
-            margin-top: 10px;
-            margin-bottom: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-top: 0px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -176,46 +179,42 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
                     <strong>E:</strong> {TXT_VA['e']}
                 </div>
             ''', unsafe_allow_html=True)
-            
-        # Dünne Trennlinie (st.markdown("---")) komplett entfernt für maximalen Platz!
 
-    # Größeres Tabellenfenster ohne Scroll-Stress
+    # Maximales Tabellenfenster ohne Linien-Verschwendung
     st.dataframe(
         df_display,
         width="stretch",
-        height=520 if gewaehlte_ansicht == "🖥️ Fullscreen" else 420,
+        height=540 if gewaehlte_ansicht == "🖥️ Fullscreen" else 440,
         hide_index=True
     )
 
-    # Auswahlfeld extrem kompakt (70% kleiner / schmales Spaltenlayout) und passend beschriftet
     st.markdown("<br>", unsafe_allow_html=True)
+
+    # Auswahlfeld links und Detailanzeige exakt in derselben Zeile nebeneinander
+    col_select, col_card = st.columns([3, 7])
     
-    col_space, col_select = st.columns([7, 3])
     with col_select:
         vertrag_namen = [""] + df_filtered["bezeichnung"].tolist()
         ausgewaehlter_vertrag = st.selectbox(TXT_VA["lbl_detail"], options=vertrag_namen, key="enterprise_direct_select")
 
-    if ausgewaehlter_vertrag:
-        gew_vertrag = df_filtered[df_filtered["bezeichnung"] == ausgewaehlter_vertrag].iloc[0]
-        st.markdown(f"""
-            <div class="enterprise-detail-card">
-                <div style="font-size: 12px; font-weight: bold; color: #38bdf8; margin-bottom: 6px;">
-                    🔍 Detailansicht: {gew_vertrag['bezeichnung']}
-                </div>
-                <div style="display: flex; justify-content: space-between; font-size: 11px; line-height: 1.5;">
-                    <div>
-                        <b>ID:</b> {gew_vertrag['anlagenid']} | 
-                        <b>Standort:</b> {gew_vertrag['standort']} | 
-                        <b>Firma:</b> {gew_vertrag['firma']}
+    with col_card:
+        if ausgewaehlter_vertrag:
+            gew_vertrag = df_filtered[df_filtered["bezeichnung"] == ausgewaehlter_vertrag].iloc[0]
+            st.markdown(f"""
+                <div class="enterprise-detail-card">
+                    <div style="font-size: 11px; font-weight: bold; color: #38bdf8; margin-bottom: 3px;">
+                        🔍 {gew_vertrag['bezeichnung']}
                     </div>
-                    <div>
-                        <b>Gewerk:</b> {gew_vertrag['gewerksbez']} | 
-                        <b>Kosten p.a.:</b> {gew_vertrag['kostenpa']:,.2f} €
-                    </div>
-                    <div>
-                        <b>Cluster:</b> <span style="color: #34d399; font-weight: bold;">{gew_vertrag['gewaehrleistung']}</span> | 
-                        <b>Status:</b> <span style="color: #38bdf8;">Aktiv</span>
+                    <div style="display: flex; justify-content: space-between; font-size: 10px; line-height: 1.3; opacity: 0.9;">
+                        <div>ID: {gew_vertrag['anlagenid']} | Ort: {gew_vertrag['standort']} | Firma: {gew_vertrag['firma']}</div>
+                        <div>Gewerk: {gew_vertrag['gewerksbez']} | Kosten: {gew_vertrag['kostenpa']:,.2f} €</div>
+                        <div>Cluster: <span style="color: #34d399; font-weight: bold;">{gew_vertrag['gewaehrleistung']}</span></div>
                     </div>
                 </div>
-            </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+                <div class="enterprise-detail-card" style="opacity: 0.4; text-align: center; font-size: 11px; font-style: italic;">
+                    Kein Vertrag ausgewählt
+                </div>
+            """, unsafe_allow_html=True)
