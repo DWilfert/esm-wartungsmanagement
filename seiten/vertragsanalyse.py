@@ -69,7 +69,8 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "d": "Unklare Zuordnung von Anlagen zu Wartungsverträgen",
             "e": "Mängel und technische Auffälligkeiten aus der Anlagenerfassung und Wartungsprotokollen",
             "lbl_standort": "Standort-Filter:",
-            "lbl_ansicht": "Ansicht:"
+            "lbl_ansicht": "Ansicht:",
+            "btn_details": "🔍 Details anzeigen"
         }
     else:
         TXT_VA = {
@@ -87,7 +88,8 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "d": "Unclear assignment of assets to maintenance contracts",
             "e": "Defects and technical abnormalities from asset registration and maintenance logs",
             "lbl_standort": "Location Filter:",
-            "lbl_ansicht": "View:"
+            "lbl_ansicht": "View:",
+            "btn_details": "🔍 Show Details"
         }
 
     st.subheader(TXT_VA["title"])
@@ -143,44 +145,15 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
     anzahl_vertraege = len(df)
     avg_kosten = total_kosten / anzahl_vertraege if anzahl_vertraege > 0 else 0.0
 
-    # Session State für die Auswahl initialisieren, damit immer nur 1 aktiv ist
-    if "last_selected_vertrag_id" not in st.session_state:
-        st.session_state.last_selected_vertrag_id = None
-
-    df_filtered = df.copy().reset_index(drop=True)
-    
-    # Prüfen, welcher Datensatz aktuell ausgewählt sein soll
-    selected_flags = []
-    for idx, row in df_filtered.iterrows():
-        if row["id"] == st.session_state.last_selected_vertrag_id:
-            selected_flags.append(True)
-        else:
-            selected_flags.append(False)
-            
-    df_filtered.insert(0, "🔍 Details", selected_flags)
+    if "active_vertrag_id" not in st.session_state:
+        st.session_state.active_vertrag_id = None
 
     if st.session_state.language == "de":
-        lbl_tbl = ["🔍 Details", "Bezeichnung", "Firma", "Standort", "Kosten p.a.", "Benchmark p.a.", "Clusterung"]
+        lbl_tbl = ["Bezeichnung", "Firma", "Standort", "Kosten p.a.", "Benchmark p.a.", "Clusterung", "Aktion"]
     else:
-        lbl_tbl = ["🔍 Details", "Designation", "Company", "Location", "Cost p.a.", "Benchmark p.a.", "Clustering"]
+        lbl_tbl = ["Designation", "Company", "Location", "Cost p.a.", "Benchmark p.a.", "Clustering", "Action"]
 
-    df_display = df_filtered[["🔍 Details", "bezeichnung", "firma", "standort", "kostenpa", "benchmarkpa", "gewaehrleistung"]].copy()
-    
-    df_display["kostenpa"] = pd.to_numeric(df_display["kostenpa"], errors="coerce").fillna(0.0).map('{:,.2f} €'.format)
-    df_display["benchmarkpa"] = pd.to_numeric(df_display["benchmarkpa"], errors="coerce").fillna(0.0).map('{:,.2f} €'.format)
-    df_display.columns = lbl_tbl
-
-    editor_key = "editor_fs_vertraege" if gewaehlte_ansicht == "🖥️ Fullscreen" else "editor_dash_vertraege"
-
-    if gewaehlte_ansicht == "🖥️ Fullscreen":
-        edited_df = st.data_editor(
-            df_display,
-            width="stretch",
-            height=500,
-            hide_index=True,
-            key=editor_key
-        )
-    else:
+    if gewaehlte_ansicht != "🖥️ Fullscreen":
         st.markdown(f'''
             <div class="buchhaltung-info-zeile">
                 <div><strong>{TXT_VA["stat_total"]}:</strong> <em>{total_kosten:,.2f} €</em></div>
@@ -202,33 +175,34 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             
         st.markdown("---")
 
-        edited_df = st.data_editor(
-            df_display,
-            width="stretch",
-            height=300,
-            hide_index=True,
-            key=editor_key
-        )
+    # Saubere Enterprise-Darstellung: Jede Zeile bekommt einen echten, exklusiven Auswählen-Button
+    for index, row in df.iterrows():
+        c1, c2, c3, c4, c5, c6, c7 = st.columns([2.5, 1.5, 0.8, 1.2, 1.2, 0.8, 1.2])
+        
+        with c1:
+            st.markdown(f"<div style='font-size: 13px; padding-top: 6px;'>{row['bezeichnung']}</div>", unsafe_allow_html=True)
+        with c2:
+            st.markdown(f"<div style='font-size: 13px; opacity: 0.8; padding-top: 6px;'>{row['firma']}</div>", unsafe_allow_html=True)
+        with c3:
+            st.markdown(f"<div style='font-size: 13px; opacity: 0.8; padding-top: 6px;'>{row['standort']}</div>", unsafe_allow_html=True)
+        with c4:
+            st.markdown(f"<div style='font-size: 13px; opacity: 0.8; padding-top: 6px;'>{row['kostenpa']:,.2f} €</div>", unsafe_allow_html=True)
+        with c5:
+            st.markdown(f"<div style='font-size: 13px; opacity: 0.8; padding-top: 6px;'>{row['benchmarkpa']:,.2f} €</div>", unsafe_allow_html=True)
+        with c6:
+            st.markdown(f"<div style='font-size: 13px; opacity: 0.8; padding-top: 6px;'>Klasse {row['gewaehrleistung']}</div>", unsafe_allow_html=True)
+        with c7:
+            is_active = (st.session_state.active_vertrag_id == row['id'])
+            btn_label = "📍 Aktiv" if is_active else TXT_VA["btn_details"]
+            if st.button(btn_label, key=f"btn_vertrag_{row['id']}"):
+                st.session_state.active_vertrag_id = row['id']
+                st.rerun()
 
-    # Logik, um sicherzustellen, dass immer nur maximal 1 Häkchen aktiv ist
-    current_selected_rows = df_filtered.index[edited_df["🔍 Details"] == True].tolist()
-    
-    if current_selected_rows:
-        new_row_idx = current_selected_rows[-1] # Nimm das zuletzt angeklickte
-        new_id = df_filtered.iloc[new_row_idx]["id"]
-        if new_id != st.session_state.last_selected_vertrag_id:
-            st.session_state.last_selected_vertrag_id = new_id
-            st.rerun()
-    else:
-        if st.session_state.last_selected_vertrag_id is not None:
-            st.session_state.last_selected_vertrag_id = None
-            st.rerun()
-
-    # Detailkarte anzeigen für den aktuell ausgewählten Vertrag
-    if st.session_state.last_selected_vertrag_id is not None:
-        gew_vertrag_match = df_filtered[df_filtered["id"] == st.session_state.last_selected_vertrag_id]
-        if not gew_vertrag_match.empty:
-            gew_vertrag = gew_vertrag_match.iloc[0]
+    # Detailkarte für den aktiv ausgewählten Vertrag
+    if st.session_state.active_vertrag_id is not None:
+        match = df[df["id"] == st.session_state.active_vertrag_id]
+        if not match.empty:
+            gew_vertrag = match.iloc[0]
             st.markdown(f"""
                 <div class="enterprise-detail-card">
                     <h4 style="color: #38bdf8; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid rgba(56,189,248,0.2); padding-bottom: 8px;">
