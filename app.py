@@ -35,7 +35,7 @@ if "language" not in st.session_state:
 if "speicher_modus" not in st.session_state:
     st.session_state.speicher_modus = "manuell"
 
-# Einstellungen beim Start aus der MySQL-Datenbank laden
+# Einstellungen beim Start laden (mit Fallback, falls Cloud-Verbindung zur lokalen DB fehlschlägt)
 try:
     conn = hole_datenbank_verbindung()
     if conn is not None:
@@ -50,14 +50,15 @@ try:
         cursor.close()
         conn.close()
 except Exception:
+    # Fallback für Cloud/Offline-Betrieb (keine lokale DB erreichbar)
     pass
 
 # --- BILINGUALES MENÜ-WÖRTERBUCH ---
 TXT_MENU = {
     "de": {
         "hauptmenue": "### 🌟 HAUPTMENÜ",
-        "m1": "🏠 Startseite",  # <-- Startseite wieder an Position 1
-        "m16": "🔍 Globale Suche",  # <-- Direkt darunter als Turbo-Suche
+        "m1": "🏠 Startseite",  
+        "m16": "🔍 Globale Suche",  
         "m2": "📊 Vertragsanalyse", "m3": "📂 Vertragsdokumente",
         "m4": "📈 Wartungsanalyse", "m5": "⚠️ Auffälligkeiten", "m6": "🏫 Anlagen NP & FG",
         "m15": "🔄 360° Anlagen", 
@@ -67,7 +68,7 @@ TXT_MENU = {
     },
     "en": {
         "hauptmenue": "### 🌟 MAIN MENU",
-        "m1": "🏠 Home",  # <-- Home first
+        "m1": "🏠 Home",  
         "m16": "🔍 Global Search",
         "m2": "📊 Contract Analysis", "m3": "📂 Contract Documents",
         "m4": "📈 Maintenance Analysis", "m5": "⚠️ Discrepancies", "m6": "Asset Structure NP & FG",
@@ -88,7 +89,7 @@ if st.session_state.app_seite_wechseln:
     if st.session_state.app_ziel_seite is not None:
         st.session_state.haupt_navigation_final = st.session_state.app_ziel_seite
     else:
-        st.session_state.haupt_navigation_final = TXT_MENU["m1"]  # Standardziel ist Startseite
+        st.session_state.haupt_navigation_final = TXT_MENU["m1"]  
     st.session_state.app_seite_wechseln = False
     st.session_state.app_ziel_seite = None
 
@@ -137,7 +138,10 @@ st.markdown(
 
 # --- INITIALISIERUNG & LOGO ---
 lade_app_design()
-initialisiere_beispieldaten()
+try:
+    initialisiere_beispieldaten()
+except Exception:
+    pass
 
 logo_pfad = "logo1.png"
 try:
@@ -159,14 +163,13 @@ st.sidebar.markdown(TXT_MENU["hauptmenue"])
 
 ausgewaehlter_punkt = st.sidebar.radio(
     "Navigieren zu:" if st.session_state.language == "de" else "Navigate to:",
-    # <-- Startseite (m1) ganz oben, gefolgt von Globaler Suche (m16)
     [TXT_MENU[k] for k in ["m1", "m16", "m2", "m3", "m4", "m5", "m6", "m15", "m7", "m8", "m9", "m10", "m11", "m12", "m13"]], 
     key="haupt_navigation_final"
 )
 
 # --- ROUTING SYSTEM ---
 if ausgewaehlter_punkt == TXT_MENU["m1"]:
-    zeige_startseite()  # <-- Startseite öffnet sich nun beim Start als Erstes!
+    zeige_startseite()  
 elif ausgewaehlter_punkt == TXT_MENU["m16"]:
     zeige_globale_suche()
 elif ausgewaehlter_punkt == TXT_MENU["m2"]:
