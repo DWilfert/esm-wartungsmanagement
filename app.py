@@ -25,12 +25,12 @@ from seiten.globale_suche import zeige_globale_suche
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
-# --- SESSION STATES & DATENBANK-EINSTELLUNGEN LADEN ---
-if "app_theme" not in st.session_state:
-    st.session_state.app_theme = "Premium Dark"
-
+# --- SESSION STATES & SICHERHEIT ---
 if "language" not in st.session_state:
     st.session_state.language = "de"
+
+if "app_theme" not in st.session_state:
+    st.session_state.app_theme = "Premium Dark"
 
 if "speicher_modus" not in st.session_state:
     st.session_state.speicher_modus = "manuell"
