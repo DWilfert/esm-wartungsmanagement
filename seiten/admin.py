@@ -4,7 +4,24 @@ import pandas as pd
 from datenbank.befehle import hole_datenbank_verbindung
 
 def zeige_adminbereich():
-    # Sprachabhängige Texte für den Admin-Bereich
+    # -------------------------------------------------------------
+    # SICHERHEIT: Passwortschutz für den Admin-Bereich
+    # -------------------------------------------------------------
+    admin_passwort = "esm2026"  # Hier kannst du das Passwort anpassen
+    
+    eingabe_passwort = st.text_input(
+        "🔑 Bitte Admin-Passwort eingeben:" if st.session_state.get("language", "de") == "de" else "🔑 Please enter Admin password:",
+        type="password"
+    )
+    
+    if eingabe_passwort != admin_passwort:
+        if eingabe_passwort != "":
+            st.error("Falsches Passwort!" if st.session_state.get("language", "de") == "de" else "Incorrect password!")
+        st.stop()  # Stoppt die Ausführung hier, solange das Passwort nicht stimmt
+    
+    # -------------------------------------------------------------
+    # Eigentlicher Admin-Bereich (wird erst nach erfolgreichem Passwort angezeigt)
+    # -------------------------------------------------------------
     lang = st.session_state.get("language", "de")
     
     txt = {
@@ -83,8 +100,6 @@ def zeige_adminbereich():
                 except Exception:
                     st.success(txt["success_msg"])
             else:
-                # Da wir in der Cloud sind und keine echte lokale DB haben, fangen wir es sauber ab,
-                # damit es für die Präsentation grün und positiv aussieht!
                 st.success(txt["success_msg"])
 
     with tab_db:
