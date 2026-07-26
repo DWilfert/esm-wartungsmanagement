@@ -78,6 +78,16 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             border: none !important;
             margin-bottom: 15px;
         }
+        
+        .enterprise-detail-card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
         </style>
     """, unsafe_allow_html=True)
 
@@ -98,7 +108,8 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "e": "Mängel und technische Auffälligkeiten aus der Anlagenerfassung und Wartungsprotokollen",
             "view_mode": "Ansichtsmodus:",
             "lbl_standort": "Standort-Filter:",
-            "lbl_ansicht": "Ansicht:"
+            "lbl_ansicht": "Ansicht:",
+            "lbl_select_row": "🎛️ Enterprise-Schnellauswahl für Vertrags-Detailanalyse:"
         }
     else:
         TXT_VA = {
@@ -117,7 +128,8 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "e": "Defects and technical abnormalities from asset registration and maintenance logs",
             "view_mode": "View Mode:",
             "lbl_standort": "Location Filter:",
-            "lbl_ansicht": "View:"
+            "lbl_ansicht": "View:",
+            "lbl_select_row": "🎛️ Enterprise Quick Selection for Contract Detail Analysis:"
         }
 
     st.subheader(TXT_VA["title"])
@@ -154,7 +166,7 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             )
 
         with col_ctrl2:
-            opt_ansicht = ["📊 Dashboard", "🖥️ Fullscreen"] if st.session_state.language == "de" else ["📊 Dashboard", "🖥️ Fullscreen"]
+            opt_ansicht = ["📊 Dashboard", "🖥️ Fullscreen"]
             gewaehlte_ansicht = st.radio(
                 TXT_VA["lbl_ansicht"],
                 options=opt_ansicht,
@@ -196,15 +208,13 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
         
     df_display.columns = lbl_tbl
 
-    # Tabelle mit aktiviertem on_select, aber ohne den harten Rerun-Sprung zur Startseite
+    # Dashboard-Ansicht oder Fullscreen-Ansicht der Tabelle
     if gewaehlte_ansicht == "🖥️ Fullscreen":
-        event = st.dataframe(
+        st.dataframe(
             df_display,
             width="stretch",
-            height=650, 
-            hide_index=True,
-            selection_mode="single-row",
-            on_select="rerun"
+            height=450, 
+            hide_index=True
         )
     else:
         st.markdown(f'''
@@ -228,32 +238,50 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             
         st.markdown("---")
 
-        event = st.dataframe(
+        st.dataframe(
             df_display,
             width="stretch",
-            height=320,
-            hide_index=True,
-            selection_mode="single-row",
-            on_select="rerun"
+            height=280,
+            hide_index=True
         )
 
-    # Sichere Detailansicht direkt unter der Tabelle, statt unkontrolliert umzuspringen
-    if event and event.get("selection", {}).get("rows"):
-        zeilen_liste = event["selection"]["rows"]
-        if len(zeilen_liste) > 0:
-            echte_zeilen_nummer = zeilen_liste[0]
-            gew_vertrag = df_filtered.iloc[echte_zeilen_nummer]
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            st.markdown(f"#### 🔍 Vertrags-Details: {gew_vertrag['bezeichnung']}")
-            
-            col_d1, col_d2, col_d3 = st.columns(3)
-            with col_d1:
-                st.markdown(f"**Anlagen-ID:** {gew_vertrag['anlagenid']}")
-                st.markdown(f"**Standort:** {gew_vertrag['standort']}")
-            with col_d2:
-                st.markdown(f"**Wartungsfirma:** {gew_vertrag['firma']}")
-                st.markdown(f"**Gewerk:** {gew_vertrag['gewerksbez']}")
-            with col_d3:
-                st.markdown(f"**Kosten p.a.:** {gew_vertrag['kostenpa']:,.2f} €")
-                st.markdown(f"**Gewährleistung / Cluster:** {gew_vertrag['gewaehrleistung']}")
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Professionelle Enterprise-Selectbox mit eleganter visueller Einbettung
+    vertrag_optionen = ["-- Bitte wählen oder Vertrag aus Liste analysieren --" if st.session_state.language == "de" else "-- Please select contract for analysis --"] + df_filtered["bezeichnung"].tolist()
+    
+    col_sel1, col_sel2 = st.columns([7, 3])
+    with col_sel1:
+        ausgewaehlter_vertrag = st.selectbox(
+            TXT_VA["lbl_select_row"], 
+            options=vertrag_optionen, 
+            key="enterprise_vertrag_selector"
+        )
+
+    # Elegante, designte Enterprise-Detailkarte (öffnet sich nur bei Auswahl)
+    if ausgewaehlter_vertrag and not ausgewaehlter_vertrag.startswith("--"):
+        gew_vertrag = df_filtered[df_filtered["bezeichnung"] == ausgewaehlter_vertrag].iloc[0]
+        
+        st.markdown(f"""
+            <div class="enterprise-detail-card">
+                <h4 style="color: #38bdf8; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid rgba(56,189,248,0.2); padding-bottom: 8px;">
+                    🔍 Enterprise-Detailanalyse: {gew_vertrag['bezeichnung']}
+                </h4>
+                <div style="display: flex; justify-content: space-between; font-size: 13px; line-height: 1.8;">
+                    <div>
+                        <b>Anlagen-ID:</b> {gew_vertrag['anlagenid']}<br>
+                        <b>Standort:</b> {gew_vertrag['standort']}<br>
+                        <b>Wartungsfirma:</b> {gew_vertrag['firma']}
+                    </div>
+                    <div>
+                        <b>Gewerk:</b> {gew_vertrag['gewerksbez']}<br>
+                        <b>Kosten p.a.:</b> {gew_vertrag['kostenpa']:,.2f} €<br>
+                        <b>Benchmark p.a.:</b> {gew_vertrag['benchmarkpa']:,.2f} €
+                    </div>
+                    <div>
+                        <b>Clusterung / Gewährleistung:</b> <span style="color: #34d399; font-weight: bold;">Klasse {gew_vertrag['gewaehrleistung']}</span><br>
+                        <b>Status:</b> <span style="color: #38bdf8;">Aktiv & Überwacht</span>
+                    </div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
