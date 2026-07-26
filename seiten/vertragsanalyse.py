@@ -69,8 +69,7 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "d": "Unklare Zuordnung von Anlagen zu Wartungsverträgen",
             "e": "Mängel und technische Auffälligkeiten aus der Anlagenerfassung und Wartungsprotokollen",
             "lbl_standort": "Standort-Filter:",
-            "lbl_ansicht": "Ansicht:",
-            "btn_details": "🔍 Details anzeigen"
+            "lbl_ansicht": "Ansicht:"
         }
     else:
         TXT_VA = {
@@ -88,8 +87,7 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "d": "Unclear assignment of assets to maintenance contracts",
             "e": "Defects and technical abnormalities from asset registration and maintenance logs",
             "lbl_standort": "Location Filter:",
-            "lbl_ansicht": "View:",
-            "btn_details": "🔍 Show Details"
+            "lbl_ansicht": "View:"
         }
 
     st.subheader(TXT_VA["title"])
@@ -145,13 +143,17 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
     anzahl_vertraege = len(df)
     avg_kosten = total_kosten / anzahl_vertraege if anzahl_vertraege > 0 else 0.0
 
-    if "active_vertrag_id" not in st.session_state:
-        st.session_state.active_vertrag_id = None
-
     if st.session_state.language == "de":
-        lbl_tbl = ["Bezeichnung", "Firma", "Standort", "Kosten p.a.", "Benchmark p.a.", "Clusterung", "Aktion"]
+        lbl_tbl = ["Bezeichnung", "Firma", "Standort", "Kosten p.a.", "Benchmark p.a.", "Clusterung"]
     else:
-        lbl_tbl = ["Designation", "Company", "Location", "Cost p.a.", "Benchmark p.a.", "Clustering", "Action"]
+        lbl_tbl = ["Designation", "Company", "Location", "Cost p.a.", "Benchmark p.a.", "Clustering"]
+
+    df_filtered = df[["id", "anlagenid", "bezeichnung", "firma", "standort", "kostenpa", "benchmarkpa", "gewerksbez", "gewaehrleistung"]].copy().reset_index(drop=True)
+    df_display = df_filtered[["bezeichnung", "firma", "standort", "kostenpa", "benchmarkpa", "gewaehrleistung"]].copy()
+    
+    df_display["kostenpa"] = pd.to_numeric(df_display["kostenpa"], errors="coerce").fillna(0.0).map('{:,.2f} €'.format)
+    df_display["benchmarkpa"] = pd.to_numeric(df_display["benchmarkpa"], errors="coerce").fillna(0.0).map('{:,.2f} €'.format)
+    df_display.columns = lbl_tbl
 
     if gewaehlte_ansicht != "🖥️ Fullscreen":
         st.markdown(f'''
@@ -175,54 +177,45 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             
         st.markdown("---")
 
-    # Saubere Enterprise-Darstellung: Jede Zeile bekommt einen echten, exklusiven Auswählen-Button
-    for index, row in df.iterrows():
-        c1, c2, c3, c4, c5, c6, c7 = st.columns([2.5, 1.5, 0.8, 1.2, 1.2, 0.8, 1.2])
-        
-        with c1:
-            st.markdown(f"<div style='font-size: 13px; padding-top: 6px;'>{row['bezeichnung']}</div>", unsafe_allow_html=True)
-        with c2:
-            st.markdown(f"<div style='font-size: 13px; opacity: 0.8; padding-top: 6px;'>{row['firma']}</div>", unsafe_allow_html=True)
-        with c3:
-            st.markdown(f"<div style='font-size: 13px; opacity: 0.8; padding-top: 6px;'>{row['standort']}</div>", unsafe_allow_html=True)
-        with c4:
-            st.markdown(f"<div style='font-size: 13px; opacity: 0.8; padding-top: 6px;'>{row['kostenpa']:,.2f} €</div>", unsafe_allow_html=True)
-        with c5:
-            st.markdown(f"<div style='font-size: 13px; opacity: 0.8; padding-top: 6px;'>{row['benchmarkpa']:,.2f} €</div>", unsafe_allow_html=True)
-        with c6:
-            st.markdown(f"<div style='font-size: 13px; opacity: 0.8; padding-top: 6px;'>Klasse {row['gewaehrleistung']}</div>", unsafe_allow_html=True)
-        with c7:
-            is_active = (st.session_state.active_vertrag_id == row['id'])
-            btn_label = "📍 Aktiv" if is_active else TXT_VA["btn_details"]
-            if st.button(btn_label, key=f"btn_vertrag_{row['id']}"):
-                st.session_state.active_vertrag_id = row['id']
-                st.rerun()
+    # Native, saubere Streamlit-Tabelle im modernen Enterprise-Look
+    st.dataframe(
+        df_display,
+        width="stretch",
+        height=400 if gewaehlte_ansicht == "🖥️ Fullscreen" else 280,
+        hide_index=True
+    )
 
-    # Detailkarte für den aktiv ausgewählten Vertrag
-    if st.session_state.active_vertrag_id is not None:
-        match = df[df["id"] == st.session_state.active_vertrag_id]
-        if not match.empty:
-            gew_vertrag = match.iloc[0]
-            st.markdown(f"""
-                <div class="enterprise-detail-card">
-                    <h4 style="color: #38bdf8; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid rgba(56,189,248,0.2); padding-bottom: 8px;">
-                        🔍 Enterprise-Detailanalyse: {gew_vertrag['bezeichnung']}
-                    </h4>
-                    <div style="display: flex; justify-content: space-between; font-size: 13px; line-height: 1.8;">
-                        <div>
-                            <b>Anlagen-ID:</b> {gew_vertrag['anlagenid']}<br>
-                            <b>Standort:</b> {gew_vertrag['standort']}<br>
-                            <b>Wartungsfirma:</b> {gew_vertrag['firma']}
-                        </div>
-                        <div>
-                            <b>Gewerk:</b> {gew_vertrag['gewerksbez']}<br>
-                            <b>Kosten p.a.:</b> {gew_vertrag['kostenpa']:,.2f} €<br>
-                            <b>Benchmark p.a.:</b> {gew_vertrag['benchmarkpa']:,.2f} €
-                        </div>
-                        <div>
-                            <b>Clusterung / Gewährleistung:</b> <span style="color: #34d399; font-weight: bold;">Klasse {gew_vertrag['gewaehrleistung']}</span><br>
-                            <b>Status:</b> <span style="color: #38bdf8;">Aktiv & Überwacht</span>
-                        </div>
+    # Direktes, klares Auswahl-Segment für die Detailanalyse darunter
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Wir nutzen hier direkte Buttons für jeden Eintrag in einer sauberen horizontalen Leiste oder direkt als Übersicht
+    col_det_header, col_det_action = st.columns([3, 1])
+    with col_det_header:
+        vertrag_namen = df_filtered["bezeichnung"].tolist()
+        ausgewaehlter_vertrag = st.selectbox("", options=vertrag_namen, key="enterprise_direct_select", label_visibility="collapsed")
+
+    if ausgewaehlter_vertrag:
+        gew_vertrag = df_filtered[df_filtered["bezeichnung"] == ausgewaehlter_vertrag].iloc[0]
+        st.markdown(f"""
+            <div class="enterprise-detail-card">
+                <h4 style="color: #38bdf8; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid rgba(56,189,248,0.2); padding-bottom: 8px;">
+                    🔍 Enterprise-Detailanalyse: {gew_vertrag['bezeichnung']}
+                </h4>
+                <div style="display: flex; justify-content: space-between; font-size: 13px; line-height: 1.8;">
+                    <div>
+                        <b>Anlagen-ID:</b> {gew_vertrag['anlagenid']}<br>
+                        <b>Standort:</b> {gew_vertrag['standort']}<br>
+                        <b>Wartungsfirma:</b> {gew_vertrag['firma']}
+                    </div>
+                    <div>
+                        <b>Gewerk:</b> {gew_vertrag['gewerksbez']}<br>
+                        <b>Kosten p.a.:</b> {gew_vertrag['kostenpa']:,.2f} €<br>
+                        <b>Benchmark p.a.:</b> {gew_vertrag['benchmarkpa']:,.2f} €
+                    </div>
+                    <div>
+                        <b>Clusterung / Gewährleistung:</b> <span style="color: #34d399; font-weight: bold;">Klasse {gew_vertrag['gewaehrleistung']}</span><br>
+                        <b>Status:</b> <span style="color: #38bdf8;">Aktiv & Überwacht</span>
                     </div>
                 </div>
-            """, unsafe_allow_html=True)
+            </div>
+        """, unsafe_allow_html=True)
