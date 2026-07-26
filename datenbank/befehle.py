@@ -1,7 +1,7 @@
 import mysql.connector
 import streamlit as st
 import pandas as pd
-
+@st.cache_resource(ttl=600)
 def hole_datenbank_verbindung():
     try:
         return mysql.connector.connect(
