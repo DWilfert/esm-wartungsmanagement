@@ -186,12 +186,12 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Perfekt ausgerichtete Zeile: Info-Symbol ganz links, Auswahlfenster, Detailkarte
-    col_icon, col_select, col_card = st.columns([0.6, 3.4, 8])
+    # Symbol exakt auf die Höhe des Auswahlfeldes ausgerichtet (ca. 7px Padding oben)
+    col_icon, col_select, col_card = st.columns([0.5, 3.5, 8])
     
     with col_icon:
         st.markdown("""
-            <div style="font-size: 1.2rem; text-align: center; padding-top: 28px;">
+            <div style="font-size: 1.1rem; text-align: right; padding-top: 7px; padding-right: 5px;">
                 ℹ️
             </div>
         """, unsafe_allow_html=True)
