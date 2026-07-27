@@ -25,7 +25,7 @@ def zeige_import_export():
         }
         
         /* Dropdown-Menüs und Popovers */
-        div[data-testid="popover"], div[data-baseweb="menu"], ul[data-baseweb="menu"] {
+        div[data-baseweb="popover"], div[data-baseweb="menu"], ul[data-baseweb="menu"] {
             background-color: var(--secondary-background-color) !important;
         }
         
@@ -121,7 +121,7 @@ def zeige_import_export():
             "status_ok": "Online (Sicher)",
             "template_title": "📥 Interaktiver Vorlagen-Generator",
             "template_desc": "Wählen Sie eine Tabelle aus, um das exakte Excel-Template inklusive automatischer Feld-Legende herunterzuladen.",
-            "template_sel": "Tabelle für Vorlage wählen:",
+            "template_sel": "Tabellenauswahl:",
             "log_title": "🕒 Schnittstellen-Protokoll (Audit-Trail)",
             "dl_tmpl_btn": "📥 Ausgewählte Vorlage herunterladen"
         }
@@ -145,7 +145,7 @@ def zeige_import_export():
             "status_ok": "Online (Secure)",
             "template_title": "📥 Interactive Template Generator",
             "template_desc": "Select a table to download the exact Excel template including automatic field legend.",
-            "template_sel": "Select table for template:",
+            "template_sel": "Table Selection:",
             "log_title": "🕒 Interface Log (Audit Trail)",
             "dl_tmpl_btn": "📥 Download Selected Template"
         }
@@ -310,10 +310,16 @@ def zeige_import_export():
     with col_main_right:
         st.markdown('<div class="enterprise-card">', unsafe_allow_html=True)
         st.markdown(f"##### {TXT_IE['template_title']}")
-        st.markdown(f"<p style='font-size: 12px; opacity: 0.7; margin-bottom: 15px;'>{TXT_IE['template_desc']}</p>", unsafe_allow_html=True)
         
-        # Interaktive Dropdown-Auswahl für das gewünschte Template
-        template_wahl = st.selectbox(TXT_IE["template_sel"], [""] + list(tabellen_liste.keys()), key="interaktives_template_selectbox")
+        # Zeile aufteilen: Überschrift/Label links, Dropdown rechts in derselben Zeile
+        col_t1, col_t2 = st.columns([3.5, 6.5])
+        with col_t1:
+            st.markdown(f"<div style='font-size: 13px; font-weight: 600; padding-top: 8px;'>{TXT_IE['template_sel']}</div>", unsafe_allow_html=True)
+        with col_t2:
+            template_wahl = st.selectbox("", [""] + list(tabellen_liste.keys()), key="interaktives_template_selectbox", label_visibility="collapsed")
+        
+        # Beschreibungstext jetzt UNTER dem Auswahlfeld
+        st.markdown(f"<p style='font-size: 11px; opacity: 0.7; margin-top: 10px; margin-bottom: 15px;'>{TXT_IE['template_desc']}</p>", unsafe_allow_html=True)
         
         if template_wahl:
             t_key = tabellen_liste[template_wahl]
