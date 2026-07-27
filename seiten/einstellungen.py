@@ -15,6 +15,11 @@ def zeige_einstellungen():
             display: none !important;
         }
         
+        /* Reduziert alle Selectboxen / Dropdown-Felder um 50% der Breite */
+        div[data-baseweb="select"] {
+            max-width: 50% !important;
+        }
+        
         /* Dropdown-Menüs und Popovers */
         div[data-baseweb="popover"], div[data-baseweb="menu"], ul[data-baseweb="menu"] {
             background-color: var(--secondary-background-color) !important;
