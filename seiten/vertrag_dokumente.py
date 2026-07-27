@@ -2,8 +2,6 @@ import streamlit as st
 import pandas as pd
 import os
 import subprocess
-import tempfile
-import base64
 from datenbank.befehle import hole_datenbank_verbindung
 
 def zeige_vertragsdokumente():
@@ -166,10 +164,10 @@ def zeige_vertragsdokumente():
     
     if st.session_state.language == "de":
         lbl_file, lbl_contract, lbl_id = "Dateiname (PDF)", "Zugeordneter Wartungsvertrag", "Vertrag ID"
-        lbl_select = "💡 Tipp: Klicke links auf das kleine Quadrat einer Zeile, um das PDF direkt in der App anzuzeigen!"
+        lbl_select = "💡 Tipp: Klicke links auf das kleine Quadrat einer Zeile, um das PDF direkt hier in der App zu betrachten!"
     else:
         lbl_file, lbl_contract, lbl_id = "File Name (PDF)", "Assigned Maintenance Contract", "Contract ID"
-        lbl_select = "💡 Tip: Click the small checkbox on the left of any row to view the PDF directly in the app!"
+        lbl_select = "💡 Tip: Click the small checkbox on the left of any row to view the PDF directly here in the app!"
         
     df_docs.columns = [lbl_file, lbl_contract, lbl_id]
 
@@ -185,7 +183,7 @@ def zeige_vertragsdokumente():
         }
     )
     
-    if auswahl_tabelle and auswahl_tabelle.selection and "rows" in auswahl_tabelle.selection and auswahl_tabelle.selection["rows"]:
+    if aus_wahl_check := (auswahl_tabelle and auswahl_tabelle.selection and "rows" in auswahl_tabelle.selection and auswahl_tabelle.selection["rows"]):
         reiner_index = auswahl_tabelle.selection["rows"][0]
         gewaehlte_datei = pdf_dateien[reiner_index]
         
@@ -201,30 +199,11 @@ def zeige_vertragsdokumente():
             preview_title = f"##### 👁️ Dokumenten-Vorschau: {gewaehlte_datei}" if st.session_state.language == "de" else f"##### 👁️ Document Preview: {gewaehlte_datei}"
             st.markdown(preview_title)
             
-            # Nutzen eines temporären Files, das über einen sicheren lokalen Dateipfad an den nativen Streamlit-Viewer übergeben wird
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
-                tmp_file.write(pdf_bytes)
-                tmp_path = tmp_file.name
-
-            # Anzeige direkt in der App über den nativen Streamlit-Viewer (wird von Chrome niemals blockiert)
-            with open(tmp_path, "rb") as pdf_file:
-                PDFbyte = pdf_file.read()
-                st.download_button(
-                    label="📥 PDF herunterladen / direkt öffnen" if st.session_state.language == "de" else "📥 Download / Open PDF",
-                    data=PDFbyte,
-                    file_name=gewaehlte_datei,
-                    mime='application/pdf',
-                    key="download_pdf_btn_direct"
-                )
+            # Verwendung der offiziellen, blockierungsfreien Streamlit-Komponente zur Anzeige von Dokumenten im Layout
+            st.code(f"Dokumenten-Pfad: {os.path.abspath(os.path.join(doc_pfad, gewaehlte_datei)) if not is_cloud_mode else 'Virtuelles Netzlaufwerk (Cloud-Demo)'}", language="text")
             
-            # Dokument direkt in der App einbetten mittels Base64 über ein sicheres object-Tag statt Iframe
-            b64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
-            st.markdown(
-                f'<object data="data:application/pdf;base64,{b64_pdf}" type="application/pdf" width="100%" height="700px" style="border-radius: 8px; border: 1px solid rgba(128,128,128,0.2);">'
-                f'<embed src="data:application/pdf;base64,{b64_pdf}" type="application/pdf" width="100%" height="700px" />'
-                f'</object>',
-                unsafe_allow_html=True
-            )
+            # Direkte Übergabe der Binärdaten an den nativen Streamlit-PDF-Viewer (ohne externe Fenster, ohne Download-Zwang)
+            st.pdf(pdf_bytes, height=700)
             
         except Exception as e_view:
             err_view_msg = f"Fehler beim Laden der Vorschau: {str(e_view)}" if st.session_state.language == "de" else f"Error loading preview: {str(e_view)}"
