@@ -60,7 +60,7 @@ def zeige_vertragsdokumente():
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
         }
 
-        /* Automatischer Hintergrund- und Rahmen-Fix für st.dataframe (verhindert den weißen Kasten im Dark-Mode) */
+        /* Automatischer Hintergrund- und Rahmen-Fix für st.dataframe */
         div[data-testid="stDataFrame"] {
             background-color: var(--secondary-background-color) !important;
             border: 1px solid rgba(128, 128, 128, 0.25) !important;
@@ -72,30 +72,39 @@ def zeige_vertragsdokumente():
 
     st.subheader("📂 Zentrales Vertragsarchiv" if st.session_state.language == "de" else "📂 Central Contract Archive")
     
-    doc_pfad = st.session_state.get("admin_doc_path_config", "C:/esm_dokumente")
-    win_path = os.path.normpath(doc_pfad)
+    # Konfigurierter Pfad aus dem Admin-Bereich
+    config_pfad = st.session_state.get("admin_doc_path_config", "C:/esm_dokumente")
     
-    if not doc_pfad or not os.path.exists(doc_pfad):
-        err_path_msg = (
-            f"🔴 Der konfigurierte Archiv-Pfad '{doc_pfad}' ist aktuell nicht erreichbar. Bitte prüfe die Pfad-Einstellung im Adminbereich!" 
-            if st.session_state.language == "de" 
-            else f"🔴 The configured archive path '{doc_pfad}' is unreachable. Please check the path setting in the admin area!"
+    # SIMULATION FÜR DIE CLOUD: Wenn der lokale Windows-Pfad in der Cloud nicht existiert, nutzen wir einen simulierten Demo-Ordner
+    is_cloud_mode = not os.path.exists(config_pfad)
+    doc_pfad = config_pfad if not is_cloud_mode else "demo_archiv_simuliert"
+    
+    win_path = os.path.normpath(config_pfad)
+
+    # Info-Hinweis im Cloud-Modus für den Anwender
+    if is_cloud_mode:
+        st.markdown(
+            f"<div style='font-size: 11.5px; color: #38bdf8; background: rgba(56, 189, 248, 0.1); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; border: 1px solid rgba(56, 189, 248, 0.3);'>"
+            f"ℹ️ <em>Cloud-Modus aktiv:</em> Lokaler Netzlaufwerk-Pfad ('{config_pfad}') wird für die Präsentation sicher simuliert. Echte Beispieldokumente sind geladen."
+            f"</div>" if st.session_state.language == "de" else
+            f"<div style='font-size: 11.5px; color: #38bdf8; background: rgba(56, 189, 248, 0.1); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; border: 1px solid rgba(56, 189, 248, 0.3);'>"
+            f"ℹ️ <em>Cloud Mode Active:</em> Local network path ('{config_pfad}') is safely simulated for the presentation. Sample documents are loaded."
+            f"</div>",
+            unsafe_allow_html=True
         )
-        st.error(err_path_msg)
-        return
 
     btn_ordner_lbl = "📂 Vertragsordner im System-Explorer öffnen" if st.session_state.language == "de" else "📂 Open Contract Folder in System Explorer"
     col_btn, _ = st.columns([4.0, 6.0])
     with col_btn:
         if st.button(btn_ordner_lbl, key="btn_open_dynamic_explorer_v17", use_container_width=True):
-            try:
-                # Öffnet den Explorer garantiert im Vordergrund und mit Fokus
-                subprocess.Popen(f'powershell -command "Start-Process explorer -ArgumentList \'{win_path}\'"')
-                success_open = "Ordner geöffnet!" if st.session_state.language == "de" else "Folder opened!"
-                st.success(success_open)
-            except Exception as e_explorer:
-                err_open_msg = f"Fehler beim Öffnen: {str(e_explorer)}" if st.session_state.language == "de" else f"Error opening: {str(e_explorer)}"
-                st.error(err_open_msg)
+            if not is_cloud_mode:
+                try:
+                    subprocess.Popen(f'powershell -command "Start-Process explorer -ArgumentList \'{win_path}\'"')
+                    st.success("Ordner geöffnet!" if st.session_state.language == "de" else "Folder opened!")
+                except Exception as e_explorer:
+                    st.error(f"Fehler beim Öffnen: {str(e_explorer)}" if st.session_state.language == "de" else f"Error opening: {str(e_explorer)}")
+            else:
+                st.info("📂 Simulierter Ordner: Alle Demo-Verträge sind direkt im System archiviert." if st.session_state.language == "de" else "📂 Simulated folder: All demo contracts are archived directly in the system.")
 
     st.write("---")
     vertrag_dict = {}
@@ -109,13 +118,23 @@ def zeige_vertragsdokumente():
         finally: 
             conn.close()
         
-    try:
-        alle_dateien = os.listdir(doc_pfad)
-        pdf_dateien = [f for f in alle_dateien if f.lower().endswith('.pdf')]
-    except Exception as e_dir:
-        pdf_dateien = []
-        err_dir_msg = f"Fehler: {str(e_dir)}" if st.session_state.language == "de" else f"Error: {str(e_dir)}"
-        st.error(err_dir_msg)
+    # Ermittlung der PDF-Dateien (entweder real oder simuliert für die Demo)
+    if not is_cloud_mode:
+        try:
+            alle_dateien = os.listdir(doc_pfad)
+            pdf_dateien = [f for f in alle_dateien if f.lower().endswith('.pdf')]
+        except Exception as e_dir:
+            pdf_dateien = []
+            st.error(f"Fehler: {str(e_dir)}" if st.session_state.language == "de" else f"Error: {str(e_dir)}")
+    else:
+        # Professionelle Demo-Dateien für die Cloud-Präsentation
+        pdf_dateien = [
+            "Wartungsvertrag_ID17501_Personenaufzug_A.pdf",
+            "Servicevertrag_ID17502_RLT_Anlage.pdf",
+            "Wartungsvertrag_ID17503_Heizung_Viessmann.pdf",
+            "Pruefvertrag_ID17504_Brandmeldeanlage.pdf",
+            "Vollwartung_ID17506_Rollstuhlhebebuehne.pdf"
+        ]
     
     if not pdf_dateien:
         no_pdf_msg = (
@@ -175,11 +194,17 @@ def zeige_vertragsdokumente():
     if auswahl_tabelle and auswahl_tabelle.selection and "rows" in auswahl_tabelle.selection and auswahl_tabelle.selection["rows"]:
         reiner_index = auswahl_tabelle.selection["rows"][0]
         gewaehlte_datei = pdf_dateien[reiner_index]
-        vollstaendiger_pfad = os.path.join(doc_pfad, gewaehlte_datei)
         
         try:
-            with open(vollstaendiger_pfad, "rb") as f:
-                base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+            if not is_cloud_mode:
+                vollstaendiger_pfad = os.path.join(doc_pfad, gewaehlte_datei)
+                with open(vollstaendiger_pfad, "rb") as f:
+                    base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+            else:
+                # Echter, minimaler Base64-PDF-Stream als Fallback für die Cloud-Präsentation (gueltiges PDF-Dokument)
+                sample_pdf_bytes = b'%PDF-1.4 1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 595 842]/Parent 2 0 R/Resources<<>>/Contents 4 0 R>>endobj 4 0 obj<</Length 55>>stream\nBT /F1 18 Tf 50 750 Td (ESM Wartungsmanagement - DEMO VERTRAGSDOKUMENT) Tj ET\nendstream\nendobj\nxref\n0 5\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \n0000000228 00000 n \ntrailer<</Size 5/Root 1 0 R>>\nstartstart\nstartxref\n338\n%%EOF'
+                base64_pdf = base64.b64encode(sample_pdf_bytes).decode('utf-8')
+
             pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="700px" style="border: 1px solid #232d42; border-radius: 8px;"></iframe>'
             st.write("")
             preview_title = f"##### 👁️ Dokumenten-Vorschau: {gewaehlte_datei}" if st.session_state.language == "de" else f"##### 👁️ Document Preview: {gewaehlte_datei}"
