@@ -43,14 +43,11 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
         
         .enterprise-detail-card {
             background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
-            border: 1px solid rgba(56, 189, 248, 0.4);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            border-radius: 6px;
-            padding: 6px 12px;
+            border: 1px solid rgba(56, 189, 248, 0.5);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            padding: 14px 18px;
             height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -72,7 +69,7 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "e": "Mängel und technische Auffälligkeiten aus der Anlagenerfassung und Wartungsprotokollen",
             "lbl_standort": "Standort-Filter:",
             "lbl_ansicht": "Ansicht:",
-            "select_placeholder": "-- Vertrag auswählen --"
+            "select_placeholder": "-- Vertrag für Enterprise-Details wählen --"
         }
     else:
         TXT_VA = {
@@ -91,7 +88,7 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "e": "Defects and technical abnormalities from asset registration and maintenance logs",
             "lbl_standort": "Location Filter:",
             "lbl_ansicht": "View:",
-            "select_placeholder": "-- Select contract --"
+            "select_placeholder": "-- Select contract for enterprise details --"
         }
 
     st.subheader(TXT_VA["title"])
@@ -100,6 +97,7 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
     df = pd.DataFrame({
         "id": [i+1 for i in range(10)],
         "anlagenid": [17501 + i for i in range(10)],
+        "vertragsnummer": ["V-2024-001", "V-2023-142", "V-2022-089", "V-2025-012", "V-2023-331", "V-2024-055", "V-2022-190", "V-2024-811", "V-2023-402", "V-2025-009"],
         "bezeichnung": [
             "Vollwartung Personenaufzug A", "Wartungsvertrag RLT-Anlage", "Servicevertrag Heizung", 
             "Prüfvertrag Brandmeldeanlage", "Wartung Klima Serverraum", "Vollwartung Rollstuhlhebebühne", 
@@ -110,7 +108,11 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
         "kostenpa": [2400.0, 1800.0, 3200.0, 1500.0, 2100.0, 1200.0, 950.0, 4500.0, 2800.0, 800.0],
         "benchmarkpa": [2500.0, 1900.0, 3000.0, 1600.0, 2000.0, 1250.0, 1000.0, 4200.0, 2700.0, 850.0],
         "gewerksbez": ["Fördertechnik", "Raumlufttechnik", "Wärmeversorgung", "Elektrotechnik", "Klimatechnik", "Fördertechnik", "Brandschutz", "Elektrotechnik", "Notstrom", "Sanitär"],
-        "gewaehrleistung": ["A", "B", "A", "C", "A", "B", "A", "C", "B", "A"]
+        "gewaehrleistung": ["A", "B", "A", "C", "A", "B", "A", "C", "B", "A"],
+        "laufzeit_start": ["01.01.2024", "15.03.2023", "01.07.2022", "01.01.2025", "01.06.2023", "15.02.2024", "01.09.2022", "01.01.2024", "15.10.2023", "01.01.2025"],
+        "laufzeit_ende": ["31.12.2026", "14.03.2028", "30.06.2027", "31.12.2027", "31.05.2028", "14.02.2027", "31.08.2027", "31.12.2029", "14.10.2028", "31.12.2027"],
+        "kuendigung": ["3 Monate zum Jahresende", "6 Monate zum Laufzeitende", "3 Monate zum Quartalsende", "3 Monate zum Jahresende", "6 Monate zum Laufzeitende", "3 Monate zum Jahresende", "3 Monate zum Quartalsende", "6 Monate zum Jahresende", "3 Monate zum Jahresende", "3 Monate zum Quartalsende"],
+        "ansprechpartner": ["Herr Müller (Tel. 089/1234-1)", "Frau Huber (Tel. 089/1234-2)", "Herr Schmidt (Tel. 089/1234-3)", "Service-Center (Tel. 0800-555)", "Frau Huber (Tel. 089/1234-2)", "Herr Wagner (Tel. 089/1234-6)", "Service-Center (Tel. 0800-555)", "Herr Bauer (Tel. 089/1234-8)", "Herr Schmidt (Tel. 089/1234-3)", "Frau Huber (Tel. 089/1234-2)"]
     })
 
     with st.container():
@@ -152,7 +154,7 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
     else:
         lbl_tbl = ["Designation", "Company", "Location", "Cost p.a.", "Benchmark p.a.", "Clustering"]
 
-    df_filtered = df[["id", "anlagenid", "bezeichnung", "firma", "standort", "kostenpa", "benchmarkpa", "gewerksbez", "gewaehrleistung"]].copy().reset_index(drop=True)
+    df_filtered = df.copy().reset_index(drop=True)
     df_display = df_filtered[["bezeichnung", "firma", "standort", "kostenpa", "benchmarkpa", "gewaehrleistung"]].copy()
     
     df_display["kostenpa"] = pd.to_numeric(df_display["kostenpa"], errors="coerce").fillna(0.0).map('{:,.2f} €'.format)
@@ -188,7 +190,7 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Info-Symbol und Auswahlfeld mit echtem Leereintrag als Standard
+    # Pulldown-Auswahl und professionelle Enterprise-Detailcard
     col_icon, col_select, col_card = st.columns([0.5, 3.5, 8])
     
     with col_icon:
@@ -207,19 +209,26 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             gew_vertrag = df_filtered[df_filtered["bezeichnung"] == ausgewaehlter_vertrag].iloc[0]
             st.markdown(f"""
                 <div class="enterprise-detail-card">
-                    <div style="font-size: 11px; font-weight: bold; color: #38bdf8; margin-bottom: 2px;">
-                        {gew_vertrag['bezeichnung']}
+                    <div style="font-size: 13px; font-weight: bold; color: #38bdf8; margin-bottom: 6px; display: flex; justify-content: space-between; border-bottom: 1px solid rgba(56, 189, 248, 0.3); padding-bottom: 4px;">
+                        <span>📋 {gew_vertrag['bezeichnung']}</span>
+                        <span style="font-size: 11px; color: #94a3b8; font-weight: normal;">Vertrags-Nr: {gew_vertrag['vertragsnummer']}</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 10px; line-height: 1.2; opacity: 0.9;">
-                        <div>ID: {gew_vertrag['anlagenid']} | Ort: {gew_vertrag['standort']} | Firma: {gew_vertrag['firma']}</div>
-                        <div>Gewerk: {gew_vertrag['gewerksbez']} | Kosten: {gew_vertrag['kostenpa']:,.2f} €</div>
-                        <div>Cluster: <span style="color: #34d399; font-weight: bold;">{gew_vertrag['gewaehrleistung']}</span></div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11.5px; line-height: 1.5; color: #f8fafc;">
+                        <div><strong>🏢 Standort & ID:</strong> {gew_vertrag['standort']} (Anlagen-ID: {gew_vertrag['anlagenid']})</div>
+                        <div><strong>🤝 Auftragnehmer:</strong> {gew_vertrag['firma']}</div>
+                        <div><strong>⚙️ Gewerk & Cluster:</strong> {gew_vertrag['gewerksbez']} (Klasse <span style="color: #34d399; font-weight: bold;">{gew_vertrag['gewaehrleistung']}</span>)</div>
+                        <div><strong>💰 Kosten p.a.:</strong> <span style="color: #38bdf8; font-weight: bold;">{gew_vertrag['kostenpa']:,.2f} €</span> (Benchmark: {gew_vertrag['benchmarkpa']:,.2f} €)</div>
+                        <div><strong>📅 Laufzeit:</strong> {gew_vertrag['laufzeit_start']} bis {gew_vertrag['laufzeit_ende']}</div>
+                        <div><strong>⏱️ Kündigungsfrist:</strong> {gew_vertrag['kuendigung']}</div>
+                        <div style="grid-column: span 2; margin-top: 4px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 4px; color: #cbd5e1;">
+                            <strong>📞 Ansprechpartner / Service:</strong> {gew_vertrag['ansprechpartner']}
+                        </div>
                     </div>
                 </div>
             """, unsafe_allow_html=True)
         else:
             st.markdown("""
-                <div class="enterprise-detail-card" style="opacity: 0.4; text-align: center; font-size: 11px; font-style: italic;">
-                    Kein Vertrag ausgewählt
+                <div class="enterprise-detail-card" style="opacity: 0.5; display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-style: italic; min-height: 105px; color: #94a3b8;">
+                    Kein Vertrag ausgewählt – bitte wählen Sie links einen Eintrag aus, um die vollständigen Enterprise-Details anzuzeigen.
                 </div>
             """, unsafe_allow_html=True)
