@@ -6,27 +6,22 @@ import subprocess
 from datenbank.befehle import hole_datenbank_verbindung
 
 def zeige_vertragsdokumente():
-    # Einheitlicher Design- & Helligkeits-Fix (angepasst für Light- und Dark-Mode)
     st.markdown("""
         <style>
-        /* Kompakte Schriftgröße in allen Eingabefeldern und Formularen */
         input, select, textarea, div[data-baseweb="select"] span, label {
             font-size: 0.82rem !important;
         }
         
-        /* Blendet den automatischen Streamlit-Hinweis aus */
         div[data-testid="InputInstructions"] {
             display: none !important;
         }
         
-        /* Placeholder in leicht grauer Schrift und Kursiv */
         input::placeholder, textarea::placeholder {
             color: #94a3b8 !important;
             font-style: italic !important;
             opacity: 1 !important;
         }
         
-        /* Dropdown-Menüs und Popovers */
         div[data-baseweb="popover"], div[data-baseweb="menu"], ul[data-baseweb="menu"] {
             background-color: var(--secondary-background-color) !important;
         }
@@ -45,7 +40,6 @@ def zeige_vertragsdokumente():
             color: var(--text-color) !important;
         }
         
-        /* Tooltips & Toolbar-Buttons */
         div[data-testid="stElementToolbar"], 
         div[data-testid="stElementToolbar"] button,
         span[data-testid="stTooltipHoverTarget"] {
@@ -60,7 +54,6 @@ def zeige_vertragsdokumente():
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
         }
 
-        /* Automatischer Hintergrund- und Rahmen-Fix für st.dataframe */
         div[data-testid="stDataFrame"] {
             background-color: var(--secondary-background-color) !important;
             border: 1px solid rgba(128, 128, 128, 0.25) !important;
@@ -72,13 +65,9 @@ def zeige_vertragsdokumente():
 
     st.subheader("📂 Zentrales Vertragsarchiv" if st.session_state.language == "de" else "📂 Central Contract Archive")
     
-    # Konfigurierter Pfad aus dem Admin-Bereich
     config_pfad = st.session_state.get("admin_doc_path_config", "C:/esm_dokumente")
-    
-    # SIMULATION FÜR DIE CLOUD: Wenn der lokale Windows-Pfad in der Cloud nicht existiert, nutzen wir einen simulierten Demo-Ordner
     is_cloud_mode = not os.path.exists(config_pfad)
     doc_pfad = config_pfad if not is_cloud_mode else "demo_archiv_simuliert"
-    
     win_path = os.path.normpath(config_pfad)
 
     if is_cloud_mode:
@@ -107,18 +96,23 @@ def zeige_vertragsdokumente():
 
     st.write("---")
     vertrag_dict = {}
-    conn = hole_datenbank_verbindung()
-    if conn is not None:
-        try:
+    
+    # Sicherer Datenbank-Aufruf mit Typ- und Attributprüfung
+    conn = None
+    try:
+        conn = hole_datenbank_verbindung()
+        if conn is not None:
             df_v = pd.read_sql("SELECT id, bezeichnung FROM `wartungsvertraege`", conn)
             vertrag_dict = dict(zip(df_v["id"], df_v["bezeichnung"]))
-        except: 
-            pass
-        finally: 
-            if conn is not None:
+    except Exception:
+        pass
+    finally:
+        try:
+            if conn is not None and hasattr(conn, "close"):
                 conn.close()
+        except Exception:
+            pass
         
-    # Ermittlung der PDF-Dateien
     if not is_cloud_mode:
         try:
             alle_dateien = os.listdir(doc_pfad)
