@@ -5,27 +5,23 @@ from datetime import datetime, timedelta
 from fpdf import FPDF
 
 def zeige_5jahresplan():
-    # Einheitlicher Design-Fix für Tooltips, Dropdowns, Toolbars und Tabellen
+    # Einheitlicher Design-Fix für Tooltips, Dropdowns, Toolbars und kompakteres Gitternetz
     st.markdown("""
         <style>
-        /* Kompakte Schriftgröße in allen Eingabefeldern, Radio-Buttons und Formularen */
         input, select, textarea, div[data-baseweb="select"] span, label, .stRadio div {
             font-size: 0.82rem !important;
         }
         
-        /* Blendet den automatischen Streamlit-Hinweis aus */
         div[data-testid="InputInstructions"] {
             display: none !important;
         }
         
-        /* Placeholder in leicht grauer Schrift und Kursiv */
         input::placeholder, textarea::placeholder {
             color: #94a3b8 !important;
             font-style: italic !important;
             opacity: 1 !important;
         }
         
-        /* Dropdown-Menüs und Popovers */
         div[data-baseweb="popover"], div[data-baseweb="menu"], ul[data-baseweb="menu"] {
             background-color: var(--secondary-background-color) !important;
         }
@@ -44,7 +40,6 @@ def zeige_5jahresplan():
             color: var(--text-color) !important;
         }
         
-        /* Tooltips & Toolbar-Buttons */
         div[data-testid="stElementToolbar"], 
         div[data-testid="stElementToolbar"] button,
         span[data-testid="stTooltipHoverTarget"] {
@@ -59,12 +54,22 @@ def zeige_5jahresplan():
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
         }
 
-        /* Automatischer Hintergrund- und Rahmen-Fix für st.dataframe */
+        /* Kompaktere Zeilendichte und Gitternetz für st.dataframe */
         div[data-testid="stDataFrame"] {
             background-color: var(--secondary-background-color) !important;
             border: 1px solid rgba(128, 128, 128, 0.25) !important;
             border-radius: 0.5rem;
-            padding: 4px;
+            padding: 2px;
+            background-image: linear-gradient(to right, rgba(128, 128, 128, 0.05) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(128, 128, 128, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        /* Reduzierter Zeilenabstand in Tabellen für maximale Dichte */
+        div[data-testid="stDataFrame"] td {
+            padding-top: 2px !important;
+            padding-bottom: 2px !important;
+            font-size: 0.78rem !important;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -74,7 +79,7 @@ def zeige_5jahresplan():
     
     if theme == "Premium Light":
         chart_text = "#0f172a"
-        chart_grid = "rgba(0, 0, 0, 0.1)"
+        chart_grid = "rgba(0, 0, 0, 0.12)"
         text_muted = "#64748b"
         chart_bg = "#ffffff"
     elif theme == "Premium Cashmere":
@@ -106,7 +111,6 @@ def zeige_5jahresplan():
                 font-size: 11px !important; 
                 color: var(--text-color) !important; 
             }
-            
             div[data-testid="stCheckbox"] {
                 margin-bottom: -10px !important;
             }
@@ -157,7 +161,7 @@ def zeige_5jahresplan():
         "naechstewartung": [
             (heute - timedelta(days=35)).strftime('%Y-%m-%d'),  # Überfällig (Rot)
             (heute + timedelta(days=20)).strftime('%Y-%m-%d'),  # Anstehend (Gelb)
-            (heute + timedelta(days=200)).strftime('%Y-%m-%d'), # Später (Grün - wird im Chart ignoriert, in Tabelle gezeigt)
+            (heute + timedelta(days=200)).strftime('%Y-%m-%d'), # Später
             (heute - timedelta(days=10)).strftime('%Y-%m-%d'),  # Überfällig (Rot)
             (heute + timedelta(days=15)).strftime('%Y-%m-%d'),  # Anstehend (Gelb)
             (heute - timedelta(days=60)).strftime('%Y-%m-%d'),  # Überfällig (Rot)
@@ -239,7 +243,7 @@ def zeige_5jahresplan():
                 df_chart["Monat_Name"] = df_chart["Datum"].dt.month.apply(lambda m: monats_namen[m-1])
                 
                 anzahl_eintraege = df_chart["bezeichnung"].nunique()
-                dynamische_hoehe = max(450, anzahl_eintraege * 28)
+                dynamische_hoehe = max(400, anzahl_eintraege * 24)
                 
                 fig = go.Figure()
                 for status_name, gruppe in df_chart.groupby("Status"):
@@ -249,9 +253,10 @@ def zeige_5jahresplan():
                     else:
                         hover_texts = [f"<b>{row['bezeichnung']}</b><br>📍 {row['standort']} | 🏢 {row['firma']}<br>🗓️ Date: {row['Datum'].strftime('%m/%d/%Y')}<br>⚠️ Status: {row['Status']}" for _, row in gruppe.iterrows()]
                     
+                    # KLEINERE AMPEL-PUNKTE (size=8) UND GITTERNETZ IN PLOTLY
                     fig.add_trace(go.Scatter(
                         x=gruppe["Monat_Name"], y=gruppe["bezeichnung"], mode="markers", name=status_name,
-                        marker=dict(size=12, color=farbe_auswahl, line=dict(width=0.5, color=chart_grid)),
+                        marker=dict(size=8, color=farbe_auswahl, line=dict(width=0.5, color=chart_grid)),
                         text=hover_texts,
                         hoverinfo="text"
                     ))
