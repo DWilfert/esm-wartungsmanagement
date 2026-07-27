@@ -54,18 +54,17 @@ def zeige_5jahresplan():
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
         }
 
-        /* Kompaktere Zeilendichte und Gitternetz für st.dataframe */
+        /* Kompaktere Zeilendichte und Matrix-Gitternetz für st.dataframe */
         div[data-testid="stDataFrame"] {
             background-color: var(--secondary-background-color) !important;
             border: 1px solid rgba(128, 128, 128, 0.25) !important;
             border-radius: 0.5rem;
             padding: 2px;
-            background-image: linear-gradient(to right, rgba(128, 128, 128, 0.05) 1px, transparent 1px),
-                              linear-gradient(to bottom, rgba(128, 128, 128, 0.05) 1px, transparent 1px);
-            background-size: 20px 20px;
+            background-image: linear-gradient(to right, rgba(128, 128, 128, 0.08) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(128, 128, 128, 0.08) 1px, transparent 1px);
+            background-size: 15px 15px;
         }
         
-        /* Reduzierter Zeilenabstand in Tabellen für maximale Dichte */
         div[data-testid="stDataFrame"] td {
             padding-top: 2px !important;
             padding-bottom: 2px !important;
@@ -79,27 +78,27 @@ def zeige_5jahresplan():
     
     if theme == "Premium Light":
         chart_text = "#0f172a"
-        chart_grid = "rgba(0, 0, 0, 0.12)"
+        chart_grid = "rgba(0, 0, 0, 0.15)"
         text_muted = "#64748b"
         chart_bg = "#ffffff"
     elif theme == "Premium Cashmere":
         chart_text = "#433422"
-        chart_grid = "rgba(139, 115, 85, 0.2)"
+        chart_grid = "rgba(139, 115, 85, 0.25)"
         text_muted = "#8b7355"
         chart_bg = "#fdfbf7"
     elif theme == "Premium Business":
         chart_text = "#f8fafc"
-        chart_grid = "#1e293b"
+        chart_grid = "rgba(30, 41, 59, 0.8)"
         text_muted = "#94a3b8"
         chart_bg = "#0f172a"
     elif theme == "Premium Slate":
         chart_text = "#f4f4f5"
-        chart_grid = "rgba(161, 161, 170, 0.2)"
+        chart_grid = "rgba(161, 161, 170, 0.25)"
         text_muted = "#a1a1aa"
         chart_bg = "#18181b"
     else:
         chart_text = "#e2e8f0"
-        chart_grid = "#1e293b"
+        chart_grid = "rgba(30, 41, 59, 0.9)"
         text_muted = "#94a3b8"
         chart_bg = "#0e1117"
 
@@ -121,13 +120,13 @@ def zeige_5jahresplan():
         TXT_PLAN = {
             "title": "Strategischer 5-Jahres-Wartungsplan",
             "desc": "Langfristige Instandhaltungprojektion inklusive interaktiver Matrix-Ampel-Analyse und automatisiertem PDF-Audit-Export.",
-            "chart_title": "Strategische Fristen-Zeitachse"
+            "chart_title": "Strategische Fristen-Zeitachse (Matrix)"
         }
     else:
         TXT_PLAN = {
             "title": "Strategic 5-Year Maintenance Plan",
             "desc": "Long-term maintenance projection including interactive matrix traffic-light analysis and automated PDF audit export.",
-            "chart_title": "Strategic Deadline Timeline"
+            "chart_title": "Strategic Deadline Timeline (Matrix)"
         }
 
     st.subheader(TXT_PLAN["title"])
@@ -253,10 +252,15 @@ def zeige_5jahresplan():
                     else:
                         hover_texts = [f"<b>{row['bezeichnung']}</b><br>📍 {row['standort']} | 🏢 {row['firma']}<br>🗓️ Date: {row['Datum'].strftime('%m/%d/%Y')}<br>⚠️ Status: {row['Status']}" for _, row in gruppe.iterrows()]
                     
-                    # KLEINERE AMPEL-PUNKTE (size=8) UND GITTERNETZ IN PLOTLY
+                    # KLEINERE AMPEL-PUNKTE MIT GLOW-EFFEKT & VOLLSTÄNDIGER MATRIX
                     fig.add_trace(go.Scatter(
                         x=gruppe["Monat_Name"], y=gruppe["bezeichnung"], mode="markers", name=status_name,
-                        marker=dict(size=8, color=farbe_auswahl, line=dict(width=0.5, color=chart_grid)),
+                        marker=dict(
+                            size=8, 
+                            color=farbe_auswahl, 
+                            opacity=0.9,
+                            line=dict(width=1.5, color=farbe_auswahl)
+                        ),
                         text=hover_texts,
                         hoverinfo="text"
                     ))
@@ -270,14 +274,18 @@ def zeige_5jahresplan():
                         categoryorder="array", 
                         categoryarray=monats_namen, 
                         range=[-0.5, 11.5], 
+                        showgrid=True,
                         gridcolor=chart_grid, 
+                        gridwidth=1,
                         zeroline=False, 
                         tickfont=dict(color=chart_text)
                     ),
                     yaxis=dict(
                         title=None, 
                         showticklabels=True, 
+                        showgrid=True,
                         gridcolor=chart_grid, 
+                        gridwidth=1,
                         zeroline=False, 
                         tickfont=dict(color=chart_text),
                         automargin=True
