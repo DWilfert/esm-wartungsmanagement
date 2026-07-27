@@ -51,7 +51,6 @@ def zeige_auffalligkeiten():
     st.subheader(TXT_AUF["title"])
     st.markdown(f"<div style='font-size: 13px; color: var(--text-color); opacity: 0.7; margin-bottom: 20px;'>{TXT_AUF['desc']}</div>", unsafe_allow_html=True)
 
-    # Demodaten für Auffälligkeiten falls DB leer
     df_auffalligkeiten = pd.DataFrame({
         "id": [1, 2, 3],
         "anlagenid": [17501, 17504, 17508],
@@ -73,13 +72,12 @@ def zeige_auffalligkeiten():
     st.write("")
 
     # -------------------------------------------------------------
-    # BEREICH 2: EINTRAG LÖSCHEN (Mit schmalerem Spaltenverhältnis)
+    # BEREICH 2: EINTRAG LÖSCHEN
     # -------------------------------------------------------------
     with st.container(border=True):
         st.markdown(f"**{TXT_AUF['sec_loeschen']}**")
         st.markdown("<hr style='border: none; height: 1px; background-color: rgba(128, 128, 128, 0.3); margin: 10px 0;'>", unsafe_allow_html=True)
         
-        # Spaltenverhältnis so angepasst, dass das Auswahlfeld kompakt bleibt
         col_id_sel, col_btn_del, col_space = st.columns([2.5, 2.5, 5.0])
         
         with col_id_sel:
