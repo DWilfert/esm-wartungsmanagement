@@ -12,6 +12,7 @@ def lade_app_design():
         solid_bg = "#0f172a"
         border_color = "rgba(96, 165, 250, 0.3)"
         card_bg = "rgba(17, 27, 48, 0.7)"
+        table_bg = "rgba(15, 23, 42, 0.85)"
         text_main = "#f8fafc"
         text_muted = "#94a3b8"
         accent_color = "#60a5fa"
@@ -23,6 +24,7 @@ def lade_app_design():
         solid_bg = "#18181b"
         border_color = "rgba(161, 161, 170, 0.3)"
         card_bg = "rgba(39, 39, 42, 0.7)"
+        table_bg = "rgba(24, 24, 27, 0.85)"
         text_main = "#f4f4f5"
         text_muted = "#a1a1aa"
         accent_color = "#a1a1aa"
@@ -34,6 +36,7 @@ def lade_app_design():
         solid_bg = "#ffffff"
         border_color = "rgba(0, 0, 0, 0.15)"
         card_bg = "rgba(255, 255, 255, 0.9)"
+        table_bg = "#ffffff"  # Weicher, sauberer Hintergrund für Tabellen statt zu extremem Kontrast
         text_main = "#0f172a"  
         text_muted = "#64748b"
         accent_color = "#3b82f6"
@@ -45,6 +48,7 @@ def lade_app_design():
         solid_bg = "#fdfbf7"
         border_color = "rgba(139, 115, 85, 0.3)"
         card_bg = "rgba(255, 255, 255, 0.8)"
+        table_bg = "#fdfbf7"
         text_main = "#433422"  
         text_muted = "#8b7355"
         accent_color = "#8b7355"
@@ -56,6 +60,7 @@ def lade_app_design():
         solid_bg = "#0e1117"
         border_color = "rgba(74, 144, 226, 0.3)"
         card_bg = "rgba(22, 27, 38, 0.7)"
+        table_bg = "rgba(14, 17, 23, 0.85)"
         text_main = "#e2e8f0"
         text_muted = "#94a3b8"
         accent_color = "#4a90e2"
@@ -98,7 +103,7 @@ def lade_app_design():
             color: {text_main} !important;
         }}
 
-        /* GLOBALE KARTEN & DETAILFELDER (inkl. Infokarten & Container) */
+        /* GLOBALE KARTEN & DETAILFELDER */
         div[data-testid="stForm"], 
         div[data-testid="stVerticalBlock"] > div > div[data-testid="stContainer"],
         .start-kachel {{
@@ -125,15 +130,35 @@ def lade_app_design():
             color: {accent_color} !important;
         }}
 
-        /* TABELLEN */
+        /* TABELLEN GLOBAL ANPASSEN */
         [data-testid="stDataFrame"], [data-testid="stTable"] {{
-            background-color: {card_bg} !important;
+            background-color: {table_bg} !important;
             border: 1px solid {border_color} !important;
             border-radius: 8px;
         }}
         
         [data-testid="stDataFrame"] div[data-baseweb="base-input"] input,
         [data-testid="stDataFrame"] table {{
+            color: {text_main} !important;
+            background-color: {table_bg} !important;
+        }}
+
+        /* GLOBALER FIX FÜR TABELLEN-TOOLBARS & MENÜS IN DER ECKE */
+        div[data-testid="stElementToolbar"],
+        div[data-testid="stElementToolbar"] button,
+        div[data-testid="stElementToolbar"] div {{
+            background-color: {input_bg} !important;
+            color: {text_main} !important;
+            border-color: {border_color} !important;
+        }}
+        
+        div[data-testid="stElementToolbar"] button:hover {{
+            background-color: {dropdown_hover} !important;
+            color: {accent_color} !important;
+        }}
+        
+        div[data-testid="stElementToolbar"] svg {{
+            fill: {text_main} !important;
             color: {text_main} !important;
         }}
 
