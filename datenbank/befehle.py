@@ -2,8 +2,8 @@ import streamlit as st
 import pandas as pd
 
 def hole_datenbank_verbindung():
-    # Für die Demo wird kein echter DB-Socket benötigt
-    return None
+    # Gibt für die Demo ein Dummy-Objekt zurück, damit kein Verbindungsfehler mehr entsteht
+    return "DEMO_MODUS_AKTIV"
 
 def initialisiere_beispieldaten():
     pass
