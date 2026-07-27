@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 
 def zeige_firmeninfo():
-    # Einheitlicher Design-Fix für Tooltips, Dropdowns, Toolbars und kompakteres Gitternetz
     st.markdown("""
         <style>
         input, select, textarea, div[data-baseweb="select"] span, label, .stRadio div {
@@ -51,7 +50,6 @@ def zeige_firmeninfo():
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
         }
 
-        /* Kompaktere Zeilendichte und Matrix-Gitternetz für st.dataframe */
         div[data-testid="stDataFrame"] {
             background-color: var(--secondary-background-color) !important;
             border: 1px solid rgba(128, 128, 128, 0.25) !important;
@@ -69,6 +67,9 @@ def zeige_firmeninfo():
         }
         </style>
     """, unsafe_allow_html=True)
+
+    if 'language' not in st.session_state:
+        st.session_state.language = "de"
 
     if st.session_state.language == "de":
         TXT_FIRMA = {
@@ -115,7 +116,6 @@ def zeige_firmeninfo():
     st.write("")
 
     if firma_aktion == TXT_FIRMA["act_list"]:
-        # Sofortige Demo-Firmen bereitstellen
         df_firmen = pd.DataFrame({
             "id": [1, 2, 3, 4, 5],
             "firmenname": ["Otis GmbH", "Schindler AG", "Stulz GmbH", "Siemens AG", "Viessmann Werke"],
@@ -133,7 +133,6 @@ def zeige_firmeninfo():
             "zugeweseneid": [101, 102, 103, 104, 105]
         })
 
-        # Demo-Vertragsdaten zur Verknüpfung mit den Firmen
         df_demo_vertraege = pd.DataFrame({
             "vertrag_id": [501, 502, 503, 504, 505, 506],
             "firmenname": ["Otis GmbH", "Otis GmbH", "Stulz GmbH", "Siemens AG", "Viessmann Werke", "Schindler AG"],
@@ -167,21 +166,17 @@ def zeige_firmeninfo():
             unbenannt_text = "Unbenannt" if st.session_state.language == "de" else "Unnamed"
             firmen_liste = [""] + [f"[ID: {row['id']}] {row.get(name_col, unbenannt_text)}" for _, row in df_firmen.iterrows()]
             
-            # --- AUSWAHLFELD KOMPAKT (Breite 3.5) ---
             col_sel, _ = st.columns([3.5, 6.5])
             with col_sel:
                 ausgewaehlte_firma = st.selectbox(TXT_FIRMA["sel_del"], firmen_liste, key="firmen_del_selectbox_v1")
 
             if ausgewaehlte_firma:
-                # Firmenname aus der Auswahl extrahieren, um Verträge zu filtern
                 gefundener_firmenname = ausgewaehlte_firma.split("]")[1].strip()
                 if " (" in gefundener_firmenname:
                     gefundener_firmenname = gefundener_firmenname.split(" (")[0].strip()
 
-                # --- SAUBERE TRENNLINIE ANSTATT KASTEN ---
                 st.markdown("<hr style='margin: 25px 0; border: none; border-top: 1px solid rgba(128, 128, 128, 0.3);'>", unsafe_allow_html=True)
 
-                # --- VERTRÄGE DER FIRMA ANZEIGEN ---
                 st.markdown(f"##### {TXT_FIRMA['vertrag_title']} **{gefundener_firmenname}**")
                 df_v_filtered = df_demo_vertraege[df_demo_vertraege["firmenname"] == gefundener_firmenname]
 
