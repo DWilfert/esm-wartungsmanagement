@@ -16,6 +16,7 @@ def lade_app_design():
         text_muted = "#94a3b8"
         accent_color = "#60a5fa"
         input_bg = "rgba(15, 23, 42, 0.9)"
+        dropdown_hover = "rgba(96, 165, 250, 0.2)"
         
     elif theme == "Premium Slate":
         bg_app = "radial-gradient(circle at top left, #3f3f46 0%, #18181b 100%)"
@@ -26,6 +27,7 @@ def lade_app_design():
         text_muted = "#a1a1aa"
         accent_color = "#a1a1aa"
         input_bg = "rgba(24, 24, 27, 0.9)"
+        dropdown_hover = "rgba(161, 161, 170, 0.2)"
 
     elif theme == "Premium Light":
         bg_app = "radial-gradient(circle at top left, #ffffff 0%, #f1f5f9 100%)"
@@ -36,6 +38,7 @@ def lade_app_design():
         text_muted = "#64748b"
         accent_color = "#3b82f6"
         input_bg = "#ffffff" 
+        dropdown_hover = "#e2e8f0"
 
     elif theme == "Premium Cashmere":
         bg_app = "radial-gradient(circle at top left, #fdfbf7 0%, #e6e2d8 100%)"
@@ -46,6 +49,7 @@ def lade_app_design():
         text_muted = "#8b7355"
         accent_color = "#8b7355"
         input_bg = "#ffffff" 
+        dropdown_hover = "#eae3d2"
 
     else:
         bg_app = "radial-gradient(circle at top left, #1a1f2c 0%, #0e1117 100%)"
@@ -56,6 +60,7 @@ def lade_app_design():
         text_muted = "#94a3b8"
         accent_color = "#4a90e2"
         input_bg = "rgba(14, 17, 23, 0.9)"
+        dropdown_hover = "rgba(74, 144, 226, 0.2)"
 
     bg_sidebar = bg_app
     pfeil_farbe = accent_color
@@ -102,7 +107,7 @@ def lade_app_design():
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15) !important;
         }}
         
-        /* RADIKALER FIX FÜR SEGMENTED CONTROLS & AUSWAHL-BUTTONS */
+        /* SEGMENTED CONTROLS & AUSWAHL-BUTTONS */
         div[data-testid="stSegmentedControl"] div[role="button"],
         div[data-testid="stSegmentedControl"] button,
         div[data-testid="stSegmentedControl"] span,
@@ -129,7 +134,7 @@ def lade_app_design():
             color: {text_main} !important;
         }}
 
-        /* GLOBALE FIXES FÜR MENÜS & AUFGEKLAPPTE DROPDOWNS (PULLDOWN-LISTEN) */
+        /* MENÜS, POPOVERS & DROPDOWN-LISTEN */
         div[data-baseweb="popover"],
         div[data-baseweb="menu"],
         ul[data-baseweb="menu"],
@@ -152,10 +157,13 @@ def lade_app_design():
             color: {text_main} !important;
         }}
         
+        /* HOVER- & AUSWAHLBALKEN FIX */
         li[role="option"]:hover,
-        div[role="option"]:hover {{
-            background-color: {border_color} !important;
-            color: {accent_color} !important;
+        div[role="option"]:hover,
+        li[role="option"][aria-selected="true"],
+        div[role="option"][aria-selected="true"] {{
+            background-color: {dropdown_hover} !important;
+            color: {text_main} !important;
         }}
         
         input, textarea, [data-baseweb="select"] div, [data-baseweb="base-input"] {{
@@ -164,7 +172,7 @@ def lade_app_design():
             border-color: {border_color} !important;
         }}
 
-        /* STANDARD-BUTTONS FIX */
+        /* STANDARD-BUTTONS */
         div[data-testid="stButton"] button,
         div[data-testid="stFormSubmitButton"] button,
         div[data-testid="stDownloadButton"] button {{
