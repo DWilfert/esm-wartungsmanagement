@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from fpdf import FPDF
 
 def zeige_anlagen_history():
-    # Kompaktes Design und gezielte Begrenzung der Dropdown-Breite auf ca. 60%
+    # Enterprise Premium CSS für saubere Container, Karten und Typografie
     st.markdown("""
         <style>
         input, select, textarea, div[data-baseweb="select"] span, label, .stRadio div {
@@ -19,32 +19,39 @@ def zeige_anlagen_history():
             border-radius: 0.5rem;
             padding: 4px;
         }
+        .enterprise-card {
+            background-color: rgba(128, 128, 128, 0.05);
+            border: 1px solid rgba(128, 128, 128, 0.15);
+            border-radius: 0.5rem;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
         </style>
     """, unsafe_allow_html=True)
 
     if st.session_state.language == "de":
         TXT_AH = {
             "title": "🔄 360° Anlagen-Historie & Logbuch",
-            "desc": "Chronologische Historie: Wer hat wann, wo und was an dieser Anlage gearbeitet.",
+            "desc": "Chronologische Enterprise-Ansicht: Alle Stammdaten, Verträge, Historien und Prüfberichte im Überblick.",
             "select_lbl": "Anlage auswählen (Alphabetisch):",
-            "sec_stammdaten": "📋 Stammdaten & Standort",
+            "sec_stammdaten": "📋 Stammdaten & Standort-Profil",
             "sec_vertraege": "📑 Zuständige Verträge & Firmen",
             "sec_historie": "🛠️ Anlagen-Historie (Wartungen & Einsätze seit Installation)",
             "sec_auffaelligkeiten": "⚠️ Mängel & Auffälligkeiten",
             "btn_pdf": "📄 Offiziellen 360° Anlagen-Report als PDF erstellen",
-            "no_selection": "👈 Bitte wählen Sie oben in der Auswahlliste eine Anlage aus, um die Historie einzusehen."
+            "no_selection": "👈 Bitte wählen Sie oben in der Auswahlliste eine Anlage aus, um das 360° Dashboard zu laden."
         }
     else:
         TXT_AH = {
             "title": "🔄 360° Asset History & Logbook",
-            "desc": "Chronological history: Who worked on this asset, when, where, and what was done.",
+            "desc": "Chronological Enterprise view: All master data, contracts, histories, and inspection reports at a glance.",
             "select_lbl": "Select Asset (Alphabetical):",
-            "sec_stammdaten": "📋 Master Data & Location",
+            "sec_stammdaten": "📋 Master Data & Location Profile",
             "sec_vertraege": "📑 Assigned Contracts & Companies",
             "sec_historie": "🛠️ Asset History (Maintenance & Service since installation)",
             "sec_auffaelligkeiten": "⚠️ Defects & Discrepancies",
             "btn_pdf": "📄 Generate Official 360° Asset Report as PDF",
-            "no_selection": "👈 Please select an asset from the list above to view its history."
+            "no_selection": "👈 Please select an asset from the list above to load the 360° dashboard."
         }
 
     st.subheader(TXT_AH["title"])
@@ -65,7 +72,7 @@ def zeige_anlagen_history():
 
     anlagen_optionen = [f"[ID: {row['id']}] {row['bezeichnung']} ({row['standort']})" for _, row in df_anlagen.iterrows()]
     
-    col_sel, col_empty = st.columns([6.0, 4.0])
+    col_sel, _ = st.columns([6.0, 4.0])
     with col_sel:
         auswahl = st.selectbox(TXT_AH["select_lbl"], [""] + anlagen_optionen, key="history_anlagen_select")
 
@@ -89,7 +96,7 @@ def zeige_anlagen_history():
 
     stammdaten = matched_row.iloc[0].to_dict()
 
-    # Status-Ampel Logik für die Anzeige definieren
+    # Status-Ampel Logik
     zustand_text = str(stammdaten.get('zustand', '')).lower()
     if "überfällig" in zustand_text:
         ampel = "🔴 Fällig / Überfällig"
@@ -98,24 +105,25 @@ def zeige_anlagen_history():
     else:
         ampel = "🟢 In Ordnung / Betriebsbereit"
 
-    # 1. Stammdaten
+    # --- 1. STAATSDATEN IM ENTERPRISE-CONTAINER ---
     st.markdown(f"##### {TXT_AH['sec_stammdaten']}")
-    c0, c1, c2, c3, c4 = st.columns(5)
-    with c0: st.markdown(f"**Ampel-Status:** {ampel}")
-    with c1: st.markdown(f"**Anlagen-ID:** {stammdaten.get('id')}")
-    with c2: st.markdown(f"**Standort:** {stammdaten.get('standort')}")
-    with c3: st.markdown(f"**Typ:** {stammdaten.get('anlagentyp', '-')}")
-    with c4: st.markdown(f"**Zustand:** {stammdaten.get('zustand', '-')}")
+    with st.container():
+        st.markdown(f"""
+        <div class="enterprise-card">
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; font-size: 0.85rem;">
+                <div><b>Status-Ampel:</b><br>{ampel}</div>
+                <div><b>Anlagen-ID:</b><br>{stammdaten.get('id')}</div>
+                <div><b>Standort:</b><br>{stammdaten.get('standort')}</div>
+                <div><b>Typ:</b><br>{stammdaten.get('anlagentyp', '-')}</div>
+                <div><b>Zustand:</b><br>{stammdaten.get('zustand', '-')}</div>
+                <div><b>Hersteller:</b><br>{stammdaten.get('hersteller', '-')}</div>
+                <div><b>Baujahr:</b><br>{stammdaten.get('baujahr', '-')}</div>
+                <div><b>Raum / DIN 276:</b><br>{stammdaten.get('raum', '-')} ({stammdaten.get('din276', '-')})</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    c5, c6, c7, c8 = st.columns(4)
-    with c5: st.markdown(f"**Hersteller:** {stammdaten.get('hersteller', '-')}")
-    with c6: st.markdown(f"**Baujahr:** {stammdaten.get('baujahr', '-')}")
-    with c7: st.markdown(f"**Raum:** {stammdaten.get('raum', '-')}")
-    with c8: st.markdown(f"**DIN 276:** {stammdaten.get('din276', '-')}")
-
-    st.write("")
-
-    # 2. Verträge & Firmen
+    # --- 2. VERTRÄGE & FIRMEN ---
     st.markdown(f"##### {TXT_AH['sec_vertraege']}")
     df_v_clean = pd.DataFrame({
         'Vertrag / Leistung': [f"Vollwartungsvertrag für {stammdaten.get('bezeichnung')}"],
@@ -125,7 +133,7 @@ def zeige_anlagen_history():
     })
     st.dataframe(df_v_clean, use_container_width=True, hide_index=True)
 
-    # 3. Historie / Serviceeinsaetze
+    # --- 3. HISTORIE / SERVICEEINSÄTZE ---
     st.markdown(f"##### {TXT_AH['sec_historie']}")
     df_s_clean = pd.DataFrame({
         'Maßnahme / Beschreibung': ["Jahreswartung & Filterwechsel", "Sicherheitsprüfung nach DIN"],
@@ -134,7 +142,7 @@ def zeige_anlagen_history():
     })
     st.dataframe(df_s_clean, use_container_width=True, hide_index=True)
 
-    # 4. Mängel & Auffälligkeiten
+    # --- 4. MÄNGEL & AUFFÄLLIGKEITEN ---
     st.markdown(f"##### {TXT_AH['sec_auffaelligkeiten']}")
     if "überfällig" in zustand_text:
         df_a_clean = pd.DataFrame({
