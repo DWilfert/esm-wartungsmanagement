@@ -15,11 +15,6 @@ def zeige_einstellungen():
             display: none !important;
         }
         
-        /* Reduziert alle Selectboxen / Dropdown-Felder um 50% der Breite */
-        div[data-baseweb="select"] {
-            max-width: 50% !important;
-        }
-        
         /* Dropdown-Menüs und Popovers */
         div[data-baseweb="popover"], div[data-baseweb="menu"], ul[data-baseweb="menu"] {
             background-color: var(--secondary-background-color) !important;
@@ -60,36 +55,36 @@ def zeige_einstellungen():
     if st.session_state.language == "de":
         TXT_E = {
             "title": "⚙️ Benutzer- & Systemeinstellungen",
-            "desc": "Verwalte hier deine persönlichen Ansichten, Präferenzen und das Design am PC.",
-            "hdr_speicher": "💾 Automatisches Speichern von Ansichten & Filtern",
-            "radio_label": "Wie soll das System mit deinen Ansichts- und Filter-Einstellungen umgehen?",
-            "opt_manuell": "Persönliche Einstellungen dauerhaft speichern (Meine Ansichten merken)",
-            "opt_auto": "Automatisch / Standard (Vom Programm entscheiden lassen)",
-            "hdr_design": "🎨 Design & Darstellungs-Präferenzen",
-            "theme_label": "Wähle dein bevorzugtes Design-Thema:",
-            "start_label": "Standard-Startseite beim Login / Aufruf:",
-            "density_label": "Tabellen-Zeilendichte (Layout-Modus):",
-            "opt_compact": "Kompakt (Maximale Datenübersicht)",
-            "opt_comfort": "Komfortabel (Mehr Zeilenabstand)",
-            "btn_save": "Einstellungen speichern",
-            "success": "Benutzer-Einstellungen erfolgreich gespeichert!"
+            "desc": "Zentrale Steuerungseinheit für persönliche Ansichten, Präferenzen und das UI-Verhalten am Arbeitsplatz.",
+            "card_ansicht": "🖥️ Ansichten & Filter-Verhalten",
+            "card_design": "🎨 Design & Benutzeroberfläche",
+            "radio_label": "Automatisches Speichern von Filtern:",
+            "opt_manuell": "Persönliche Einstellungen dauerhaft merken",
+            "opt_auto": "Standard / Automatisch entscheiden",
+            "theme_label": "Design-Thema (Farbgebung):",
+            "start_label": "Standard-Startseite beim Login:",
+            "density_label": "Tabellen-Zeilendichte:",
+            "opt_compact": "Kompakt (Maximale Übersicht)",
+            "opt_comfort": "Komfortabel (Mehr Abstand)",
+            "btn_save": "Änderungen speichern",
+            "success": "Benutzer-Einstellungen erfolgreich aktualisiert!"
         }
     else:
         TXT_E = {
             "title": "⚙️ User & System Settings",
-            "desc": "Manage your personal views, preferences, and display settings here.",
-            "hdr_speicher": "💾 Automatic Saving of Views & Filters",
-            "radio_label": "How should the system handle your view and filter settings?",
-            "opt_manuell": "Save personal settings permanently (Remember my views)",
-            "opt_auto": "Automatic / Default (Let the program decide)",
-            "hdr_design": "🎨 Design & Display Preferences",
-            "theme_label": "Choose your preferred design theme:",
+            "desc": "Central control unit for personal views, preferences, and UI behavior at the workstation.",
+            "card_ansicht": "🖥️ Views & Filter Behavior",
+            "card_design": "🎨 Design & User Interface",
+            "radio_label": "Automatic saving of filters:",
+            "opt_manuell": "Remember personal settings permanently",
+            "opt_auto": "Standard / Decide automatically",
+            "theme_label": "Design Theme (Color Scheme):",
             "start_label": "Default Landing Page upon login:",
-            "density_label": "Table Row Density (Layout Mode):",
-            "opt_compact": "Compact (Maximum data overview)",
-            "opt_comfort": "Comfortable (More row spacing)",
-            "btn_save": "Save Settings",
-            "success": "User settings successfully saved!"
+            "density_label": "Table Row Density:",
+            "opt_compact": "Compact (Maximum overview)",
+            "opt_comfort": "Comfortable (More spacing)",
+            "btn_save": "Save Changes",
+            "success": "User settings successfully updated!"
         }
 
     st.subheader(TXT_E["title"])
@@ -127,49 +122,52 @@ def zeige_einstellungen():
             except:
                 pass
 
-    # --- INHALT IN ENTERPRISE-CONTAINERN ---
-    with st.container(border=True):
-        # 1. Speicher-Modus
-        st.markdown(f"##### {TXT_E['hdr_speicher']}")
-        default_idx = 0 if aktueller_modus == "manuell" else 1
-        wahl_modus = st.radio(
-            TXT_E["radio_label"],
-            options=[TXT_E["opt_manuell"], TXT_E["opt_auto"]],
-            index=default_idx,
-            key="einstellungen_speicher_radio"
-        )
+    # --- ENTERPRISE ZWEI-SPALTEN-GRID ---
+    col_grid_1, col_grid_2 = st.columns(2, gap="medium")
 
-        st.write("")
-        st.write("")
+    with col_grid_1:
+        with st.container(border=True):
+            st.markdown(f"##### {TXT_E['card_ansicht']}")
+            st.write("")
+            default_idx = 0 if aktueller_modus == "manuell" else 1
+            wahl_modus = st.radio(
+                TXT_E["radio_label"],
+                options=[TXT_E["opt_manuell"], TXT_E["opt_auto"]],
+                index=default_idx,
+                key="einstellungen_speicher_radio"
+            )
 
-        # 2. Design & Benutzer-Präferenzen
-        st.markdown(f"##### {TXT_E['hdr_design']}")
-        
-        themen_optionen = ["Premium Dark", "Premium Business", "Premium Slate", "Premium Light", "Premium Cashmere"]
-        try:
-            theme_index = themen_optionen.index(aktuelles_theme)
-        except ValueError:
-            theme_index = 0
+    with col_grid_2:
+        with st.container(border=True):
+            st.markdown(f"##### {TXT_E['card_design']}")
+            st.write("")
+            
+            themen_optionen = ["Premium Dark", "Premium Business", "Premium Slate", "Premium Light", "Premium Cashmere"]
+            try:
+                theme_index = themen_optionen.index(aktuelles_theme)
+            except ValueError:
+                theme_index = 0
 
-        startseiten_optionen = ["Startseite", "Globale Suche", "Vertragsanalyse", "Wartungsanalyse", "Jahresplan"]
-        try:
-            start_index = startseiten_optionen.index(aktuelle_startseite)
-        except ValueError:
-            start_index = 0
+            startseiten_optionen = ["Startseite", "Globale Suche", "Vertragsanalyse", "Wartungsanalyse", "Jahresplan"]
+            try:
+                start_index = startseiten_optionen.index(aktuelle_startseite)
+            except ValueError:
+                start_index = 0
 
-        dichte_optionen = [TXT_E["opt_compact"], TXT_E["opt_comfort"]]
-        try:
-            dichte_index = dichte_optionen.index(aktuelle_dichte)
-        except ValueError:
-            dichte_index = 0
+            dichte_optionen = [TXT_E["opt_compact"], TXT_E["opt_comfort"]]
+            try:
+                dichte_index = dichte_optionen.index(aktuelle_dichte)
+            except ValueError:
+                dichte_index = 0
 
-        col_p1, col_p2 = st.columns(2)
-        with col_p1:
-            wahl_theme = st.selectbox(TXT_E["theme_label"], options=themen_optionen, index=theme_index, key="einstellungen_theme_select")
-            wahl_start = st.selectbox(TXT_E["start_label"], options=startseiten_optionen, index=start_index, key="einstellungen_start_select")
-        with col_p2:
-            wahl_dichte = st.selectbox(TXT_E["density_label"], options=dichte_optionen, index=dichte_index, key="einstellungen_dichte_select")
+            # Kompakte 50%-Spalten für die Dropdowns innerhalb der Karte
+            col_dd1, _ = st.columns([6.0, 4.0])
+            with col_dd1:
+                wahl_theme = st.selectbox(TXT_E["theme_label"], options=themen_optionen, index=theme_index, key="einstellungen_theme_select")
+                wahl_start = st.selectbox(TXT_E["start_label"], options=startseiten_optionen, index=start_index, key="einstellungen_start_select")
+                wahl_dichte = st.selectbox(TXT_E["density_label"], options=dichte_optionen, index=dichte_index, key="einstellungen_dichte_select")
 
+    st.write("")
     st.write("")
     if st.button(TXT_E["btn_save"], type="primary"):
         neuer_modus = "manuell" if wahl_modus == TXT_E["opt_manuell"] else "auto"
