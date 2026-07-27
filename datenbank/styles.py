@@ -98,7 +98,10 @@ def lade_app_design():
             color: {text_main} !important;
         }}
 
-        div[data-testid="stForm"], .start-kachel {{
+        /* GLOBALE KARTEN & DETAILFELDER (inkl. Infokarten & Container) */
+        div[data-testid="stForm"], 
+        div[data-testid="stVerticalBlock"] > div > div[data-testid="stContainer"],
+        .start-kachel {{
             background: {card_bg} !important;
             backdrop-filter: blur(12px) !important;
             -webkit-backdrop-filter: blur(12px) !important;
@@ -157,7 +160,6 @@ def lade_app_design():
             color: {text_main} !important;
         }}
         
-        /* HOVER- & AUSWAHLBALKEN FIX */
         li[role="option"]:hover,
         div[role="option"]:hover,
         li[role="option"][aria-selected="true"],
