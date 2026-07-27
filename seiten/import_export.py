@@ -25,7 +25,7 @@ def zeige_import_export():
         }
         
         /* Dropdown-Menüs und Popovers */
-        div[data-baseweb="popover"], div[data-baseweb="menu"], ul[data-baseweb="menu"] {
+        div[data-testid="popover"], div[data-baseweb="menu"], ul[data-baseweb="menu"] {
             background-color: var(--secondary-background-color) !important;
         }
         
@@ -35,7 +35,7 @@ def zeige_import_export():
             font-size: 0.85rem !important;
         }
         
-        /* Dezenter, dunkler Hover-Zustand passend zum Dark-Mode (verhindert den weißen Balken) */
+        /* Dezenter, dunkler Hover-Zustand passend zum Dark-Mode */
         ul[role="listbox"] li:hover,
         ul[role="listbox"] li[aria-selected="true"],
         li[role="option"]:hover,
@@ -91,6 +91,13 @@ def zeige_import_export():
             padding: 12px 15px;
             text-align: center;
         }
+        
+        /* Echte, feine Trennlinie statt Browser-Box */
+        .saubere-trennlinie {
+            border: none;
+            border-top: 1px solid rgba(128, 128, 128, 0.25);
+            margin: 25px 0;
+        }
         </style>
     """, unsafe_allow_html=True)
 
@@ -112,10 +119,11 @@ def zeige_import_export():
             "kpi_3": "Dienstleister",
             "kpi_4": "System-Status",
             "status_ok": "Online (Sicher)",
-            "template_title": "📥 Offizielle Excel-Vorlagen",
-            "template_desc": "Laden Sie standardisierte Muster-Dateien herunter, um Importfehler zu vermeiden.",
+            "template_title": "📥 Interaktiver Vorlagen-Generator",
+            "template_desc": "Wählen Sie eine Tabelle aus, um das exakte Excel-Template inklusive automatischer Feld-Legende herunterzuladen.",
+            "template_sel": "Tabelle für Vorlage wählen:",
             "log_title": "🕒 Schnittstellen-Protokoll (Audit-Trail)",
-            "dl_tmpl_btn": "Vorlage herunterladen"
+            "dl_tmpl_btn": "📥 Ausgewählte Vorlage herunterladen"
         }
     else:
         TXT_IE = {
@@ -135,10 +143,11 @@ def zeige_import_export():
             "kpi_3": "Contractors",
             "kpi_4": "System Status",
             "status_ok": "Online (Secure)",
-            "template_title": "📥 Official Excel Templates",
-            "template_desc": "Download standardized template files to prevent import errors.",
+            "template_title": "📥 Interactive Template Generator",
+            "template_desc": "Select a table to download the exact Excel template including automatic field legend.",
+            "template_sel": "Select table for template:",
             "log_title": "🕒 Interface Log (Audit Trail)",
-            "dl_tmpl_btn": "Download Template"
+            "dl_tmpl_btn": "📥 Download Selected Template"
         }
 
     st.subheader(TXT_IE["title"])
@@ -167,7 +176,7 @@ def zeige_import_export():
         "Serviceeinträge" if st.session_state.language == "de" else "Service Reports": "serviceeinsaetze"
     }
 
-    # --- 2. ZWEI-SPALTEN-LAYOUT (HAUPTBEREICH & TEMPLATES) ---
+    # --- 2. ZWEI-SPALTEN-LAYOUT (HAUPTBEREICH & INTERAKTIVER TEMPLATE-HUB) ---
     col_main_left, col_main_right = st.columns([6.0, 4.0])
 
     with col_main_left:
@@ -297,14 +306,17 @@ def zeige_import_export():
 
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # --- RECHTE SPALTE: TEMPLATE-HUB ---
+    # --- RECHTE SPALTE: INTERAKTIVER TEMPLATE-HUB ---
     with col_main_right:
         st.markdown('<div class="enterprise-card">', unsafe_allow_html=True)
         st.markdown(f"##### {TXT_IE['template_title']}")
         st.markdown(f"<p style='font-size: 12px; opacity: 0.7; margin-bottom: 15px;'>{TXT_IE['template_desc']}</p>", unsafe_allow_html=True)
         
-        # Dynamische Vorlagen generieren für alle Tabellen
-        for t_name, t_key in tabellen_liste.items():
+        # Interaktive Dropdown-Auswahl für das gewünschte Template
+        template_wahl = st.selectbox(TXT_IE["template_sel"], [""] + list(tabellen_liste.keys()), key="interaktives_template_selectbox")
+        
+        if template_wahl:
+            t_key = tabellen_liste[template_wahl]
             conn_t = None
             try:
                 conn_t = hole_datenbank_verbindung()
@@ -325,12 +337,13 @@ def zeige_import_export():
                         df_v.to_excel(w, index=False, sheet_name="Vorlage" if st.session_state.language == "de" else "Template")
                         df_l.to_excel(w, index=False, sheet_name=s_name)
                     
+                    st.write("")
                     st.download_button(
-                        label=f"📥 Vorlage: {t_name}",
+                        label=TXT_IE["dl_tmpl_btn"],
                         data=out_t.getvalue(),
                         file_name=f"ESM_Vorlage_{t_key}.xlsx",
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        key=f"dl_hub_tpl_{t_key}",
+                        key=f"dl_hub_tpl_{t_key}_interactive",
                         use_container_width=True
                     )
             except Exception as ex:
@@ -344,8 +357,8 @@ def zeige_import_export():
         
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # --- 3. SCHNITTSTELLEN-PROTOKOLL (AUDIT TRAIL) UNTEN ---
-    st.markdown("<hr style='margin: 15px 0; border: none; border-top: 1px solid rgba(128, 128, 128, 0.2);'>", unsafe_allow_html=True)
+    # --- 3. SAUBERE TRENNLINIE & SCHNITTSTELLEN-PROTOKOLL ---
+    st.markdown('<hr class="saubere-trennlinie">', unsafe_allow_html=True)
     st.markdown(f"##### {TXT_IE['log_title']}")
     
     df_audit_log = pd.DataFrame({
