@@ -49,56 +49,58 @@ def zeige_einstellungen():
             border: 1px solid rgba(128, 128, 128, 0.3) !important;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
         }
-
-        .enterprise-card {
-            background-color: rgba(128, 128, 128, 0.04);
-            border: 1px solid rgba(128, 128, 128, 0.15);
-            border-radius: 0.5rem;
-            padding: 18px;
-            margin-bottom: 20px;
-        }
         </style>
     """, unsafe_allow_html=True)
 
     if st.session_state.language == "de":
         TXT_E = {
-            "title": "⚙️ Systemeinstellungen & Präferenzen",
-            "desc": "Verwalte hier das globale Systemverhalten, Designs und Ansichten.",
+            "title": "⚙️ Benutzer- & Systemeinstellungen",
+            "desc": "Verwalte hier deine persönlichen Ansichten, Präferenzen und das Design am PC.",
             "hdr_speicher": "💾 Automatisches Speichern von Ansichten & Filtern",
             "radio_label": "Wie soll das System mit deinen Ansichts- und Filter-Einstellungen umgehen?",
             "opt_manuell": "Persönliche Einstellungen dauerhaft speichern (Meine Ansichten merken)",
             "opt_auto": "Automatisch / Standard (Vom Programm entscheiden lassen)",
-            "hdr_design": "🎨 Design & Farb-Thema",
+            "hdr_design": "🎨 Design & Darstellungs-Präferenzen",
             "theme_label": "Wähle dein bevorzugtes Design-Thema:",
+            "start_label": "Standard-Startseite beim Login / Aufruf:",
+            "density_label": "Tabellen-Zeilendichte (Layout-Modus):",
+            "opt_compact": "Kompakt (Maximale Datenübersicht)",
+            "opt_comfort": "Komfortabel (Mehr Zeilenabstand)",
             "btn_save": "Einstellungen speichern",
-            "success": "Einstellungen erfolgreich in der Datenbank gespeichert!"
+            "success": "Benutzer-Einstellungen erfolgreich gespeichert!"
         }
     else:
         TXT_E = {
-            "title": "⚙️ System Settings & Preferences",
-            "desc": "Manage global system behavior, designs, and views here.",
+            "title": "⚙️ User & System Settings",
+            "desc": "Manage your personal views, preferences, and display settings here.",
             "hdr_speicher": "💾 Automatic Saving of Views & Filters",
             "radio_label": "How should the system handle your view and filter settings?",
             "opt_manuell": "Save personal settings permanently (Remember my views)",
             "opt_auto": "Automatic / Default (Let the program decide)",
-            "hdr_design": "🎨 Design & Color Theme",
+            "hdr_design": "🎨 Design & Display Preferences",
             "theme_label": "Choose your preferred design theme:",
+            "start_label": "Default Landing Page upon login:",
+            "density_label": "Table Row Density (Layout Mode):",
+            "opt_compact": "Compact (Maximum data overview)",
+            "opt_comfort": "Comfortable (More row spacing)",
             "btn_save": "Save Settings",
-            "success": "Settings successfully saved to the database!"
+            "success": "User settings successfully saved!"
         }
 
     st.subheader(TXT_E["title"])
     st.markdown(f"<div style='font-size: 13px; color: var(--text-color); opacity: 0.7; margin-bottom: 25px;'>{TXT_E['desc']}</div>", unsafe_allow_html=True)
 
-    # Werte aus Datenbank laden
+    # Werte aus Datenbank laden (oder Fallback auf Session State)
     aktueller_modus = "manuell"
     aktuelles_theme = st.session_state.get("app_theme", "Premium Dark")
+    aktuelle_startseite = st.session_state.get("startseite", "Startseite")
+    aktuelle_dichte = st.session_state.get("tabellen_dichte", "Kompakt")
     
     conn = hole_datenbank_verbindung()
     if conn is not None:
         try:
             cursor = conn.cursor(dictionary=True)
-            cursor.execute("SELECT schluessel, wert FROM `user_einstellungen` WHERE schluessel IN ('speicher_modus', 'app_theme')")
+            cursor.execute("SELECT schluessel, wert FROM `user_einstellungen` WHERE schluessel IN ('speicher_modus', 'app_theme', 'startseite', 'tabellen_dichte')")
             ergebnisse = cursor.fetchall()
             for row in ergebnisse:
                 val = json.loads(row["wert"])
@@ -106,9 +108,13 @@ def zeige_einstellungen():
                     aktueller_modus = val
                 elif row["schluessel"] == "app_theme":
                     aktuelles_theme = val
+                elif row["schluessel"] == "startseite":
+                    aktuelle_startseite = val
+                elif row["schluessel"] == "tabellen_dichte":
+                    aktuelle_dichte = val
             cursor.close()
         except Exception as e:
-            print(f"Lade-Fehler: {e}" if st.session_state.language == "de" else f"Load Error: {e}")
+            print(f"Lade-Fehler: {e}")
         finally:
             try:
                 if conn is not None:
@@ -118,7 +124,7 @@ def zeige_einstellungen():
 
     # --- INHALT IN ENTERPRISE-CONTAINERN ---
     with st.container(border=True):
-        # --- SPEICHER-MODUS AUSWAHL ---
+        # 1. Speicher-Modus
         st.markdown(f"##### {TXT_E['hdr_speicher']}")
         default_idx = 0 if aktueller_modus == "manuell" else 1
         wahl_modus = st.radio(
@@ -131,22 +137,33 @@ def zeige_einstellungen():
         st.write("")
         st.write("")
 
-        # --- THEME AUSWAHL ---
+        # 2. Design & Benutzer-Präferenzen
         st.markdown(f"##### {TXT_E['hdr_design']}")
+        
         themen_optionen = ["Premium Dark", "Premium Business", "Premium Slate", "Premium Light", "Premium Cashmere"]
         try:
             theme_index = themen_optionen.index(aktuelles_theme)
         except ValueError:
             theme_index = 0
 
-        col_theme_1, _ = st.columns([5.0, 5.0])
-        with col_theme_1:
-            wahl_theme = st.selectbox(
-                TXT_E["theme_label"],
-                options=themen_optionen,
-                index=theme_index,
-                key="einstellungen_theme_select"
-            )
+        startseiten_optionen = ["Startseite", "Globale Suche", "Vertragsanalyse", "Wartungsanalyse", "Jahresplan"]
+        try:
+            start_index = startseiten_optionen.index(aktuelle_startseite)
+        except ValueError:
+            start_index = 0
+
+        dichte_optionen = [TXT_E["opt_compact"], TXT_E["opt_comfort"]]
+        try:
+            dichte_index = dichte_optionen.index(aktuelle_dichte)
+        except ValueError:
+            dichte_index = 0
+
+        col_p1, col_p2 = st.columns(2)
+        with col_p1:
+            wahl_theme = st.selectbox(TXT_E["theme_label"], options=themen_optionen, index=theme_index, key="einstellungen_theme_select")
+            wahl_start = st.selectbox(TXT_E["start_label"], options=startseiten_optionen, index=start_index, key="einstellungen_start_select")
+        with col_p2:
+            wahl_dichte = st.selectbox(TXT_E["density_label"], options=dichte_optionen, index=dichte_index, key="einstellungen_dichte_select")
 
     st.write("")
     if st.button(TXT_E["btn_save"], type="primary"):
@@ -154,17 +171,28 @@ def zeige_einstellungen():
         
         # In Session State aktualisieren
         st.session_state.app_theme = wahl_theme
+        st.session_state.startseite = wahl_start
+        st.session_state.tabellen_dichte = wahl_dichte
         
         # In Datenbank speichern
         conn = hole_datenbank_verbindung()
         if conn is not None:
             try:
                 cursor = conn.cursor()
-                val_mod_str = json.dumps(neuer_modus)
-                cursor.execute("INSERT INTO `user_einstellungen` (schluessel, wert) VALUES ('speicher_modus', %s) ON DUPLICATE KEY UPDATE wert = %s", (val_mod_str, val_mod_str))
                 
-                val_thm_str = json.dumps(wahl_theme)
-                cursor.execute("INSERT INTO `user_einstellungen` (schluessel, wert) VALUES ('app_theme', %s) ON DUPLICATE KEY UPDATE wert = %s", (val_thm_str, val_thm_str))
+                einstellungen_dict = {
+                    'speicher_modus': neuer_modus,
+                    'app_theme': wahl_theme,
+                    'startseite': wahl_start,
+                    'tabellen_dichte': wahl_dichte
+                }
+                
+                for key, val in einstellungen_dict.items():
+                    val_str = json.dumps(val)
+                    cursor.execute(
+                        "INSERT INTO `user_einstellungen` (schluessel, wert) VALUES (%s, %s) ON DUPLICATE KEY UPDATE wert = %s", 
+                        (key, val_str, val_str)
+                    )
                 
                 conn.commit()
                 cursor.close()
