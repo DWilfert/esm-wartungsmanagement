@@ -81,7 +81,6 @@ def zeige_vertragsdokumente():
     
     win_path = os.path.normpath(config_pfad)
 
-    # Info-Hinweis im Cloud-Modus für den Anwender
     if is_cloud_mode:
         st.markdown(
             f"<div style='font-size: 11.5px; color: #38bdf8; background: rgba(56, 189, 248, 0.1); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; border: 1px solid rgba(56, 189, 248, 0.3);'>"
@@ -116,9 +115,10 @@ def zeige_vertragsdokumente():
         except: 
             pass
         finally: 
-            conn.close()
+            if conn is not None:
+                conn.close()
         
-    # Ermittlung der PDF-Dateien (entweder real oder simuliert für die Demo)
+    # Ermittlung der PDF-Dateien
     if not is_cloud_mode:
         try:
             alle_dateien = os.listdir(doc_pfad)
@@ -127,7 +127,6 @@ def zeige_vertragsdokumente():
             pdf_dateien = []
             st.error(f"Fehler: {str(e_dir)}" if st.session_state.language == "de" else f"Error: {str(e_dir)}")
     else:
-        # Professionelle Demo-Dateien für die Cloud-Präsentation
         pdf_dateien = [
             "Wartungsvertrag_ID17501_Personenaufzug_A.pdf",
             "Servicevertrag_ID17502_RLT_Anlage.pdf",
@@ -201,7 +200,6 @@ def zeige_vertragsdokumente():
                 with open(vollstaendiger_pfad, "rb") as f:
                     base64_pdf = base64.b64encode(f.read()).decode('utf-8')
             else:
-                # Echter, minimaler Base64-PDF-Stream als Fallback für die Cloud-Präsentation (gueltiges PDF-Dokument)
                 sample_pdf_bytes = b'%PDF-1.4 1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 595 842]/Parent 2 0 R/Resources<<>>/Contents 4 0 R>>endobj 4 0 obj<</Length 55>>stream\nBT /F1 18 Tf 50 750 Td (ESM Wartungsmanagement - DEMO VERTRAGSDOKUMENT) Tj ET\nendstream\nendobj\nxref\n0 5\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \n0000000228 00000 n \ntrailer<</Size 5/Root 1 0 R>>\nstartstart\nstartxref\n338\n%%EOF'
                 base64_pdf = base64.b64encode(sample_pdf_bytes).decode('utf-8')
 
