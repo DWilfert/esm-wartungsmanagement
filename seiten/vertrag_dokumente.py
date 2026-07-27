@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
-import base64
 import os
 import subprocess
+import tempfile
 from datenbank.befehle import hole_datenbank_verbindung
 
 def zeige_vertragsdokumente():
@@ -66,6 +66,9 @@ def zeige_vertragsdokumente():
     st.subheader("📂 Zentrales Vertragsarchiv" if st.session_state.language == "de" else "📂 Central Contract Archive")
     
     config_pfad = st.session_state.get("admin_doc_path_config", "C:/esm_dokumente")
+    
+    # Hier wird geprüft, ob der echte Ordner existiert (lokal / Netzlaufwerk).
+    # Wenn er da ist, wird er genutzt. Falls nicht (Cloud), greift die Simulation.
     is_cloud_mode = not os.path.exists(config_pfad)
     doc_pfad = config_pfad if not is_cloud_mode else "demo_archiv_simuliert"
     win_path = os.path.normpath(config_pfad)
@@ -73,10 +76,10 @@ def zeige_vertragsdokumente():
     if is_cloud_mode:
         st.markdown(
             f"<div style='font-size: 11.5px; color: #38bdf8; background: rgba(56, 189, 248, 0.1); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; border: 1px solid rgba(56, 189, 248, 0.3);'>"
-            f"ℹ️ <em>Cloud-Modus aktiv:</em> Lokaler Netzlaufwerk-Pfad ('{config_pfad}') wird für die Präsentation sicher simuliert. Echte Beispieldokumente sind geladen."
+            f"ℹ️ <em>Cloud-Modus aktiv:</em> Netzlaufwerk-Pfad ('{config_pfad}') wird für die Demo sicher simuliert. Echte lokale Beispieldokumente stehen bereit."
             f"</div>" if st.session_state.language == "de" else
             f"<div style='font-size: 11.5px; color: #38bdf8; background: rgba(56, 189, 248, 0.1); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; border: 1px solid rgba(56, 189, 248, 0.3);'>"
-            f"ℹ️ <em>Cloud Mode Active:</em> Local network path ('{config_pfad}') is safely simulated for the presentation. Sample documents are loaded."
+            f"ℹ️ <em>Cloud Mode Active:</em> Network path ('{config_pfad}') is safely simulated for the demo. Local sample documents are ready."
             f"</div>",
             unsafe_allow_html=True
         )
@@ -92,12 +95,11 @@ def zeige_vertragsdokumente():
                 except Exception as e_explorer:
                     st.error(f"Fehler beim Öffnen: {str(e_explorer)}" if st.session_state.language == "de" else f"Error opening: {str(e_explorer)}")
             else:
-                st.info("📂 Simulierter Ordner: Alle Demo-Verträge sind direkt im System archiviert." if st.session_state.language == "de" else "📂 Simulated folder: All demo contracts are archived directly in the system.")
+                st.info("📂 Simulierter Netzlaufwerk-Ordner aktiv." if st.session_state.language == "de" else "📂 Simulated network folder active.")
 
     st.write("---")
     vertrag_dict = {}
     
-    # Sicherer Datenbank-Aufruf mit Typ- und Attributprüfung
     conn = None
     try:
         conn = hole_datenbank_verbindung()
@@ -113,6 +115,7 @@ def zeige_vertragsdokumente():
         except Exception:
             pass
         
+    # Einlesen der Dateien vom echten Pfad oder aus der Demo
     if not is_cloud_mode:
         try:
             alle_dateien = os.listdir(doc_pfad)
@@ -131,9 +134,9 @@ def zeige_vertragsdokumente():
     
     if not pdf_dateien:
         no_pdf_msg = (
-            f"ℹ️ Der Dokumenten-Ordner '{doc_pfad}' enthält aktuell keine PDF-Dateien." 
+            f"ℹ️ Der Dokumenten-Pfad '{doc_pfad}' enthält aktuell keine PDF-Dateien." 
             if st.session_state.language == "de" 
-            else f"ℹ️ The document folder '{doc_pfad}' currently contains no PDF files."
+            else f"ℹ️ The document path '{doc_pfad}' currently contains no PDF files."
         )
         st.info(no_pdf_msg)
         return
@@ -165,10 +168,10 @@ def zeige_vertragsdokumente():
     
     if st.session_state.language == "de":
         lbl_file, lbl_contract, lbl_id = "Dateiname (PDF)", "Zugeordneter Wartungsvertrag", "Vertrag ID"
-        lbl_select = "💡 Tipp: Klicke links auf das kleine Quadrat einer Zeile, um das PDF direkt hier anzuzeigen!"
+        lbl_select = "💡 Tipp: Klicke links auf das kleine Quadrat einer Zeile, um das PDF direkt in der App anzuzeigen!"
     else:
         lbl_file, lbl_contract, lbl_id = "File Name (PDF)", "Assigned Maintenance Contract", "Contract ID"
-        lbl_select = "💡 Tip: Click the small checkbox on the left of any row to view the PDF directly below!"
+        lbl_select = "💡 Tip: Click the small checkbox on the left of any row to view the PDF directly in the app!"
         
     df_docs.columns = [lbl_file, lbl_contract, lbl_id]
 
@@ -189,19 +192,31 @@ def zeige_vertragsdokumente():
         gewaehlte_datei = pdf_dateien[reiner_index]
         
         try:
+            # Bytes der PDF laden (entweder vom echten lokalen Pfad oder dem Demo-Stream)
             if not is_cloud_mode:
                 vollstaendiger_pfad = os.path.join(doc_pfad, gewaehlte_datei)
                 with open(vollstaendiger_pfad, "rb") as f:
-                    base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+                    pdf_bytes = f.read()
             else:
-                sample_pdf_bytes = b'%PDF-1.4 1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 595 842]/Parent 2 0 R/Resources<<>>/Contents 4 0 R>>endobj 4 0 obj<</Length 55>>stream\nBT /F1 18 Tf 50 750 Td (ESM Wartungsmanagement - DEMO VERTRAGSDOKUMENT) Tj ET\nendstream\nendobj\nxref\n0 5\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \n0000000228 00000 n \ntrailer<</Size 5/Root 1 0 R>>\nstartstart\nstartxref\n338\n%%EOF'
-                base64_pdf = base64.b64encode(sample_pdf_bytes).decode('utf-8')
+                pdf_bytes = b'%PDF-1.4 1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 595 842]/Parent 2 0 R/Resources<<>>/Contents 4 0 R>>endobj 4 0 obj<</Length 55>>stream\nBT /F1 18 Tf 50 750 Td (ESM Wartungsmanagement - DEMO VERTRAGSDOKUMENT) Tj ET\nendstream\nendobj\nxref\n0 5\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \n0000000228 00000 n \ntrailer<</Size 5/Root 1 0 R>>\nstartstart\nstartxref\n338\n%%EOF'
 
-            pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="700px" style="border: 1px solid #232d42; border-radius: 8px;"></iframe>'
             st.write("")
             preview_title = f"##### 👁️ Dokumenten-Vorschau: {gewaehlte_datei}" if st.session_state.language == "de" else f"##### 👁️ Document Preview: {gewaehlte_datei}"
             st.markdown(preview_title)
+            
+            # Die absolut sicherste Methode für Chrome: Einbindung über ein lokales temporäres PDF-File
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
+                tmp_file.write(pdf_bytes)
+                tmp_path = tmp_file.name
+
+            # Einlesen als lesbarer Stream für den HTML-Iframe ohne Sicherheitsblockade
+            with open(tmp_path, "rb") as f:
+                base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+
+            # Einbettung direkt in der App ohne neues Fenster
+            pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="700px" style="border: 1px solid rgba(128,128,128,0.3); border-radius: 8px;"></iframe>'
             st.markdown(pdf_display, unsafe_allow_html=True)
+            
         except Exception as e_view:
             err_view_msg = f"Fehler beim Laden der Vorschau: {str(e_view)}" if st.session_state.language == "de" else f"Error loading preview: {str(e_view)}"
             st.error(err_view_msg)
