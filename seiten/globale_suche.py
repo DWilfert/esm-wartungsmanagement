@@ -41,7 +41,7 @@ def zeige_globale_suche():
         TXT_GS = {
             "title": "🔍 Globale 360° Volltextsuche",
             "desc": "Durchsuchen Sie das gesamte ESM Wartungsmanagement in Echtzeit (Anlagen, Verträge, Serviceeinsätze, Firmen & Mängel).",
-            "placeholder": "Suchbegriff oder Anlagen-ID eingeben (z.B. 17501, Test, Otis)...",
+            "placeholder": "Suchbegriff oder Anlagen-ID eingeben (z.B. Aufzug, Otis, Siemens)...",
             "res_anlagen": "🏫 Treffer bei Anlagen & Gebäuden",
             "res_vertraege": "📑 Treffer bei Verträgen & Firmen",
             "res_service": "🛠️ Treffer bei Service-Historie",
@@ -53,7 +53,7 @@ def zeige_globale_suche():
         TXT_GS = {
             "title": "🔍 Global 360° Full-Text Search",
             "desc": "Search across the entire ESM maintenance management system in real-time (assets, contracts, service history, companies & defects).",
-            "placeholder": "Enter search term or asset ID (e.g. 17501, Test, Otis)...",
+            "placeholder": "Enter search term or asset ID (e.g. elevator, Otis, Siemens)...",
             "res_anlagen": "🏫 Matching Assets & Buildings",
             "res_vertraege": "📑 Matching Contracts & Companies",
             "res_service": "🛠️ Matching Service History",
@@ -77,16 +77,17 @@ def zeige_globale_suche():
 
     term = suchbegriff.strip().lower()
 
-    # Verbindung prüfen (Demo-Modus abfangen)
+    # Verbindung prüfen
     conn = hole_datenbank_verbindung()
     if conn is None:
         st.error("Datenbankverbindung fehlgeschlagen!")
         return
 
-    # Demo-Daten laden und durchsuchen
+    # Daten laden
     df_anlagen = hole_anlagen_daten()
     df_vertraege = hole_wartungsvertraege_daten()
 
+    # Universelle Volltextsuche über ALLE Spalten hinweg (Globaler Scan)
     res_anlagen = []
     if not df_anlagen.empty:
         mask_a = df_anlagen.astype(str).apply(lambda col: col.str.lower().str.contains(term, na=False)).any(axis=1)
@@ -100,7 +101,6 @@ def zeige_globale_suche():
     res_service = []
     res_auffaelligkeiten = []
 
-    # Nur schließen, wenn es eine echte Datenbank-Verbindung ist (kein Demo-String)
     if hasattr(conn, "close"):
         try:
             conn.close()
