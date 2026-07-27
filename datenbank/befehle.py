@@ -2,8 +2,8 @@ import streamlit as st
 import pandas as pd
 
 def hole_datenbank_verbindung():
-    # Gibt für die Demo ein Dummy-Objekt zurück, damit kein Verbindungsfehler mehr entsteht
-    return "DEMO_MODUS_AKTIV"
+    # Gibt None zurück, damit keine störende Demo-Meldung auf dem Bildschirm erscheint, aber die App stabil bleibt
+    return None
 
 def initialisiere_beispieldaten():
     pass
