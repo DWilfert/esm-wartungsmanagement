@@ -212,10 +212,65 @@ def zeige_anlagenstruktur():
             din_276_optionen = [
                 "",
                 "100 - Grundstück",
+                "110 - Grundstückswert",
+                "120 - Grundstücksnebenkosten",
+                "130 - Rechte Dritter",
                 "200 - Vorbereitende Maßnahmen",
+                "210 - Herrichten",
+                "220 - Öffentliche Erschließung",
+                "230 - Nichtöffentliche Erschließung",
+                "240 - Ausgleichsmaßnahmen und -abgaben",
+                "250 - Übergangsmaßnahmen",
                 "300 - Bauwerk - Baukonstruktion",
+                "310 - Baugrube / Erdbau",
+                "320 - Gründung, Unterbau",
+                "330 - Außenwände / Vertikale Baukonstruktionen, außen",
+                "340 - Innenwände / Vertikale Baukonstruktionen, innen",
+                "350 - Decken / Horizontale Baukonstruktionen",
+                "360 - Dächer",
+                "370 - Infrastrukturanlagen",
+                "380 - Baukonstruktive Einbauten",
+                "390 - Sonstige Maßnahmen für Baukonstruktionen",
                 "400 - Bauwerk - Technische Anlagen",
-                "500 - Außenanlagen und Freiflächen"
+                "410 - Abwasser-, Wasser-, Gasanlagen",
+                "420 - Wärmeversorgungsanlage",
+                "430 - Raumlufttechnische Anlagen",
+                "440 - Elektrische Anlagen",
+                "450 - Kommunikations-, sicherheits- und Informationsanlagen",
+                "460 - Förderanlagen",
+                "470 - Nutzungsspezifische und verfahrenstechnische Anlagen",
+                "480 - Gebäude- und Anlagenautomation",
+                "490 - Sonstige Maßnahmen für technische Anlagen",
+                "500 - Außenanlagen und Freiflächen",
+                "510 - Erdbau",
+                "520 - Gründung, Unterbau",
+                "530 - Oberbau, Deckschichten",
+                "540 - Baukonstruktionen",
+                "550 - Technische Anlagen",
+                "560 - Einbauten in Außenanlagen und Freiflächen",
+                "570 - Vegetationsflächen",
+                "580 - Wasserflächen",
+                "590 - Sonstige Maßnahmen für Außenanlagen und Freiflächen",
+                "600 - Ausstattung und Kunstwerke",
+                "610 - Allgemeine Ausstattung",
+                "620 - Besondere Ausstattung",
+                "630 - Informationstechnische Ausstattung",
+                "640 - Künstlerische Ausstattung",
+                "690 - Sonstige Ausstattung",
+                "700 - Baunebenkosten",
+                "710 - Bauherrenaufgaben",
+                "720 - Vorbereitung der Objektplanung",
+                "730 - Objektplanung",
+                "740 - Fachplanung",
+                "750 - Künstlerische Leistungen",
+                "760 - Allgemeine Baunebenkosten",
+                "790 - Sonstige Baunebenkosten",
+                "800 - Finanzierung",
+                "810 - Finanzierungsnebenkosten",
+                "820 - Fremdkapitalzinsen",
+                "830 - Eigenkapitalzinsen",
+                "840 - Bürgschaften",
+                "890 - Sonstige Finanzierungskosten"
             ]
             with c8: anl_din = st.selectbox("Kostengruppe (DIN 276)" if st.session_state.language == "de" else "Cost Group (DIN 276)", din_276_optionen, key="f_din")
             with c9: anl_dingruppe_bez = st.text_input("Kostengruppenbezeichnung" if st.session_state.language == "de" else "Cost Group Description", placeholder="z. B. Förderanlagen", key="f_dingr_bez")
@@ -265,7 +320,6 @@ def zeige_anlagenstruktur():
             # Sektion 5: Merkmale A bis K (Alphabetisch)
             st.markdown("##### 5. Zusätzliche Merkmale (Merkmal A bis K)" if st.session_state.language == "de" else "##### 5. Additional Attributes (Attribute A to K)")
             
-            # Wir verteilen die 11 Merkmale in 3 saubere Reihen (z.B. 4 + 4 + 3 Spalten)
             mk_row1 = st.columns(4)
             ma = mk_row1[0].text_input("Merkmal a", key="f_m_a")
             mb = mk_row1[1].text_input("Merkmal b", key="f_m_b")
