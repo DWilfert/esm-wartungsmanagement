@@ -2,27 +2,23 @@ import streamlit as st
 import pandas as pd
 
 def zeige_firmeninfo():
-    # Einheitlicher Design-Fix für Tooltips, Dropdowns, Toolbars und Tabellen
+    # Einheitlicher Design-Fix für Tooltips, Dropdowns, Toolbars und kompakteres Gitternetz
     st.markdown("""
         <style>
-        /* Kompakte Schriftgröße in allen Eingabefeldern, Radio-Buttons und Formularen */
         input, select, textarea, div[data-baseweb="select"] span, label, .stRadio div {
             font-size: 0.82rem !important;
         }
         
-        /* Blendet den automatischen Streamlit-Hinweis aus */
         div[data-testid="InputInstructions"] {
             display: none !important;
         }
         
-        /* Placeholder in leicht grauer Schrift und Kursiv */
         input::placeholder, textarea::placeholder {
             color: #94a3b8 !important;
             font-style: italic !important;
             opacity: 1 !important;
         }
         
-        /* Dropdown-Menüs und Popovers */
         div[data-baseweb="popover"], div[data-baseweb="menu"], ul[data-baseweb="menu"] {
             background-color: var(--secondary-background-color) !important;
         }
@@ -41,7 +37,6 @@ def zeige_firmeninfo():
             color: var(--text-color) !important;
         }
         
-        /* Tooltips & Toolbar-Buttons */
         div[data-testid="stElementToolbar"], 
         div[data-testid="stElementToolbar"] button,
         span[data-testid="stTooltipHoverTarget"] {
@@ -56,12 +51,30 @@ def zeige_firmeninfo():
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
         }
 
-        /* Automatischer Hintergrund- und Rahmen-Fix für st.dataframe */
+        /* Kompaktere Zeilendichte und Matrix-Gitternetz für st.dataframe */
         div[data-testid="stDataFrame"] {
             background-color: var(--secondary-background-color) !important;
             border: 1px solid rgba(128, 128, 128, 0.25) !important;
             border-radius: 0.5rem;
-            padding: 4px;
+            padding: 2px;
+            background-image: linear-gradient(to right, rgba(128, 128, 128, 0.08) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(128, 128, 128, 0.08) 1px, transparent 1px);
+            background-size: 15px 15px;
+        }
+        
+        div[data-testid="stDataFrame"] td {
+            padding-top: 2px !important;
+            padding-bottom: 2px !important;
+            font-size: 0.78rem !important;
+        }
+        
+        .enterprise-card {
+            background-color: rgba(128, 128, 128, 0.05);
+            border: 1px solid rgba(128, 128, 128, 0.15);
+            border-radius: 0.5rem;
+            padding: 15px;
+            margin-top: 15px;
+            margin-bottom: 15px;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -73,12 +86,14 @@ def zeige_firmeninfo():
             "act_lbl": "Aktion wählen:",
             "act_list": "Firmenübersicht",
             "act_add": "Neue Firma anlegen",
-            "sel_del": "Firma auswählen zum Bearbeiten / Löschen:",
+            "sel_del": "Firma auswählen zum Bearbeiten / Löschen / Verträge anzeigen:",
             "btn_del": "Firma unwiderruflich löschen",
             "succ_del": "Firma erfolgreich gelöscht!",
             "btn_save": "Firma speichern",
             "succ_save": "Neue Firma erfolgreich angelegt!",
-            "empty_db": "Keine Firmen in der Datenbank vorhanden."
+            "empty_db": "Keine Firmen in der Datenbank vorhanden.",
+            "vertrag_title": "📑 Verknüpfte Verträge & Anlagen für",
+            "no_contracts": "ℹ️ Keine aktiven Verträge für diese Firma hinterlegt."
         }
     else:
         TXT_FIRMA = {
@@ -87,12 +102,14 @@ def zeige_firmeninfo():
             "act_lbl": "Select action:",
             "act_list": "Company List",
             "act_add": "Add New Company",
-            "sel_del": "Select company to edit / delete:",
+            "sel_del": "Select company to edit / delete / view contracts:",
             "btn_del": "Permanently delete company",
             "succ_del": "Company deleted successfully!",
             "btn_save": "Save Company",
             "succ_save": "New company created successfully!",
-            "empty_db": "No companies available in database."
+            "empty_db": "No companies available in database.",
+            "vertrag_title": "📑 Linked Contracts & Assets for",
+            "no_contracts": "ℹ️ No active contracts found for this company."
         }
 
     st.subheader(TXT_FIRMA["title"])
@@ -125,44 +142,35 @@ def zeige_firmeninfo():
             "zugeweseneid": [101, 102, 103, 104, 105]
         })
 
+        # Demo-Vertragsdaten zur Verknüpfung mit den Firmen
+        df_demo_vertraege = pd.DataFrame({
+            "vertrag_id": [501, 502, 503, 504, 505, 506],
+            "firmenname": ["Otis GmbH", "Otis GmbH", "Stulz GmbH", "Siemens AG", "Viessmann Werke", "Schindler AG"],
+            "anlagen_bezeichnung": ["Personenaufzug Hauptgebäude", "Rollstuhlhebebühne", "Lüftungsanlage Bibliothek", "Brandmeldeanlage Ost", "Heizungsanlage Zentrale", "Fahrstuhl Nebeneingang"],
+            "standort": ["NP", "FG", "FG", "FG", "NP", "NP"],
+            "intervall": ["12 Monate", "12 Monate", "6 Monate", "24 Monate", "12 Monate", "12 Monate"]
+        })
+
         if not df_firmen.empty:
             if st.session_state.language == "de":
                 spalten_mapping = {
-                    "id": "ID",
-                    "firmenname": "Firmenname",
-                    "firmenart": "Firmenart",
-                    "firmenadresse": "Adresse",
-                    "firmen_telefon": "Telefon",
-                    "firmen_fax": "Fax",
-                    "firmen_mail": "E-Mail",
-                    "firmen_website": "Website",
-                    "firmen_ansprechpartner": "Ansprechpartner",
-                    "technikername": "Techniker Name",
-                    "techniker_telefon": "Techniker Telefon",
-                    "techniker_mail": "Techniker E-Mail",
-                    "qualifikation": "Qualifikation",
-                    "zugeweseneid": "Zugewiesene ID"
+                    "id": "ID", "firmenname": "Firmenname", "firmenart": "Firmenart",
+                    "firmenadresse": "Adresse", "firmen_telefon": "Telefon", "firmen_fax": "Fax",
+                    "firmen_mail": "E-Mail", "firmen_website": "Website", "firmen_ansprechpartner": "Ansprechpartner",
+                    "technikername": "Techniker Name", "techniker_telefon": "Techniker Telefon",
+                    "techniker_mail": "Techniker E-Mail", "qualifikation": "Qualifikation", "zugeweseneid": "Zugewiesene ID"
                 }
             else:
                 spalten_mapping = {
-                    "id": "ID",
-                    "firmenname": "Company Name",
-                    "firmenart": "Company Type",
-                    "firmenadresse": "Address",
-                    "firmen_telefon": "Phone",
-                    "firmen_fax": "Fax",
-                    "firmen_mail": "E-Mail",
-                    "firmen_website": "Website",
-                    "firmen_ansprechpartner": "Contact Person",
-                    "technikername": "Technician Name",
-                    "techniker_telefon": "Technician Phone",
-                    "techniker_mail": "Technician E-Mail",
-                    "qualifikation": "Qualification",
-                    "zugeweseneid": "Assigned ID"
+                    "id": "ID", "firmenname": "Company Name", "firmenart": "Company Type",
+                    "firmenadresse": "Address", "firmen_telefon": "Phone", "firmen_fax": "Fax",
+                    "firmen_mail": "E-Mail", "firmen_website": "Website", "firmen_ansprechpartner": "Contact Person",
+                    "technikername": "Technician Name", "techniker_telefon": "Technician Phone",
+                    "techniker_mail": "Technician E-Mail", "qualifikation": "Qualification", "zugeweseneid": "Assigned ID"
                 }
             df_anzeige = df_firmen.rename(columns=spalten_mapping)
             st.dataframe(df_anzeige, use_container_width=True, hide_index=True)
-              
+            
             st.write("---")
             name_col = "firmenname" if "firmenname" in df_firmen.columns else df_firmen.columns[1]
             unbenannt_text = "Unbenannt" if st.session_state.language == "de" else "Unnamed"
@@ -170,7 +178,30 @@ def zeige_firmeninfo():
             ausgewaehlte_firma = st.selectbox(TXT_FIRMA["sel_del"], firmen_liste, key="firmen_del_selectbox_v1")
 
             if ausgewaehlte_firma:
-                # Sicherheitsabfrage vor dem Löschen
+                # Firmenname aus der Auswahl extrahieren, um Verträge zu filtern
+                gefundener_firmenname = ausgewaehlte_firma.split("]")[1].strip()
+                if " (" in gefundener_firmenname:
+                    gefundener_firmenname = gefundener_firmenname.split(" (")[0].strip()
+
+                # --- VERTRÄGE DER FIRMA ANZEIGEN ---
+                st.markdown(f"##### {TXT_FIRMA['vertrag_title']} **{gefundener_firmenname}**")
+                df_v_filtered = df_demo_vertraege[df_demo_vertraege["firmenname"] == gefundener_firmenname]
+
+                if not df_v_filtered.empty:
+                    if st.session_state.language == "de":
+                        v_map = {"vertrag_id": "Vertrags-ID", "anlagen_bezeichnung": "Anlagen-Bezeichnung", "standort": "Standort", "intervall": "Wartungs-Intervall"}
+                    else:
+                        v_map = {"vertrag_id": "Contract ID", "anlagen_bezeichnung": "Asset Description", "standort": "Location", "intervall": "Maintenance Interval"}
+                    
+                    df_v_anzeige = df_v_filtered[["vertrag_id", "anlagen_bezeichnung", "standort", "intervall"]].rename(columns=v_map)
+                    
+                    st.markdown('<div class="enterprise-card">', unsafe_allow_html=True)
+                    st.dataframe(df_v_anzeige, use_container_width=True, hide_index=True)
+                    st.markdown('</div>', unsafe_allow_html=True)
+                else:
+                    st.info(TXT_FIRMA["no_contracts"])
+
+                st.write("")
                 bestaetigt_del = st.checkbox(
                     "Sicherheitsabfrage: Wirklich löschen?" if st.session_state.language == "de" else "Security check: Really delete?",
                     key="firmen_del_checkbox_confirm"
