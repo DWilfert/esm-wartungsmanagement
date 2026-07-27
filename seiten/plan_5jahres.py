@@ -306,13 +306,15 @@ def zeige_5jahresplan():
             overdue_status_str = "🔴 Überfällig" if st.session_state.language == "de" else "🔴 Overdue"
             df_roote_vertraege = df_chart[df_chart["Status"] == overdue_status_str].drop_duplicates(subset=["id"])
             if not df_roote_vertraege.empty:
-                fristen_subtext = "Anzeige Fällige/Überfällige" if st.session_state.language == "de" else "Displaying Due/Overdue"
+                fristen_subtext = "Fristen-Feinsteuerung (Wochenweise)" if st.session_state.language == "de" else "Deadline Fine-Tuning (Weekly)"
                 st.markdown(f"<p style='font-size: 11px; font-weight: bold; color: #4a90e2; letter-spacing: 1px;'>FRISTEN MANAGER &nbsp;|&nbsp; <span style='font-size: 10px; font-weight: normal; font-style: italic; opacity: 0.8;'>{fristen_subtext}</span></p>", unsafe_allow_html=True)
                 liste_roote_labels = [f"[ID: {r['id']}] {r['bezeichnung']} (Aktuell: {r['Datum'].strftime('%d.%m.%Y')})" if st.session_state.language == "de" else f"[ID: {r['id']}] {r['bezeichnung']} (Current: {r['Datum'].strftime('%m/%d/%Y')})" for _, r in df_roote_vertraege.iterrows()]
                 
-                col_m1, col_m2, col_m3 = st.columns([5.0, 2.5, 2.5])
+                # REINER WOCHEN-ZÄHLER OHNE ALTE BUTTONS
+                col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns([4.0, 1.5, 1.5, 1.5, 1.5])
                 with col_m1:
-                    v_schieb_auswahl = st.selectbox("Vertrag für Verschiebung wählen:" if st.session_state.language == "de" else "Select contract for postponement:", [""] + liste_roote_labels, label_visibility="collapsed", key="v_schieb_select_v12_unique_clean")
+                    sel_lbl = "Anlage wählen:" if st.session_state.language == "de" else "Select Asset:"
+                    v_schieb_auswahl = st.selectbox(sel_lbl, [""] + liste_roote_labels, label_visibility="collapsed", key="v_schieb_select_v12_unique_clean")
                 
                 if v_schieb_auswahl:
                     v_id_bereinigt = v_schieb_auswahl.replace("[ID:", "").strip()
@@ -324,16 +326,20 @@ def zeige_5jahresplan():
 
                         if not pd.isnull(basis_datum):
                             with col_m2:
-                                btn_back_lbl = "4 Wochen nach hinten" if st.session_state.language == "de" else "Postpone by 4 weeks"
-                                if st.button(btn_back_lbl, use_container_width=True, key=f"btn_plus_{v_schieb_id}"):
-                                    success_postpone = "Termin nach hinten verschoben!" if st.session_state.language == "de" else "Appointment postponed!"
-                                    st.success(success_postpone)
+                                if st.button("⏪ -2W", use_container_width=True, key=f"btn_m2w_{v_schieb_id}"):
+                                    st.success("Termin 2 Wochen vorverlegt!" if st.session_state.language == "de" else "Advanced by 2 weeks!")
                                     st.rerun()
                             with col_m3:
-                                btn_fwd_lbl = "4 Wochen nach vorne" if st.session_state.language == "de" else "Advance by 4 weeks"
-                                if st.button(btn_fwd_lbl, use_container_width=True, key=f"btn_minus_{v_schieb_id}"):
-                                    success_advance = "Termin nach vorne angepasst!" if st.session_state.language == "de" else "Appointment advanced!"
-                                    st.success(success_advance)
+                                if st.button("◀️ -1W", use_container_width=True, key=f"btn_m1w_{v_schieb_id}"):
+                                    st.success("Termin 1 Woche vorverlegt!" if st.session_state.language == "de" else "Advanced by 1 week!")
+                                    st.rerun()
+                            with col_m4:
+                                if st.button("▶️ +1W", use_container_width=True, key=f"btn_p1w_{v_schieb_id}"):
+                                    st.success("Termin 1 Woche verschoben!" if st.session_state.language == "de" else "Postponed by 1 week!")
+                                    st.rerun()
+                            with col_m5:
+                                if st.button("⏩ +2W", use_container_width=True, key=f"btn_p2w_{v_schieb_id}"):
+                                    st.success("Termin 2 Wochen verschoben!" if st.session_state.language == "de" else "Postponed by 2 weeks!")
                                     st.rerun()
             st.write("")
             if st.session_state.language == "de":
