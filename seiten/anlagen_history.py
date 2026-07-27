@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 def zeige_anlagen_history():
-    # CSS für kompakte Schriftgröße, Dropdown-Fix und um 50% verkürztes Dropdown-Feld
+    # CSS mit exakter Begrenzung für das Dropdown-Feld
     st.markdown("""
         <style>
         input, select, textarea, div[data-baseweb="select"] span, label {
@@ -13,8 +13,8 @@ def zeige_anlagen_history():
             display: none !important;
         }
         
-        /* Dropdown-Feld um 50% verkürzen (Breite auf 50% gesetzt) */
-        div[data-baseweb="select"] {
+        /* Dropdown-Feld zwingend auf 50% Breite begrenzen */
+        div.stSelectbox {
             max-width: 50% !important;
         }
         
@@ -60,7 +60,7 @@ def zeige_anlagen_history():
         "zustand": ["Betriebsbereit", "Wartung überfällig", "Betriebsbereit", "Prüfung anstehend"]
     })
 
-    # Dropdown zur Auswahl der Anlage (jetzt um 50% verkürzt)
+    # Dropdown zur Auswahl der Anlage
     anlagen_optionen = [""] + [f"{row['id']} - {row['bezeichnung']}" for _, row in df_history_anlagen.iterrows()]
     
     ausgewaehlte_anlage = st.selectbox(
