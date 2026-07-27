@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 import subprocess
+import tempfile
 from datenbank.befehle import hole_datenbank_verbindung
 
 def zeige_vertragsdokumente():
@@ -164,10 +165,10 @@ def zeige_vertragsdokumente():
     
     if st.session_state.language == "de":
         lbl_file, lbl_contract, lbl_id = "Dateiname (PDF)", "Zugeordneter Wartungsvertrag", "Vertrag ID"
-        lbl_select = "💡 Tipp: Klicke links auf das kleine Quadrat einer Zeile, um das PDF direkt hier in der App zu betrachten!"
+        lbl_select = "💡 Tipp: Klicke links auf das kleine Quadrat einer Zeile, um das PDF direkt in der App anzuzeigen!"
     else:
         lbl_file, lbl_contract, lbl_id = "File Name (PDF)", "Assigned Maintenance Contract", "Contract ID"
-        lbl_select = "💡 Tip: Click the small checkbox on the left of any row to view the PDF directly here in the app!"
+        lbl_select = "💡 Tip: Click the small checkbox on the left of any row to view the PDF directly in the app!"
         
     df_docs.columns = [lbl_file, lbl_contract, lbl_id]
 
@@ -175,15 +176,15 @@ def zeige_vertragsdokumente():
     auswahl_tabelle = st.dataframe(
         df_docs,
         use_container_width=True,
-        hide_index=True,
-        on_select="rerun",
-        selection_mode="single-row",
-        column_config={
-            lbl_id: st.column_config.TextColumn(lbl_id, alignment="left")
-        }
-    )
+            hide_index=True,
+            on_select="rerun",
+            selection_mode="single-row",
+            column_config={
+                lbl_id: st.column_config.TextColumn(lbl_id, alignment="left")
+            }
+        )
     
-    if aus_wahl_check := (auswahl_tabelle and auswahl_tabelle.selection and "rows" in auswahl_tabelle.selection and auswahl_tabelle.selection["rows"]):
+    if auswahl_tabelle and auswahl_tabelle.selection and "rows" in auswahl_tabelle.selection and auswahl_tabelle.selection["rows"]:
         reiner_index = auswahl_tabelle.selection["rows"][0]
         gewaehlte_datei = pdf_dateien[reiner_index]
         
@@ -199,11 +200,17 @@ def zeige_vertragsdokumente():
             preview_title = f"##### 👁️ Dokumenten-Vorschau: {gewaehlte_datei}" if st.session_state.language == "de" else f"##### 👁️ Document Preview: {gewaehlte_datei}"
             st.markdown(preview_title)
             
-            # Verwendung der offiziellen, blockierungsfreien Streamlit-Komponente zur Anzeige von Dokumenten im Layout
-            st.code(f"Dokumenten-Pfad: {os.path.abspath(os.path.join(doc_pfad, gewaehlte_datei)) if not is_cloud_mode else 'Virtuelles Netzlaufwerk (Cloud-Demo)'}", language="text")
-            
-            # Direkte Übergabe der Binärdaten an den nativen Streamlit-PDF-Viewer (ohne externe Fenster, ohne Download-Zwang)
-            st.pdf(pdf_bytes, height=700)
+            # Wir schreiben das PDF in eine temporäre Datei und erzeugen einen stabilen URL-Pfad, 
+            # den der Browser direkt über ein sauberes <embed>-Tag ohne Blockaden rendert.
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
+                tmp_file.write(pdf_bytes)
+                tmp_path = tmp_file.name
+
+            # Einbindung über ein natives HTML-Embed, das direkt im Layout ohne Download gerendert wird
+            st.markdown(
+                f'<embed src="file://{tmp_path}" type="application/pdf" width="100%" height="700px" style="border-radius: 8px; border: 1px solid rgba(128,128,128,0.2);" />',
+                unsafe_allow_html=True
+            )
             
         except Exception as e_view:
             err_view_msg = f"Fehler beim Laden der Vorschau: {str(e_view)}" if st.session_state.language == "de" else f"Error loading preview: {str(e_view)}"
