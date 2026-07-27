@@ -79,11 +79,11 @@ def zeige_auffalligkeiten():
         st.markdown(f"**{TXT_AUF['sec_loeschen']}**")
         st.markdown("<hr style='border: none; height: 1px; background-color: rgba(128, 128, 128, 0.3); margin: 10px 0;'>", unsafe_allow_html=True)
         
-        # Spaltenverhältnis so angepasst, dass das Auswahlfeld kompakt bleibt (Breite auf ca. 20 Zeichen optimiert)
+        # Spaltenverhältnis so angepasst, dass das Auswahlfeld kompakt bleibt
         col_id_sel, col_btn_del, col_space = st.columns([2.5, 2.5, 5.0])
         
         with col_id_sel:
-            id_optionen = [""माटर] + df_auffalligkeiten["id"].tolist()
+            id_optionen = [""] + df_auffalligkeiten["id"].tolist()
             ausgewaehlte_id = st.selectbox(
                 TXT_AUF["lbl_id_loeschen"],
                 options=id_optionen,
@@ -91,7 +91,7 @@ def zeige_auffalligkeiten():
             )
             
         with col_btn_del:
-            st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True) # Visuelles Alignment mit dem Inputfeld
+            st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True) 
             if st.button(TXT_AUF["btn_loeschen"], key="btn_auffallig_loeschen", use_container_width=True):
                 if ausgewaehlte_id:
                     st.success(f"Eintrag mit ID {ausgewaehlte_id} wurde erfolgreich gelöscht!")
