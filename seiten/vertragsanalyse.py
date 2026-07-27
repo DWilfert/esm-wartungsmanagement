@@ -59,7 +59,7 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "stat_total": "Gesamtkosten p.a.",
             "stat_count": "Verträge Gesamt",
             "stat_avg": "Ø-Wert pro Vertrag",
-            "no_data": "Keine Vertragsdaten zur Analyse vorhanden.",
+            "no_data": "Keine Vertragsdaten für das gewählte Wirtschaftsjahr vorhanden.",
             "filter_all": "Alle",
             "info_title": "📋 Maßnahmen-Leitfaden & Clusterung einblenden",
             "a": "Abweichungen zwischen Anlagenbestand, Verträgen und Wartungsprotokollen",
@@ -68,7 +68,7 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "d": "Unklare Zuordnung von Anlagen zu Wartungsverträgen",
             "e": "Mängel und technische Auffälligkeiten aus der Anlagenerfassung und Wartungsprotokollen",
             "lbl_standort": "Standort-Filter:",
-            "lbl_ansicht": "Ansicht:",
+            "lbl_jahr": "Wirtschaftsjahr:",
             "select_placeholder": "-- Vertrag für Enterprise-Details wählen --"
         }
     else:
@@ -78,7 +78,7 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "stat_total": "Total Cost p.a.",
             "stat_count": "Total Contracts",
             "stat_avg": "Ø Value per Contract",
-            "no_data": "No contract data available for analysis.",
+            "no_data": "No contract data available for the selected fiscal year.",
             "filter_all": "All",
             "info_title": "📋 Show Action Guide & Clustering",
             "a": "Discrepancies between asset inventory, contracts, and maintenance logs",
@@ -87,13 +87,14 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "d": "Unclear assignment of assets to maintenance contracts",
             "e": "Defects and technical abnormalities from asset registration and maintenance logs",
             "lbl_standort": "Location Filter:",
-            "lbl_ansicht": "View:",
+            "lbl_jahr": "Fiscal Year:",
             "select_placeholder": "-- Select contract for enterprise details --"
         }
 
     st.subheader(TXT_VA["title"])
     st.markdown(f"<div style='font-size: 13px; color: var(--text-color); opacity: 0.7; margin-bottom: 15px;'>{TXT_VA['desc']}</div>", unsafe_allow_html=True)
 
+    # Erweiterte Demodaten inklusive zugeordnetem Wirtschaftsjahr
     df = pd.DataFrame({
         "id": [i+1 for i in range(10)],
         "anlagenid": [17501 + i for i in range(10)],
@@ -105,6 +106,7 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
         ],
         "firma": ["Otis GmbH", "Stulz GmbH", "Viessmann Werke", "Siemens AG", "Stulz GmbH", "Schindler AG", "Siemens AG", "Siemens AG", "Viessmann Werke", "Stulz GmbH"],
         "standort": ["NP", "FG", "NP", "FG", "NP", "FG", "NP", "FG", "NP", "FG"],
+        "wirtschaftsjahr": ["2026", "2026", "2025", "2026", "2025", "2026", "2025", "2026", "2025", "2026"],
         "kostenpa": [2400.0, 1800.0, 3200.0, 1500.0, 2100.0, 1200.0, 950.0, 4500.0, 2800.0, 800.0],
         "benchmarkpa": [2500.0, 1900.0, 3000.0, 1600.0, 2000.0, 1250.0, 1000.0, 4200.0, 2700.0, 850.0],
         "gewerksbez": ["Fördertechnik", "Raumlufttechnik", "Wärmeversorgung", "Elektrotechnik", "Klimatechnik", "Fördertechnik", "Brandschutz", "Elektrotechnik", "Notstrom", "Sanitär"],
@@ -129,17 +131,23 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             )
 
         with col_ctrl2:
-            opt_ansicht = ["📊 Dashboard", "🖥️ Fullscreen"]
-            gewaehlte_ansicht = st.radio(
-                TXT_VA["lbl_ansicht"],
-                options=opt_ansicht,
+            # Hier ist nun der neue Wirtschaftsjahres-Filter statt der Ansicht!
+            jahr_optionen = [TXT_VA["filter_all"], "2025", "2026"]
+            ausgewaehltes_jahr = st.radio(
+                TXT_VA["lbl_jahr"],
+                options=jahr_optionen,
                 horizontal=True,
-                key="va_view_mode_radio"
+                key="va_jahr_radio"
             )
         st.markdown('</div>', unsafe_allow_html=True)
 
+    # Filter anwenden (Standort)
     if ausgewaehlter_standort != TXT_VA["filter_all"] and ausgewaehlter_standort is not None:
         df = df[df["standort"] == ausgewaehlter_standort]
+
+    # Filter anwenden (Wirtschaftsjahr)
+    if ausgewaehltes_jahr != TXT_VA["filter_all"] and ausgewaehltes_jahr is not None:
+        df = df[df["wirtschaftsjahr"] == ausgewaehltes_jahr]
 
     if df.empty:
         st.info(TXT_VA["no_data"])
@@ -150,42 +158,41 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
     avg_kosten = total_kosten / anzahl_vertraege if anzahl_vertraege > 0 else 0.0
 
     if st.session_state.language == "de":
-        lbl_tbl = ["Bezeichnung", "Firma", "Standort", "Kosten p.a.", "Benchmark p.a.", "Clusterung"]
+        lbl_tbl = ["Bezeichnung", "Firma", "Standort", "Jahr", "Kosten p.a.", "Benchmark p.a.", "Clusterung"]
     else:
-        lbl_tbl = ["Designation", "Company", "Location", "Cost p.a.", "Benchmark p.a.", "Clustering"]
+        lbl_tbl = ["Designation", "Company", "Location", "Year", "Cost p.a.", "Benchmark p.a.", "Clustering"]
 
     df_filtered = df.copy().reset_index(drop=True)
-    df_display = df_filtered[["bezeichnung", "firma", "standort", "kostenpa", "benchmarkpa", "gewaehrleistung"]].copy()
+    df_display = df_filtered[["bezeichnung", "firma", "standort", "wirtschaftsjahr", "kostenpa", "benchmarkpa", "gewaehrleistung"]].copy()
     
     df_display["kostenpa"] = pd.to_numeric(df_display["kostenpa"], errors="coerce").fillna(0.0).map('{:,.2f} €'.format)
     df_display["benchmarkpa"] = pd.to_numeric(df_display["benchmarkpa"], errors="coerce").fillna(0.0).map('{:,.2f} €'.format)
     df_display.columns = lbl_tbl
 
-    if gewaehlte_ansicht != "🖥️ Fullscreen":
+    st.markdown(f'''
+        <div class="buchhaltung-info-zeile">
+            <div><strong>{TXT_VA["stat_total"]}:</strong> <em>{total_kosten:,.2f} €</em></div>
+            <div><strong>{TXT_VA["stat_count"]}:</strong> <em>{anzahl_vertraege}</em></div>
+            <div><strong>{TXT_VA["stat_avg"]}:</strong> <em>{avg_kosten:,.2f} €</em></div>
+        </div>
+    ''', unsafe_allow_html=True)
+
+    with st.expander(TXT_VA['info_title'], expanded=False):
         st.markdown(f'''
-            <div class="buchhaltung-info-zeile">
-                <div><strong>{TXT_VA["stat_total"]}:</strong> <em>{total_kosten:,.2f} €</em></div>
-                <div><strong>{TXT_VA["stat_count"]}:</strong> <em>{anzahl_vertraege}</em></div>
-                <div><strong>{TXT_VA["stat_avg"]}:</strong> <em>{avg_kosten:,.2f} €</em></div>
+            <div style='font-size: 12px; line-height: 1.6;'>
+                <strong>A:</strong> {TXT_VA['a']}<br>
+                <strong>B:</strong> {TXT_VA['b']}<br>
+                <strong>C:</strong> {TXT_VA['c']}<br>
+                <strong>D:</strong> {TXT_VA['d']}<br>
+                <strong>E:</strong> {TXT_VA['e']}
             </div>
         ''', unsafe_allow_html=True)
 
-        with st.expander(TXT_VA['info_title'], expanded=False):
-            st.markdown(f'''
-                <div style='font-size: 12px; line-height: 1.6;'>
-                    <strong>A:</strong> {TXT_VA['a']}<br>
-                    <strong>B:</strong> {TXT_VA['b']}<br>
-                    <strong>C:</strong> {TXT_VA['c']}<br>
-                    <strong>D:</strong> {TXT_VA['d']}<br>
-                    <strong>E:</strong> {TXT_VA['e']}
-                </div>
-            ''', unsafe_allow_html=True)
-
-    # Im Fullscreen-Modus bekommt die Tabelle jetzt eine richtig schöne, große Höhe (720 Pixel)
+    # Tabelle mit fester, übersichtlicher Höhe
     st.dataframe(
         df_display,
         width="stretch",
-        height=720 if gewaehlte_ansicht == "🖥️ Fullscreen" else 360,
+        height=400,
         hide_index=True
     )
 
@@ -219,7 +226,7 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
                         <div><strong>🤝 Auftragnehmer:</strong> {gew_vertrag['firma']}</div>
                         <div><strong>⚙️ Gewerk & Cluster:</strong> {gew_vertrag['gewerksbez']} (Klasse <span style="color: #34d399; font-weight: bold;">{gew_vertrag['gewaehrleistung']}</span>)</div>
                         <div><strong>💰 Kosten p.a.:</strong> <span style="color: #38bdf8; font-weight: bold;">{gew_vertrag['kostenpa']:,.2f} €</span> (Benchmark: {gew_vertrag['benchmarkpa']:,.2f} €)</div>
-                        <div><strong>📅 Laufzeit:</strong> {gew_vertrag['laufzeit_start']} bis {gew_vertrag['laufzeit_ende']}</div>
+                        <div><strong>📅 Laufzeit:</strong> {gew_vertrag['laufzeit_start']} bis {gew_vertrag['laufzeit_ende']} (GJ {gew_vertrag['wirtschaftsjahr']})</div>
                         <div><strong>⏱️ Kündigungsfrist:</strong> {gew_vertrag['kuendigung']}</div>
                         <div style="grid-column: span 2; margin-top: 4px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 4px; color: #cbd5e1;">
                             <strong>📞 Ansprechpartner / Service:</strong> {gew_vertrag['ansprechpartner']}
