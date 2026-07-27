@@ -11,10 +11,10 @@ def zeige_wartungsanalyse():
             "title": "Wartungsverträge & Risikoanalyse",
             "desc": "Live-Zustandsüberwachung aller Fristen inklusive automatisiertem Eskalationsmanagement bei Wartungsverzug.",
             "sec_alarm": "🚨 Live-Alarme & Übersicht",
-            "sec_filter": "🔍 1. Themen: Filter-Steuerung",
-            "sec_auswahl": "📑 2. Themen: Vertragsauswahl",
-            "sec_info": "📋 3. Themen: Infobereich & Stammdaten",
-            "sec_steuerung": "⚙️ 4. Themen: Direkt-Steuerung & Notizen",
+            "sec_filter": "🔍 1. Thema: Filter-Steuerung",
+            "sec_auswahl": "📑 2. Thema: Vertragsauswahl",
+            "sec_info": "📋 3. Thema: Infobereich & Stammdaten",
+            "sec_steuerung": "⚙️ 4. Thema: Direkt-Steuerung & Notizen",
             "filter_all": "Alle",
             "filter_all_status": "Alle",
             "lbl_status_filter": "Status Filter"
@@ -88,7 +88,7 @@ def zeige_wartungsanalyse():
     # -------------------------------------------------------------
     with st.container(border=True):
         st.markdown(f"**{TXT_VA['sec_alarm']}**")
-        st.markdown("<hr style='margin: 8px 0; opacity: 0.2;'>", unsafe_allow_html=True)
+        st.markdown("<hr style='border: none; height: 1px; background-color: rgba(128, 128, 128, 0.3); margin: 10px 0;'>", unsafe_allow_html=True)
         if st.session_state.language == "de":
             st.markdown(f"<div style='font-size:13px;'>Aktive Alarme: <span style='color:#ef4444; font-weight:600;'>{anz_rot} Fällig</span> | <span style='color:#f59e0b; font-weight:600;'>{anz_gelb} Warnung</span></div>", unsafe_allow_html=True)
         else:
@@ -101,7 +101,7 @@ def zeige_wartungsanalyse():
     # -------------------------------------------------------------
     with st.container(border=True):
         st.markdown(f"**{TXT_VA['sec_filter']}**")
-        st.markdown("<hr style='margin: 8px 0; opacity: 0.2;'>", unsafe_allow_html=True)
+        st.markdown("<hr style='border: none; height: 1px; background-color: rgba(128, 128, 128, 0.3); margin: 10px 0;'>", unsafe_allow_html=True)
         
         c_f1, c_f2 = st.columns([3.0, 7.0])
         with c_f1:
@@ -126,7 +126,7 @@ def zeige_wartungsanalyse():
         # -------------------------------------------------------------
         with st.container(border=True):
             st.markdown(f"**{TXT_VA['sec_auswahl']}**")
-            st.markdown("<hr style='margin: 8px 0; opacity: 0.2;'>", unsafe_allow_html=True)
+            st.markdown("<hr style='border: none; height: 1px; background-color: rgba(128, 128, 128, 0.3); margin: 10px 0;'>", unsafe_allow_html=True)
             
             vertrag_labels = []
             for _, r in df_filtered.iterrows():
@@ -147,7 +147,7 @@ def zeige_wartungsanalyse():
         st.write("")
         
         # -------------------------------------------------------------
-        # BEREICH 4 & 5: INFOBEREICH & DIREKT-STEUERUNG (In getrennten Kacheln)
+        # BEREICH 4: INFOBEREICH & STAMMDATEN
         # -------------------------------------------------------------
         v_id = row["id"]
         v_bez = row["bezeichnung"]
@@ -155,15 +155,14 @@ def zeige_wartungsanalyse():
         v_status = row["Live_Status"]
         v_next = pd.to_datetime(row["naechstewartung"]).strftime('%d.%m.%Y') if pd.notnull(row["naechstewartung"]) else "-"
         
-        # Infobereich-Kachel
         with st.container(border=True):
             st.markdown(f"**{TXT_VA['sec_info']}**")
-            st.markdown("<hr style='margin: 8px 0; opacity: 0.2;'>", unsafe_allow_html=True)
+            st.markdown("<hr style='border: none; height: 1px; background-color: rgba(128, 128, 128, 0.3); margin: 10px 0;'>", unsafe_allow_html=True)
             
             st.markdown(f"##### 📋 {v_status} | {v_bez} (ID: {v_id})")
             st.markdown(f"<div style='font-size: 11px; opacity: 0.7; margin-bottom: 10px;'>Wartungsfirma: <b>{v_firma}</b> | Standort: <b>{row['standort']}</b> | Nächste Wartung: <b>{v_next}</b></div>", unsafe_allow_html=True)
             
-            st.markdown("<hr style='margin: 10px 0; opacity: 0.15;'>", unsafe_allow_html=True)
+            st.markdown("<hr style='border: none; height: 1px; background-color: rgba(128, 128, 128, 0.2); margin: 10px 0;'>", unsafe_allow_html=True)
 
             c_det_sub1, c_det_sub2 = st.columns(2)
             with c_det_sub1:
@@ -189,10 +188,12 @@ def zeige_wartungsanalyse():
 
         st.write("")
 
-        # Direkt-Steuerung & Notizen-Kachel
+        # -------------------------------------------------------------
+        # BEREICH 5: DIREKT-STEUERUNG & NOTIZEN
+        # -------------------------------------------------------------
         with st.container(border=True):
             st.markdown(f"**{TXT_VA['sec_steuerung']}**")
-            st.markdown("<hr style='margin: 8px 0; opacity: 0.2;'>", unsafe_allow_html=True)
+            st.markdown("<hr style='border: none; height: 1px; background-color: rgba(128, 128, 128, 0.3); margin: 10px 0;'>", unsafe_allow_html=True)
             
             c_stat_in, c_space = st.columns([4.0, 6.0])
             with c_stat_in:
