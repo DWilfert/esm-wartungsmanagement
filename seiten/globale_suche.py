@@ -12,33 +12,37 @@ def zeige_globale_suche():
 
     term = suchbegriff.strip().lower()
 
-    # Lokale Demodaten direkt auf der Seite definieren
+    # Erweiterte Demodaten für eine überzeugende Präsentation
     df_anlagen = pd.DataFrame({
-        "id": [17501, 17502, 17503, 17504, 17505],
-        "standort": ["Fasangarten", "Neuperlach", "Fasangarten", "Neuperlach", "Fasangarten"],
-        "anlagentyp": ["Fördertechnik", "Raumlufttechnik", "Elektrotechnik", "Wärmeversorgung", "Brandschutz"],
+        "id": [17501, 17502, 17503, 17504, 17505, 17506, 17507],
+        "standort": ["Fasangarten", "Neuperlach", "Fasangarten", "Neuperlach", "Fasangarten", "Neuperlach", "Fasangarten"],
+        "anlagentyp": ["Fördertechnik", "Raumlufttechnik", "Elektrotechnik", "Wärmeversorgung", "Brandschutz", "Sanitär", "Kältetechnik"],
         "bezeichnung": [
             "Hauptaufzug Gebäude A", 
             "Lüftungsanlage Zentral", 
             "Hauptverteiler Elektrik", 
-            "Heizkessel Anlage 2", 
-            "Rauchmeldezentrale Ost"
+            "Heizung / Heizkessel Anlage 2", 
+            "Rauchmeldezentrale Ost",
+            "Hauptwasserleitung & Sanitär",
+            "Klimaanlage Serverraum"
         ],
-        "zustand": ["Betriebsbereit", "Wartung überfällig", "Prüfung anstehend", "Betriebsbereit", "Betriebsbereit"],
-        "hersteller": ["Otis", "Stulz", "Siemens", "Viessmann", "Hilti"],
-        "raum": ["U01", "Dachboden", "E05", "Keller", "Foyer"]
+        "zustand": ["Betriebsbereit", "Wartung überfällig", "Prüfung anstehend", "Betriebsbereit", "Betriebsbereit", "Wartung fällig", "Störung"],
+        "hersteller": ["Otis", "Stulz", "Siemens", "Viessmann", "Hilti", "Grohe", "Daikin"],
+        "raum": ["U01", "Dachboden", "E05", "Keller", "Foyer", "U02", "Serverraum 3"]
     })
 
     df_vertraege = pd.DataFrame({
-        "id": [1, 2, 3, 4, 5],
+        "id": [1, 2, 3, 4, 5, 6, 7],
         "bezeichnung": [
             "Vollwartungsvertrag Aufzugsanlagen", 
             "Wartung Lüftungstechnik", 
             "Jahresinspektion Elektrik", 
-            "Wärmeversorgung Service", 
-            "Brandschutzprüfung"
+            "Wärmeversorgung & Heizung Service", 
+            "Brandschutzprüfung",
+            "Sanitär Instandhaltung",
+            "Klimaanlagen Vollservice"
         ],
-        "firma": ["Otis GmbH", "Stulz GmbH", "Siemens AG", "Viessmann Werke", "Hilti Service"]
+        "firma": ["Otis GmbH", "Stulz GmbH", "Siemens AG", "Viessmann Werke", "Hilti Service", "Sanitär Profi GmbH", "Daikin Service"]
     })
 
     # Zuverlässige Suche über alle Spalten durchführen
