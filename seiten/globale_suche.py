@@ -12,7 +12,7 @@ def zeige_globale_suche():
 
     term = suchbegriff.strip().lower()
 
-    # Lokale Demodaten direkt auf der Seite definieren (identisch zu den anderen Ansichten)
+    # Lokale Demodaten direkt auf der Seite definieren
     df_anlagen = pd.DataFrame({
         "id": [17501, 17502, 17503, 17504, 17505],
         "standort": ["Fasangarten", "Neuperlach", "Fasangarten", "Neuperlach", "Fasangarten"],
@@ -41,7 +41,7 @@ def zeige_globale_suche():
         "firma": ["Otis GmbH", "Stulz GmbH", "Siemens AG", "Viessmann Werke", "Hilti Service"]
     })
 
-    # Suche durchführen
+    # Zuverlässige Suche über alle Spalten durchführen
     mask_a = df_anlagen.astype(str).apply(lambda col: col.str.lower().str.contains(term, na=False)).any(axis=1)
     res_anlagen = df_anlagen[mask_a].to_dict(orient="records")
 
