@@ -67,15 +67,6 @@ def zeige_firmeninfo():
             padding-bottom: 2px !important;
             font-size: 0.78rem !important;
         }
-        
-        .enterprise-card {
-            background-color: rgba(128, 128, 128, 0.05);
-            border: 1px solid rgba(128, 128, 128, 0.15);
-            border-radius: 0.5rem;
-            padding: 15px;
-            margin-top: 15px;
-            margin-bottom: 15px;
-        }
         </style>
     """, unsafe_allow_html=True)
 
@@ -176,7 +167,7 @@ def zeige_firmeninfo():
             unbenannt_text = "Unbenannt" if st.session_state.language == "de" else "Unnamed"
             firmen_liste = [""] + [f"[ID: {row['id']}] {row.get(name_col, unbenannt_text)}" for _, row in df_firmen.iterrows()]
             
-            # --- AUSWAHLFELD UM WEITERE 40% VERKÜRZT (Breite 3.5) ---
+            # --- AUSWAHLFELD KOMPAKT (Breite 3.5) ---
             col_sel, _ = st.columns([3.5, 6.5])
             with col_sel:
                 ausgewaehlte_firma = st.selectbox(TXT_FIRMA["sel_del"], firmen_liste, key="firmen_del_selectbox_v1")
@@ -186,6 +177,9 @@ def zeige_firmeninfo():
                 gefundener_firmenname = ausgewaehlte_firma.split("]")[1].strip()
                 if " (" in gefundener_firmenname:
                     gefundener_firmenname = gefundener_firmenname.split(" (")[0].strip()
+
+                # --- SAUBERE TRENNLINIE ANSTATT KASTEN ---
+                st.markdown("<hr style='margin: 25px 0; border: none; border-top: 1px solid rgba(128, 128, 128, 0.3);'>", unsafe_allow_html=True)
 
                 # --- VERTRÄGE DER FIRMA ANZEIGEN ---
                 st.markdown(f"##### {TXT_FIRMA['vertrag_title']} **{gefundener_firmenname}**")
@@ -199,9 +193,7 @@ def zeige_firmeninfo():
                     
                     df_v_anzeige = df_v_filtered[["vertrag_id", "anlagen_bezeichnung", "standort", "intervall"]].rename(columns=v_map)
                     
-                    st.markdown('<div class="enterprise-card">', unsafe_allow_html=True)
                     st.dataframe(df_v_anzeige, use_container_width=True, hide_index=True)
-                    st.markdown('</div>', unsafe_allow_html=True)
                 else:
                     st.info(TXT_FIRMA["no_contracts"])
 
