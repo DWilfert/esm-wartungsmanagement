@@ -51,7 +51,6 @@ def zeige_auffalligkeiten():
     st.subheader(TXT_AUF["title"])
     st.markdown(f"<div style='font-size: 13px; color: var(--text-color); opacity: 0.7; margin-bottom: 20px;'>{TXT_AUF['desc']}</div>", unsafe_allow_html=True)
 
-    # Demodaten für Auffälligkeiten
     df_auffalligkeiten = pd.DataFrame({
         "id": [1, 2, 3],
         "anlagenid": [17501, 17504, 17508],
@@ -61,9 +60,6 @@ def zeige_auffalligkeiten():
         "datum": ["2026-05-10", "2026-06-01", "2026-07-15"]
     })
 
-    # -------------------------------------------------------------
-    # BEREICH 1: ÜBERSICHT
-    # -------------------------------------------------------------
     with st.container(border=True):
         st.markdown(f"**{TXT_AUF['sec_uebersicht']}**")
         st.markdown("<hr style='border: none; height: 1px; background-color: rgba(128, 128, 128, 0.3); margin: 10px 0;'>", unsafe_allow_html=True)
@@ -72,9 +68,6 @@ def zeige_auffalligkeiten():
 
     st.write("")
 
-    # -------------------------------------------------------------
-    # BEREICH 2: EINTRAG LÖSCHEN (Mit kompaktem Auswahlfeld)
-    # -------------------------------------------------------------
     with st.container(border=True):
         st.markdown(f"**{TXT_AUF['sec_loeschen']}**")
         st.markdown("<hr style='border: none; height: 1px; background-color: rgba(128, 128, 128, 0.3); margin: 10px 0;'>", unsafe_allow_html=True)
@@ -93,6 +86,6 @@ def zeige_auffalligkeiten():
             st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True) 
             if st.button(TXT_AUF["btn_loeschen"], key="btn_auffallig_loeschen", use_container_width=True):
                 if ausgewaehlte_id:
-                    st.success(f"Eintrag mit ID {ausgewaehlte_id} wurde erfolgreich gelöscht!")
+                    st.success(f"Eintrag mit ID {ausgewaehlte_id} wurde erfolgreich gelöscht!" if st.session_state.language == "de" else f"Entry with ID {ausgewaehlte_id} was successfully deleted!")
                 else:
-                    st.warning("Bitte wählen Sie zuerst eine gültige ID aus.")
+                    st.warning("Bitte wählen Sie zuerst eine gültige ID aus." if st.session_state.language == "de" else "Please select a valid ID first.")
