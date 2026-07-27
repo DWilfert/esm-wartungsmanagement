@@ -75,14 +75,6 @@ def zeige_import_export():
             padding-bottom: 2px !important;
             font-size: 0.78rem !important;
         }
-
-        .enterprise-card {
-            background-color: rgba(128, 128, 128, 0.04);
-            border: 1px solid rgba(128, 128, 128, 0.15);
-            border-radius: 0.5rem;
-            padding: 18px;
-            margin-bottom: 20px;
-        }
         
         .kpi-card {
             background-color: rgba(128, 128, 128, 0.05);
@@ -90,13 +82,6 @@ def zeige_import_export():
             border-radius: 0.5rem;
             padding: 12px 15px;
             text-align: center;
-        }
-        
-        /* Echte, feine Trennlinie statt Browser-Box */
-        .saubere-trennlinie {
-            border: none;
-            border-top: 1px solid rgba(128, 128, 128, 0.25);
-            margin: 25px 0;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -186,190 +171,185 @@ def zeige_import_export():
     col_main_left, col_main_right = st.columns([6.0, 4.0])
 
     with col_main_left:
-        st.markdown('<div class="enterprise-card">', unsafe_allow_html=True)
-
-        # --- EXPORT BEREICH ---
-        if ie_aktion == TXT_IE["dir_exp"]:
-            st.markdown(TXT_IE["exp_title"])
-            col_exp_sel, _ = st.columns([6.0, 4.0])
-            with col_exp_sel:
-                export_wahl = st.selectbox(TXT_IE["exp_q"], [""] + list(tabellen_liste.keys()), key="export_bereich_wahl_final_v7")
-            
-            if export_wahl:
-                db_tabelle = tabellen_liste[export_wahl]
-                conn = hole_datenbank_verbindung()
-                if conn is not None:
-                    try:
-                        df_exp = pd.read_sql(f"SELECT * FROM `{db_tabelle}`", conn)
-                        if not df_exp.empty:
-                            st.success(f"🟢 {len(df_exp)} {TXT_IE['exp_success'].format(export_wahl)}")
-                            df_exp_schick = df_exp.copy()
-                            for spalte in df_exp_schick.columns:
-                                if any(k in spalte.lower() for k in ["datum", "wartung", "termin", "weitere"]):
-                                    try:
-                                        df_exp_schick[spalte] = pd.to_datetime(df_exp_schick[spalte], errors="coerce").dt.strftime("%d.%m.%Y")
-                                    except: pass
-                            output_ie = io.BytesIO()
-                            with pd.ExcelWriter(output_ie, engine='xlsxwriter') as writer:
-                                df_exp_schick.to_excel(writer, index=False, sheet_name=export_wahl[:30])
-                            excel_ie_data = output_ie.getvalue()
-                            dateiname = f"ESM_Backup_{db_tabelle}_{datetime.now().strftime('%Y%m%d')}.xlsx"
-                            
-                            btn_dl_lbl = f"📥 '{export_wahl}' als Excel herunterladen" if st.session_state.language == "de" else f"📥 Download '{export_wahl}' as Excel"
-                            st.download_button(label=btn_dl_lbl, data=excel_ie_data, file_name=dateiname, mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", key="export_download_btn_final_v7")
-                        else: 
-                            st.info(TXT_IE["exp_empty"].format(export_wahl))
-                    except Exception as e: 
-                        st.error(f"{TXT_IE['err_exp']} {str(e)}")
-                    finally: 
+        with st.container(border=True):
+            # --- EXPORT BEREICH ---
+            if ie_aktion == TXT_IE["dir_exp"]:
+                st.markdown(TXT_IE["exp_title"])
+                col_exp_sel, _ = st.columns([6.0, 4.0])
+                with col_exp_sel:
+                    export_wahl = st.selectbox(TXT_IE["exp_q"], [""] + list(tabellen_liste.keys()), key="export_bereich_wahl_final_v7")
+                
+                if export_wahl:
+                    db_tabelle = tabellen_liste[export_wahl]
+                    conn = hole_datenbank_verbindung()
+                    if conn is not None:
                         try:
-                            if conn is not None:
-                                conn.close()
-                        except:
-                            pass
-                else: 
-                    st.error(TXT_IE["err_conn"])
-
-        # --- IMPORT BEREICH ---
-        elif ie_aktion == TXT_IE["dir_imp"]:
-            if st.session_state.language == "de":
-                TXT_IMP = {
-                    "imp_title": "##### 📥 Excel-Daten in die Datenbank einlesen",
-                    "imp_q": "Ziel-Tabelle für Import:",
-                    "imp_hint": "Hinweis: Spaltenüberschriften müssen exakt den Datenbankfeldern entsprechen.",
-                    "imp_file_lbl": "Excel-Datei für '{}' auswählen:",
-                }
-            else:
-                TXT_IMP = {
-                    "imp_title": "##### 📥 Read Excel Data into Database",
-                    "imp_q": "Target Table for Import:",
-                    "imp_hint": "Note: Column headers must match database fields exactly.",
-                    "imp_file_lbl": "Select Excel file for '{}':",
-                }
-                
-            st.markdown(TXT_IMP["imp_title"])
-            col_imp_sel, _ = st.columns([6.0, 4.0])
-            with col_imp_sel:
-                import_wahl = st.selectbox(TXT_IMP["imp_q"], [""] + list(tabellen_liste.keys()), key="import_bereich_wahl_final_v7")
-
-            if import_wahl:
-                db_tabelle = tabellen_liste[import_wahl]
-                st.write("")
-                st.info(TXT_IMP["imp_hint"])
-                uploaded_file = st.file_uploader(TXT_IMP["imp_file_lbl"].format(import_wahl), type=["xlsx"], key="excel_uploader_field_v7")
-                
-                if uploaded_file is not None:
-                    try:
-                        df_imp = pd.read_excel(uploaded_file, sheet_name=0, engine="openpyxl")
-                        preview_lbl = f"**Vorschau ({len(df_imp)} Zeilen):**" if st.session_state.language == "de" else f"**Preview ({len(df_imp)} rows):**"
-                        st.markdown(preview_lbl)
-                        st.dataframe(df_imp.head(3), use_container_width=True, hide_index=True)
-                        
-                        with st.form("form_import_start_einmalig", clear_on_submit=True):
-                            btn_start_lbl = "🚀 Import starten" if st.session_state.language == "de" else "🚀 Start Import"
-                            if st.form_submit_button(btn_start_lbl):
-                                conn = hole_datenbank_verbindung()
-                                if conn is not None:
-                                    try:
-                                        cursor = conn.cursor()
-                                        spalten = [f"`{col}`" for col in df_imp.columns]
-                                        platzhalter = ["%s" for _ in df_imp.columns]
-                                        sql_kommando = f"INSERT INTO `{db_tabelle}` ({', '.join(spalten)}) VALUES ({', '.join(platzhalter)})"
-                                        erfolgreich = 0
-                                        
-                                        for _, row in df_imp.iterrows():
-                                            zeilen_werte = []
-                                            for val in row.values:
-                                                if pd.isnull(val): zeilen_werte.append(None)
-                                                elif isinstance(val, pd.Timestamp): zeilen_werte.append(val.strftime('%Y-%m-%d'))
-                                                elif isinstance(val, float) and val.is_integer(): zeilen_werte.append(int(val))
-                                                elif isinstance(val, str):
-                                                    try:
-                                                        parsed_dt = pd.to_datetime(val, format='%d.%m.%Y', errors='raise')
-                                                        zeilen_werte.append(parsed_dt.strftime('%Y-%m-%d'))
-                                                    except: zeilen_werte.append(val)
-                                                else: zeilen_werte.append(val)
-                                            try:
-                                                cursor.execute(sql_kommando, tuple(zeilen_werte))
-                                                erfolgreich += 1
-                                            except Exception as insert_error:
-                                                st.warning(f"Zeile übersprungen: {str(insert_error)}" if st.session_state.language == "de" else f"Row skipped: {str(insert_error)}")
-                                        conn.commit()
-                                        cursor.close()
-                                        st.success(f"🟢 Import abgeschlossen! {erfolgreich} von {len(df_imp)} Zeilen gespeichert." if st.session_state.language == "de" else f"🟢 Import completed! {erfolgreich} of {len(df_imp)} rows saved.")
-                                        st.rerun()
-                                    except Exception as db_err: 
-                                        st.error(f"Datenbankfehler: {str(db_err)}" if st.session_state.language == "de" else f"Database error: {str(db_err)}")
-                                    finally: 
+                            df_exp = pd.read_sql(f"SELECT * FROM `{db_tabelle}`", conn)
+                            if not df_exp.empty:
+                                st.success(f"🟢 {len(df_exp)} {TXT_IE['exp_success'].format(export_wahl)}")
+                                df_exp_schick = df_exp.copy()
+                                for spalte in df_exp_schick.columns:
+                                    if any(k in spalte.lower() for k in ["datum", "wartung", "termin", "weitere"]):
                                         try:
-                                            if conn is not None:
-                                                conn.close()
-                                        except:
-                                            pass
-                                else: st.error(TXT_IE["err_conn"])
-                    except Exception as e: 
-                        st.error(f"Fehler: {str(e)}")
+                                            df_exp_schick[spalte] = pd.to_datetime(df_exp_schick[spalte], errors="coerce").dt.strftime("%d.%m.%Y")
+                                        except: pass
+                                output_ie = io.BytesIO()
+                                with pd.ExcelWriter(output_ie, engine='xlsxwriter') as writer:
+                                    df_exp_schick.to_excel(writer, index=False, sheet_name=export_wahl[:30])
+                                excel_ie_data = output_ie.getvalue()
+                                dateiname = f"ESM_Backup_{db_tabelle}_{datetime.now().strftime('%Y%m%d')}.xlsx"
+                                
+                                btn_dl_lbl = f"📥 '{export_wahl}' als Excel herunterladen" if st.session_state.language == "de" else f"📥 Download '{export_wahl}' as Excel"
+                                st.download_button(label=btn_dl_lbl, data=excel_ie_data, file_name=dateiname, mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", key="export_download_btn_final_v7")
+                            else: 
+                                st.info(TXT_IE["exp_empty"].format(export_wahl))
+                        except Exception as e: 
+                            st.error(f"{TXT_IE['err_exp']} {str(e)}")
+                        finally: 
+                            try:
+                                if conn is not None:
+                                    conn.close()
+                            except:
+                                pass
+                    else: 
+                        st.error(TXT_IE["err_conn"])
 
-        st.markdown('</div>', unsafe_allow_html=True)
+            # --- IMPORT BEREICH ---
+            elif ie_aktion == TXT_IE["dir_imp"]:
+                if st.session_state.language == "de":
+                    TXT_IMP = {
+                        "imp_title": "##### 📥 Excel-Daten in die Datenbank einlesen",
+                        "imp_q": "Ziel-Tabelle für Import:",
+                        "imp_hint": "Hinweis: Spaltenüberschriften müssen exakt den Datenbankfeldern entsprechen.",
+                        "imp_file_lbl": "Excel-Datei für '{}' auswählen:",
+                    }
+                else:
+                    TXT_IMP = {
+                        "imp_title": "##### 📥 Read Excel Data into Database",
+                        "imp_q": "Target Table for Import:",
+                        "imp_hint": "Note: Column headers must match database fields exactly.",
+                        "imp_file_lbl": "Select Excel file for '{}':",
+                    }
+                    
+                st.markdown(TXT_IMP["imp_title"])
+                col_imp_sel, _ = st.columns([6.0, 4.0])
+                with col_imp_sel:
+                    import_wahl = st.selectbox(TXT_IMP["imp_q"], [""] + list(tabellen_liste.keys()), key="import_bereich_wahl_final_v7")
+
+                if import_wahl:
+                    db_tabelle = tabellen_liste[import_wahl]
+                    st.write("")
+                    st.info(TXT_IMP["imp_hint"])
+                    uploaded_file = st.file_uploader(TXT_IMP["imp_file_lbl"].format(import_wahl), type=["xlsx"], key="excel_uploader_field_v7")
+                    
+                    if uploaded_file is not None:
+                        try:
+                            df_imp = pd.read_excel(uploaded_file, sheet_name=0, engine="openpyxl")
+                            preview_lbl = f"**Vorschau ({len(df_imp)} Zeilen):**" if st.session_state.language == "de" else f"**Preview ({len(df_imp)} rows):**"
+                            st.markdown(preview_lbl)
+                            st.dataframe(df_imp.head(3), use_container_width=True, hide_index=True)
+                            
+                            with st.form("form_import_start_einmalig", clear_on_submit=True):
+                                btn_start_lbl = "🚀 Import starten" if st.session_state.language == "de" else "🚀 Start Import"
+                                if st.form_submit_button(btn_start_lbl):
+                                    conn = hole_datenbank_verbindung()
+                                    if conn is not None:
+                                        try:
+                                            cursor = conn.cursor()
+                                            spalten = [f"`{col}`" for col in df_imp.columns]
+                                            platzhalter = ["%s" for _ in df_imp.columns]
+                                            sql_kommando = f"INSERT INTO `{db_tabelle}` ({', '.join(spalten)}) VALUES ({', '.join(platzhalter)})"
+                                            erfolgreich = 0
+                                            
+                                            for _, row in df_imp.iterrows():
+                                                zeilen_werte = []
+                                                for val in row.values:
+                                                    if pd.isnull(val): zeilen_werte.append(None)
+                                                    elif isinstance(val, pd.Timestamp): zeilen_werte.append(val.strftime('%Y-%m-%d'))
+                                                    elif isinstance(val, float) and val.is_integer(): zeilen_werte.append(int(val))
+                                                    elif isinstance(val, str):
+                                                        try:
+                                                            parsed_dt = pd.to_datetime(val, format='%d.%m.%Y', errors='raise')
+                                                            zeilen_werte.append(parsed_dt.strftime('%Y-%m-%d'))
+                                                        except: zeilen_werte.append(val)
+                                                    else: zeilen_werte.append(val)
+                                                try:
+                                                    cursor.execute(sql_kommando, tuple(zeilen_werte))
+                                                    erfolgreich += 1
+                                                except Exception as insert_error:
+                                                    st.warning(f"Zeile übersprungen: {str(insert_error)}" if st.session_state.language == "de" else f"Row skipped: {str(insert_error)}")
+                                            conn.commit()
+                                            cursor.close()
+                                            st.success(f"🟢 Import abgeschlossen! {erfolgreich} von {len(df_imp)} Zeilen gespeichert." if st.session_state.language == "de" else f"🟢 Import completed! {erfolgreich} of {len(df_imp)} rows saved.")
+                                            st.rerun()
+                                        except Exception as db_err: 
+                                            st.error(f"Datenbankfehler: {str(db_err)}" if st.session_state.language == "de" else f"Database error: {str(db_err)}")
+                                        finally: 
+                                            try:
+                                                if conn is not None:
+                                                    conn.close()
+                                            except:
+                                                pass
+                                    else: st.error(TXT_IE["err_conn"])
+                        except Exception as e: 
+                            st.error(f"Fehler: {str(e)}")
 
     # --- RECHTE SPALTE: INTERAKTIVER TEMPLATE-HUB ---
     with col_main_right:
-        st.markdown('<div class="enterprise-card">', unsafe_allow_html=True)
-        st.markdown(f"##### {TXT_IE['template_title']}")
-        
-        # Beschreibungstext wieder ÜBER dem Auswahlfeld
-        st.markdown(f"<p style='font-size: 11px; opacity: 0.7; margin-bottom: 12px;'>{TXT_IE['template_desc']}</p>", unsafe_allow_html=True)
-        
-        col_t1, col_t2 = st.columns([3.5, 6.5])
-        with col_t1:
-            st.markdown(f"<div style='font-size: 13px; font-weight: 600; padding-top: 8px;'>{TXT_IE['template_sel']}</div>", unsafe_allow_html=True)
-        with col_t2:
-            template_wahl = st.selectbox("", [""] + list(tabellen_liste.keys()), key="interaktives_template_selectbox", label_visibility="collapsed")
-        
-        if template_wahl:
-            t_key = tabellen_liste[template_wahl]
-            conn_t = None
-            try:
-                conn_t = hole_datenbank_verbindung()
-                if conn_t is not None:
-                    df_s = pd.read_sql(f"SELECT * FROM `{t_key}` LIMIT 0", conn_t)
-                    df_v = df_s.drop(columns=["id"]) if "id" in df_s.columns else df_s.copy()
-                    
-                    if st.session_state.language == "de":
-                        leg_d = [{"Spalte / Feld": c, "Datentyp": "Text / Datum (TT.MM.JJJJ) / Zahl", "Erklärung": "Bitte passendes Format nutzen."} for c in df_v.columns]
-                        s_name = "Legende & Hinweise"
-                    else:
-                        leg_d = [{"Column / Field": c, "Data Type": "Text / Date (DD.MM.YYYY) / Number", "Explanation": "Please use matching format."} for c in df_v.columns]
-                        s_name = "Legend & Notes"
-                        
-                    df_l = pd.DataFrame(leg_d)
-                    out_t = io.BytesIO()
-                    with pd.ExcelWriter(out_t, engine='xlsxwriter') as w:
-                        df_v.to_excel(w, index=False, sheet_name="Vorlage" if st.session_state.language == "de" else "Template")
-                        df_l.to_excel(w, index=False, sheet_name=s_name)
-                    
-                    st.write("")
-                    st.download_button(
-                        label=TXT_IE["dl_tmpl_btn"],
-                        data=out_t.getvalue(),
-                        file_name=f"ESM_Vorlage_{t_key}.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        key=f"dl_hub_tpl_{t_key}_interactive",
-                        use_container_width=True
-                    )
-            except Exception as ex:
-                pass
-            finally:
+        with st.container(border=True):
+            st.markdown(f"##### {TXT_IE['template_title']}")
+            
+            # Beschreibungstext ÜBER dem Auswahlfeld
+            st.markdown(f"<p style='font-size: 11px; opacity: 0.7; margin-bottom: 12px;'>{TXT_IE['template_desc']}</p>", unsafe_allow_html=True)
+            
+            col_t1, col_t2 = st.columns([3.5, 6.5])
+            with col_t1:
+                st.markdown(f"<div style='font-size: 13px; font-weight: 600; padding-top: 8px;'>{TXT_IE['template_sel']}</div>", unsafe_allow_html=True)
+            with col_t2:
+                template_wahl = st.selectbox("", [""] + list(tabellen_liste.keys()), key="interaktives_template_selectbox", label_visibility="collapsed")
+            
+            if template_wahl:
+                t_key = tabellen_liste[template_wahl]
+                conn_t = None
                 try:
+                    conn_t = hole_datenbank_verbindung()
                     if conn_t is not None:
-                        conn_t.close()
-                except:
+                        df_s = pd.read_sql(f"SELECT * FROM `{t_key}` LIMIT 0", conn_t)
+                        df_v = df_s.drop(columns=["id"]) if "id" in df_s.columns else df_s.copy()
+                        
+                        if st.session_state.language == "de":
+                            leg_d = [{"Spalte / Feld": c, "Datentyp": "Text / Datum (TT.MM.JJJJ) / Zahl", "Erklärung": "Bitte passendes Format nutzen."} for c in df_v.columns]
+                            s_name = "Legende & Hinweise"
+                        else:
+                            leg_d = [{"Column / Field": c, "Data Type": "Text / Date (DD.MM.YYYY) / Number", "Explanation": "Please use matching format."} for c in df_v.columns]
+                            s_name = "Legend & Notes"
+                            
+                        df_l = pd.DataFrame(leg_d)
+                        out_t = io.BytesIO()
+                        with pd.ExcelWriter(out_t, engine='xlsxwriter') as w:
+                            df_v.to_excel(w, index=False, sheet_name="Vorlage" if st.session_state.language == "de" else "Template")
+                            df_l.to_excel(w, index=False, sheet_name=s_name)
+                        
+                        st.write("")
+                        st.download_button(
+                            label=TXT_IE["dl_tmpl_btn"],
+                            data=out_t.getvalue(),
+                            file_name=f"ESM_Vorlage_{t_key}.xlsx",
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            key=f"dl_hub_tpl_{t_key}_interactive",
+                            use_container_width=True
+                        )
+                except Exception as ex:
                     pass
-        
-        st.markdown('</div>', unsafe_allow_html=True)
+                finally:
+                    try:
+                        if conn_t is not None:
+                            conn_t.close()
+                    except:
+                        pass
 
     # --- 3. SAUBERE TRENNLINIE & SCHNITTSTELLEN-PROTOKOLL ---
-    st.markdown('<hr class="saubere-trennlinie">', unsafe_allow_html=True)
+    st.divider()
     st.markdown(f"##### {TXT_IE['log_title']}")
     
     df_audit_log = pd.DataFrame({
