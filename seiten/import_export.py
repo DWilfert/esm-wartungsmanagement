@@ -7,24 +7,20 @@ from datenbank.befehle import hole_datenbank_verbindung
 def zeige_import_export():
     st.markdown("""
         <style>
-        /* Kompakte Schriftgröße in allen Eingabefeldern, Radio-Buttons und Formularen */
         input, select, textarea, div[data-baseweb="select"] span, label, .stRadio div {
             font-size: 0.82rem !important;
         }
         
-        /* Blendet den automatischen Streamlit-Hinweis aus */
         div[data-testid="InputInstructions"] {
             display: none !important;
         }
         
-        /* Placeholder in leicht grauer Schrift und Kursiv */
         input::placeholder, textarea::placeholder {
             color: #94a3b8 !important;
             font-style: italic !important;
             opacity: 1 !important;
         }
         
-        /* Dropdown-Menüs und Popovers */
         div[data-baseweb="popover"], div[data-baseweb="menu"], ul[data-baseweb="menu"] {
             background-color: var(--secondary-background-color) !important;
         }
@@ -35,7 +31,6 @@ def zeige_import_export():
             font-size: 0.85rem !important;
         }
         
-        /* Dezenter, dunkler Hover-Zustand passend zum Dark-Mode */
         ul[role="listbox"] li:hover,
         ul[role="listbox"] li[aria-selected="true"],
         li[role="option"]:hover,
@@ -44,7 +39,6 @@ def zeige_import_export():
             color: var(--text-color) !important;
         }
         
-        /* Tooltips & Toolbar-Buttons */
         div[data-testid="stElementToolbar"], 
         div[data-testid="stElementToolbar"] button,
         span[data-testid="stTooltipHoverTarget"] {
@@ -59,7 +53,6 @@ def zeige_import_export():
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
         }
 
-        /* Automatischer Hintergrund- und Rahmen-Fix für st.dataframe im Matrix-Look */
         div[data-testid="stDataFrame"] {
             background-color: var(--secondary-background-color) !important;
             border: 1px solid rgba(128, 128, 128, 0.25) !important;
@@ -138,7 +131,6 @@ def zeige_import_export():
     st.subheader(TXT_IE["title"])
     st.markdown(f"<div style='font-size: 13px; color: var(--text-color); opacity: 0.7; margin-bottom: 20px;'>{TXT_IE['desc']}</div>", unsafe_allow_html=True)
 
-    # --- 1. EXECUTIVE KPI-LEISTE OBEN ---
     col_k1, col_k2, col_k3, col_k4 = st.columns(4)
     with col_k1:
         st.markdown(f"""<div class="kpi-card"><div style="font-size: 11px; opacity: 0.7;">{TXT_IE['kpi_1']}</div><div style="font-size: 18px; font-weight: bold; color: #3b82f6;">142</div></div>""", unsafe_allow_html=True)
@@ -151,7 +143,6 @@ def zeige_import_export():
 
     st.write("")
 
-    # --- RICHTUNG (EXPORT / IMPORT) IN GLEICHER ZEILE WIE LABEL ---
     col_dir_lbl, col_dir_val = st.columns([2.5, 7.5])
     with col_dir_lbl:
         st.markdown(f"<div style='font-size: 13px; font-weight: 600; padding-top: 6px;'>{TXT_IE['direction_lbl']}</div>", unsafe_allow_html=True)
@@ -167,12 +158,10 @@ def zeige_import_export():
         "Serviceeinträge" if st.session_state.language == "de" else "Service Reports": "serviceeinsaetze"
     }
 
-    # --- 2. ZWEI-SPALTEN-LAYOUT (HAUPTBEREICH & INTERAKTIVER TEMPLATE-HUB) ---
     col_main_left, col_main_right = st.columns([6.0, 4.0])
 
     with col_main_left:
         with st.container(border=True):
-            # --- EXPORT BEREICH ---
             if ie_aktion == TXT_IE["dir_exp"]:
                 st.markdown(TXT_IE["exp_title"])
                 col_exp_sel, _ = st.columns([6.0, 4.0])
@@ -214,7 +203,6 @@ def zeige_import_export():
                     else: 
                         st.error(TXT_IE["err_conn"])
 
-            # --- IMPORT BEREICH ---
             elif ie_aktion == TXT_IE["dir_imp"]:
                 if st.session_state.language == "de":
                     TXT_IMP = {
@@ -294,12 +282,10 @@ def zeige_import_export():
                         except Exception as e: 
                             st.error(f"Fehler: {str(e)}")
 
-    # --- RECHTE SPALTE: INTERAKTIVER TEMPLATE-HUB ---
     with col_main_right:
         with st.container(border=True):
             st.markdown(f"##### {TXT_IE['template_title']}")
             
-            # Beschreibungstext ÜBER dem Auswahlfeld
             st.markdown(f"<p style='font-size: 11px; opacity: 0.7; margin-bottom: 12px;'>{TXT_IE['template_desc']}</p>", unsafe_allow_html=True)
             
             col_t1, col_t2 = st.columns([3.5, 6.5])
@@ -348,7 +334,6 @@ def zeige_import_export():
                     except:
                         pass
 
-    # --- 3. SAUBERE TRENNLINIE & SCHNITTSTELLEN-PROTOKOLL ---
     st.divider()
     st.markdown(f"##### {TXT_IE['log_title']}")
     
