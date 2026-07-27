@@ -207,7 +207,8 @@ def zeige_import_export():
                     except Exception as e: 
                         st.error(f"{TXT_IE['err_exp']} {str(e)}")
                     finally: 
-                        conn.close()
+                        if conn is not None:
+                            conn.close()
                 else: 
                     st.error(TXT_IE["err_conn"])
 
@@ -281,7 +282,9 @@ def zeige_import_export():
                                         st.rerun()
                                     except Exception as db_err: 
                                         st.error(f"Datenbankfehler: {str(db_err)}" if st.session_state.language == "de" else f"Database error: {str(db_err)}")
-                                    finally: conn.close()
+                                    finally: 
+                                        if conn is not None:
+                                            conn.close()
                                 else: st.error(TXT_IE["err_conn"])
                     except Exception as e: 
                         st.error(f"Fehler: {str(e)}")
@@ -323,10 +326,11 @@ def zeige_import_export():
                         key=f"dl_hub_tpl_{t_key}",
                         use_container_width=True
                     )
-                except:
-                    pass
+                except Exception as ex:
+                    print(f"Template-Fehler: {ex}")
                 finally:
-                    conn_t.close()
+                    if conn_t is not None:
+                        conn_t.close()
         
         st.markdown('</div>', unsafe_allow_html=True)
 
