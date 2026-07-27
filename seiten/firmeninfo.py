@@ -176,8 +176,8 @@ def zeige_firmeninfo():
             unbenannt_text = "Unbenannt" if st.session_state.language == "de" else "Unnamed"
             firmen_liste = [""] + [f"[ID: {row['id']}] {row.get(name_col, unbenannt_text)}" for _, row in df_firmen.iterrows()]
             
-            # --- AUSWAHLFELD AUF CA. 60% BREITE BEGRENZT ---
-            col_sel, _ = st.columns([6.0, 4.0])
+            # --- AUSWAHLFELD UM WEITERE 40% VERKÜRZT (Breite 3.5) ---
+            col_sel, _ = st.columns([3.5, 6.5])
             with col_sel:
                 ausgewaehlte_firma = st.selectbox(TXT_FIRMA["sel_del"], firmen_liste, key="firmen_del_selectbox_v1")
 
