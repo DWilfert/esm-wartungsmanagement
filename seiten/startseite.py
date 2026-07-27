@@ -22,7 +22,7 @@ def zeige_startseite():
 
     if st.session_state.language == "de":
         TXT_HOME = {
-            "titel_home": "🏠 Vertrags & Wartungsmanagement V1.3.1.0",
+            "titel_home": "🏠 Vertrags- & Wartungsmanagement V1.3.1.0",
             "subtitel_home": "Zentrale Erfassung, Analyse und Fristen-Überwachung.",
             "fristen_status": "Fristen-Detailübersicht:", "ueberfaellig": "Überfällig", "anstehend": "Anstehend", "ordnung": "In Ordnung"
         }
