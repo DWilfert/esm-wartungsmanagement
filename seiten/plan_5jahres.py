@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 from fpdf import FPDF
 
 def zeige_5jahresplan():
-    # Einheitlicher Design-Fix für Tooltips, Dropdowns, Toolbars und kompakteres Gitternetz
     st.markdown("""
         <style>
         input, select, textarea, div[data-baseweb="select"] span, label, .stRadio div {
@@ -54,7 +53,6 @@ def zeige_5jahresplan():
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
         }
 
-        /* Kompaktere Zeilendichte und Matrix-Gitternetz für st.dataframe */
         div[data-testid="stDataFrame"] {
             background-color: var(--secondary-background-color) !important;
             border: 1px solid rgba(128, 128, 128, 0.25) !important;
@@ -73,7 +71,6 @@ def zeige_5jahresplan():
         </style>
     """, unsafe_allow_html=True)
 
-    # --- DYNAMISCHE FARBEN FÜR PLOTLY & HTML ---
     theme = st.session_state.get("app_theme", "Premium Dark")
     
     if theme == "Premium Light":
@@ -102,7 +99,6 @@ def zeige_5jahresplan():
         text_muted = "#94a3b8"
         chart_bg = "#0e1117"
 
-    # --- SAUBERE, DEZENTE TRANSPARENZ FÜR FILTER ---
     st.markdown("""
         <style>
             div[data-testid="stCheckbox"] label p, 
@@ -132,7 +128,6 @@ def zeige_5jahresplan():
     st.subheader(TXT_PLAN["title"])
     st.markdown(f"<div style='font-size: 13px; color: {text_muted}; margin-bottom: 25px;'>{TXT_PLAN['desc']}</div>", unsafe_allow_html=True)
     
-    # Sofortige Demo-Daten für den 5-Jahres-Plan bereitstellen
     heute = datetime.now()
     df_ueber = pd.DataFrame({
         "id": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
@@ -158,16 +153,16 @@ def zeige_5jahresplan():
             (heute - timedelta(days=20)).strftime('%Y-%m-%d')
         ],
         "naechstewartung": [
-            (heute - timedelta(days=35)).strftime('%Y-%m-%d'),  # Überfällig (Rot)
-            (heute + timedelta(days=20)).strftime('%Y-%m-%d'),  # Anstehend (Gelb)
-            (heute + timedelta(days=200)).strftime('%Y-%m-%d'), # Später
-            (heute - timedelta(days=10)).strftime('%Y-%m-%d'),  # Überfällig (Rot)
-            (heute + timedelta(days=15)).strftime('%Y-%m-%d'),  # Anstehend (Gelb)
-            (heute - timedelta(days=60)).strftime('%Y-%m-%d'),  # Überfällig (Rot)
-            (heute + timedelta(days=45)).strftime('%Y-%m-%d'),  # Anstehend (Gelb)
-            (heute - timedelta(days=5)).strftime('%Y-%m-%d'),   # Überfällig (Rot)
-            (heute + timedelta(days=70)).strftime('%Y-%m-%d'),  # Anstehend (Gelb)
-            (heute + timedelta(days=180)).strftime('%Y-%m-%d')  # Später
+            (heute - timedelta(days=35)).strftime('%Y-%m-%d'), 
+            (heute + timedelta(days=20)).strftime('%Y-%m-%d'), 
+            (heute + timedelta(days=200)).strftime('%Y-%m-%d'),
+            (heute - timedelta(days=10)).strftime('%Y-%m-%d'), 
+            (heute + timedelta(days=15)).strftime('%Y-%m-%d'), 
+            (heute - timedelta(days=60)).strftime('%Y-%m-%d'), 
+            (heute + timedelta(days=45)).strftime('%Y-%m-%d'), 
+            (heute - timedelta(days=5)).strftime('%Y-%m-%d'),   
+            (heute + timedelta(days=70)).strftime('%Y-%m-%d'), 
+            (heute + timedelta(days=180)).strftime('%Y-%m-%d') 
         ]
     })
 
@@ -252,7 +247,6 @@ def zeige_5jahresplan():
                     else:
                         hover_texts = [f"<b>{row['bezeichnung']}</b><br>📍 {row['standort']} | 🏢 {row['firma']}<br>🗓️ Date: {row['Datum'].strftime('%m/%d/%Y')}<br>⚠️ Status: {row['Status']}" for _, row in gruppe.iterrows()]
                     
-                    # KLEINERE AMPEL-PUNKTE MIT GLOW-EFFEKT & VOLLSTÄNDIGER MATRIX
                     fig.add_trace(go.Scatter(
                         x=gruppe["Monat_Name"], y=gruppe["bezeichnung"], mode="markers", name=status_name,
                         marker=dict(
@@ -303,7 +297,6 @@ def zeige_5jahresplan():
 
         st.markdown("---")
         if not df_chart.empty:
-            # Hier greifen wir nun auf alle im Chart sichtbaren (fälligen & anstehenden) Termine zu
             df_roote_vertraege = df_chart.drop_duplicates(subset=["id"])
             if not df_roote_vertraege.empty:
                 if st.session_state.language == "de":
