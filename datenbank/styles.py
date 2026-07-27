@@ -18,6 +18,7 @@ def lade_app_design():
         accent_color = "#60a5fa"
         input_bg = "rgba(15, 23, 42, 0.9)"
         dropdown_hover = "rgba(96, 165, 250, 0.2)"
+        hr_color = "rgba(96, 165, 250, 0.2)"
         
     elif theme == "Premium Slate":
         bg_app = "radial-gradient(circle at top left, #3f3f46 0%, #18181b 100%)"
@@ -30,18 +31,20 @@ def lade_app_design():
         accent_color = "#a1a1aa"
         input_bg = "rgba(24, 24, 27, 0.9)"
         dropdown_hover = "rgba(161, 161, 170, 0.2)"
+        hr_color = "rgba(161, 161, 170, 0.2)"
 
     elif theme == "Premium Light":
         bg_app = "radial-gradient(circle at top left, #ffffff 0%, #f1f5f9 100%)"
         solid_bg = "#ffffff"
-        border_color = "rgba(0, 0, 0, 0.15)"
+        border_color = "rgba(0, 0, 0, 0.2)"  # Etwas kräftiger für klare Sichtbarkeit
         card_bg = "rgba(255, 255, 255, 0.9)"
-        table_bg = "#ffffff"  # Weicher, sauberer Hintergrund für Tabellen statt zu extremem Kontrast
+        table_bg = "#ffffff"  
         text_main = "#0f172a"  
         text_muted = "#64748b"
         accent_color = "#3b82f6"
         input_bg = "#ffffff" 
         dropdown_hover = "#e2e8f0"
+        hr_color = "rgba(0, 0, 0, 0.15)"  # Klar sichtbarer Grauton für Linien im Light-Modus
 
     elif theme == "Premium Cashmere":
         bg_app = "radial-gradient(circle at top left, #fdfbf7 0%, #e6e2d8 100%)"
@@ -54,6 +57,7 @@ def lade_app_design():
         accent_color = "#8b7355"
         input_bg = "#ffffff" 
         dropdown_hover = "#eae3d2"
+        hr_color = "rgba(139, 115, 85, 0.25)"
 
     else:
         bg_app = "radial-gradient(circle at top left, #1a1f2c 0%, #0e1117 100%)"
@@ -66,6 +70,7 @@ def lade_app_design():
         accent_color = "#4a90e2"
         input_bg = "rgba(14, 17, 23, 0.9)"
         dropdown_hover = "rgba(74, 144, 226, 0.2)"
+        hr_color = "rgba(74, 144, 226, 0.2)"
 
     bg_sidebar = bg_app
     pfeil_farbe = accent_color
@@ -101,6 +106,14 @@ def lade_app_design():
 
         h1, h2, h3, h4, h5, h6, p, span, label, div {{
             color: {text_main} !important;
+        }}
+
+        /* GLOBALE TRENNLINIEN (HR) FIX */
+        hr {{
+            border: none !important;
+            height: 1px !important;
+            background-color: {hr_color} !important;
+            margin: 1rem 0 !important;
         }}
 
         /* GLOBALE KARTEN & DETAILFELDER */
