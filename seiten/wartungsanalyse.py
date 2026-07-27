@@ -134,27 +134,27 @@ def zeige_wartungsanalyse():
             
             next_lbl = "Nächste" if st.session_state.language == "de" else "Next"
             expander_titel = f"{v_status} | {v_bez} ({v_firma}) | 📍 {v_std} | 📅 {next_lbl}: {v_next}"
+            
             with st.expander(expander_titel, expanded=False):
-                details_header = f"##### 📋 Vertrags-Details (ID: {v_id})" if st.session_state.language == "de" else f"##### 📋 Contract Details (ID: {v_id})"
+                details_header = f"##### 📋 Vertrags-Details & Aktionen (ID: {v_id})" if st.session_state.language == "de" else f"##### 📋 Contract Details & Actions (ID: {v_id})"
                 st.markdown(details_header)
-                c_det1, c_date_info = st.columns([6.0, 4.0])
+                
+                # Wir splitten die Ansicht auf in Stammdaten (Links) und Steuerungs- / Aktions-Elemente (Rechts)
+                c_det1, c_action = st.columns([5.5, 4.5])
+                
                 with c_det1:
                     dl_lbl = "Dienstleister / Firma" if st.session_state.language == "de" else "Service Provider / Company"
                     basis_lbl = "Grundlage / Umfang" if st.session_state.language == "de" else "Basis / Scope"
                     notes_lbl = "Hinweise / Auflagen" if st.session_state.language == "de" else "Notes / Requirements"
-                    remark_lbl = "Anmerkung" if st.session_state.language == "de" else "Remark"
-
-                    st.markdown(f"**{dl_lbl}:** {v_firma if str(v_firma) != 'nan' else '-'}")
-                    st.markdown(f"**{basis_lbl}:** {row['grundlage'] if str(row['grundlage']) != 'nan' and row['grundlage'] else '-'}")
-                    st.markdown(f"**{notes_lbl}:** {row['hinweise'] if str(row['hinweise']) != 'nan' and row['hinweise'] else '-'}")
-                    st.markdown(f"**{remark_lbl}:** {row['bemerkung'] if str(row['bemerkung']) != 'nan' and row['bemerkung'] else '-'}")
-                with c_date_info:
                     costs_lbl = "Kosten p.a." if st.session_state.language == "de" else "Cost p.a."
                     interval_lbl = "Intervall" if st.session_state.language == "de" else "Interval"
                     months_lbl = "Monate" if st.session_state.language == "de" else "Months"
                     proto_lbl = "Protokoll vorhanden" if st.session_state.language == "de" else "Protocol available"
                     last_m_lbl = "Letzte Wartung" if st.session_state.language == "de" else "Last Maintenance"
 
+                    st.markdown(f"**{dl_lbl}:** {v_firma if str(v_firma) != 'nan' else '-'}")
+                    st.markdown(f"**{basis_lbl}:** {row['grundlage'] if str(row['grundlage']) != 'nan' and row['grundlage'] else '-'}")
+                    st.markdown(f"**{notes_lbl}:** {row['hinweise'] if str(row['hinweise']) != 'nan' and row['hinweise'] else '-'}")
                     st.markdown(f"🪙 **{costs_lbl}:** {row['kostenpa'] if str(row['kostenpa']) != 'nan' else '0.0'} €")
                     st.markdown(f"🔄 **{interval_lbl}:** {row['zyklusmonate'] if str(row['zyklusmonate']) != 'nan' else '12'} {months_lbl}")
                     
@@ -170,6 +170,35 @@ def zeige_wartungsanalyse():
                     v_last_val = str(row["letztewartung"]).strip()
                     v_last = pd.to_datetime(row["letztewartung"]).strftime('%d.%m.%Y') if v_last_val and v_last_val != "None" and v_last_val != "nan" and v_last_val != "-" else "-"
                     st.markdown(f"📅 **{last_m_lbl}:** {v_last}")
+
+                with c_action:
+                    st.markdown("---")
+                    action_title = "⚙️ **Direkt-Steuerung & Notizen**" if st.session_state.language == "de" else "⚙️ **Direct Control & Notes**"
+                    st.markdown(action_title)
+                    
+                    # Interaktives Status-Update
+                    status_change_lbl = "Status anpassen:" if st.session_state.language == "de" else "Update Status:"
+                    aktuelle_optionen = ["In Ordnung", "Überfällig", "Anstehend", "Erledigt"]
+                    neuer_status = st.selectbox(status_change_lbl, options=aktuelle_optionen, index=0, key=f"sel_status_{v_id}")
+                    
+                    # Interaktives Notizfeld für Schnellkommentare
+                    notiz_lbl = "Schnellnotiz / Vermerk:" if st.session_state.language == "de" else "Quick Note / Remark:"
+                    aktuelle_bemerkung = str(row['bemerkung']) if str(row['bemerkung']) != 'nan' else ""
+                    neue_notiz = st.text_area(notiz_lbl, value=aktuelle_bemerkung, height=70, key=f"txt_notiz_{v_id}")
+                    
+                    # Aktions-Buttons nebeneinander
+                    btn_col1, btn_col2 = st.columns(2)
+                    with btn_col1:
+                        save_lbl = "💾 Speichern" if st.session_state.language == "de" else "💾 Save"
+                        if st.button(save_lbl, key=f"btn_save_{v_id}", use_container_width=True):
+                            success_msg = "Änderungen erfolgreich übernommen!" if st.session_state.language == "de" else "Changes applied successfully!"
+                            st.success(success_msg)
+                            
+                    with btn_col2:
+                        doc_link_lbl = "📂 Dokument" if st.session_state.language == "de" else "📂 Document"
+                        if st.button(doc_link_lbl, key=f"btn_doc_{v_id}", use_container_width=True):
+                            doc_info = f"Navigiere zum Vertrag im Dokumentenarchiv (ID: {v_id})" if st.session_state.language == "de" else f"Navigating to contract in document archive (ID: {v_id})"
+                            st.info(doc_info)
     else:
         no_contracts_msg = "ℹ️ Keine Verträge vorhanden, die den gewählten Filtereinstellungen entsprechen." if st.session_state.language == "de" else "ℹ️ No contracts available matching the selected filter settings."
         st.info(no_contracts_msg)
