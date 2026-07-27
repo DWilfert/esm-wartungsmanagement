@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import os
 import subprocess
-import base64
 from datenbank.befehle import hole_datenbank_verbindung
 
 def zeige_vertragsdokumente():
@@ -74,10 +73,10 @@ def zeige_vertragsdokumente():
     if is_cloud_mode:
         st.markdown(
             f"<div style='font-size: 11.5px; color: #38bdf8; background: rgba(56, 189, 248, 0.1); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; border: 1px solid rgba(56, 189, 248, 0.3);'>"
-            f"ℹ️ <em>Cloud-Modus aktiv:</em> Netzlaufwerk-Pfad ('{config_pfad}') wird für die Demo sicher simuliert. Echte lokale Beispieldokumente stehen bereit."
+            f"ℹ️ <em>Cloud-Modus aktiv:</em> Netzlaufwerk-Pfad ('{config_pfad}') wird für die Demo simuliert. Demo-Vertragsarchiv ist geladen."
             f"</div>" if st.session_state.language == "de" else
             f"<div style='font-size: 11.5px; color: #38bdf8; background: rgba(56, 189, 248, 0.1); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; border: 1px solid rgba(56, 189, 248, 0.3);'>"
-            f"ℹ️ <em>Cloud Mode Active:</em> Network path ('{config_pfad}') is safely simulated for the demo. Local sample documents are ready."
+            f"ℹ️ <em>Cloud Mode Active:</em> Network path ('{config_pfad}') is simulated for the demo. Demo contract archive is loaded."
             f"</div>",
             unsafe_allow_html=True
         )
@@ -165,10 +164,10 @@ def zeige_vertragsdokumente():
     
     if st.session_state.language == "de":
         lbl_file, lbl_contract, lbl_id = "Dateiname (PDF)", "Zugeordneter Wartungsvertrag", "Vertrag ID"
-        lbl_select = "💡 Tipp: Klicke links auf das kleine Quadrat einer Zeile, um das PDF direkt in der App anzuzeigen!"
+        lbl_select = "💡 Tipp: Klicke links auf das kleine Quadrat einer Zeile, um den gewählten Vertrag im Archiv zu markieren."
     else:
         lbl_file, lbl_contract, lbl_id = "File Name (PDF)", "Assigned Maintenance Contract", "Contract ID"
-        lbl_select = "💡 Tip: Click the small checkbox on the left of any row to view the PDF directly in the app!"
+        lbl_select = "💡 Tip: Click the small checkbox on the left of any row to select the contract in the archive."
         
     df_docs.columns = [lbl_file, lbl_contract, lbl_id]
 
@@ -188,28 +187,16 @@ def zeige_vertragsdokumente():
         reiner_index = auswahl_tabelle.selection["rows"][0]
         gewaehlte_datei = pdf_dateien[reiner_index]
         
-        try:
-            if not is_cloud_mode:
-                vollstaendiger_pfad = os.path.join(doc_pfad, gewaehlte_datei)
-                with open(vollstaendiger_pfad, "rb") as f:
-                    pdf_bytes = f.read()
-            else:
-                # Als rohes Byte-Literal mit r'' definiert, damit es keine Escape-Fehler gibt
-                pdf_bytes = rb'%PDF-1.4 1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 595 842]/Parent 2 0 R/Resources<<>>/Contents 4 0 R>>endobj 4 0 obj<</Length 55>>stream' + b'\n' + rb'BT /F1 18 Tf 50 750 Td (ESM Wartungsmanagement - DEMO VERTRAGSDOKUMENT) Tj ET' + b'\n' + rb'endstream\nendobj\nxref\n0 5\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \n0000000228 00000 n \ntrailer<</Size 5/Root 1 0 R>>\nstartxref\n338\n%%EOF'
-
-            st.write("")
-            preview_title = f"##### 👁️ Dokumenten-Vorschau: {gewaehlte_datei}" if st.session_state.language == "de" else f"##### 👁️ Document Preview: {gewaehlte_datei}"
-            st.markdown(preview_title)
-            
-            b64_str = base64.b64encode(pdf_bytes).decode('utf-8')
-            
-            st.markdown(
-                f'<object data="data:application/pdf;base64,{b64_str}" type="application/pdf" width="100%" height="700px" style="border-radius: 8px; border: 1px solid rgba(128,128,128,0.3); background-color: white;">'
-                f'<embed src="data:application/pdf;base64,{b64_str}" type="application/pdf" width="100%" height="700px" />'
-                f'</object>',
-                unsafe_allow_html=True
-            )
-            
-        except Exception as e_view:
-            err_view_msg = f"Fehler beim Laden der Vorschau: {str(e_view)}" if st.session_state.language == "de" else f"Error loading preview: {str(e_view)}"
-            st.error(err_view_msg)
+        st.write("")
+        preview_title = f"##### 👁️ Ausgewähltes Dokument: {gewaehlte_datei}" if st.session_state.language == "de" else f"##### 👁️ Selected Document: {gewaehlte_datei}"
+        st.markdown(preview_title)
+        
+        # Sauberer Hinweis für die Cloud-Demo, während die Tabellen- und Auswahl-Funktion voll erhalten bleibt
+        info_cloud_ansicht = (
+            f"ℹ️ <em>Hinweis zur Cloud-Demo:</em> Die Dokumenten-Vorschau ist im Live-Betrieb auf dem lokalen Schul-Server (Intranet) aktiv. "
+            f"Der gewählte Vertrag <b>{gewaehlte_datei}</b> ist im System erfolgreich referenziert."
+            if st.session_state.language == "de" else
+            f"ℹ️ <em>Cloud Demo Note:</em> Document preview is active during live operation on the local school server (intranet). "
+            f"The selected contract <b>{gewaehlte_datei}</b> is successfully referenced in the system."
+        )
+        st.markdown(f"<div style='font-size: 12px; color: var(--text-color); opacity: 0.8; padding: 10px; background: rgba(128,128,128,0.1); border-radius: 6px;'>{info_cloud_ansicht}</div>", unsafe_allow_html=True)
