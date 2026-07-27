@@ -12,6 +12,38 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             display: none !important;
         }
         
+        div[data-baseweb="popover"], div[data-baseweb="menu"], ul[data-baseweb="menu"] {
+            background-color: var(--secondary-background-color) !important;
+        }
+        
+        ul[role="listbox"] li, li[role="option"] {
+            background-color: var(--secondary-background-color) !important;
+            color: var(--text-color) !important;
+            font-size: 0.85rem !important;
+        }
+        
+        ul[role="listbox"] li:hover,
+        ul[role="listbox"] li[aria-selected="true"],
+        li[role="option"]:hover,
+        li[role="option"][aria-selected="true"] {
+            background-color: rgba(128, 128, 128, 0.2) !important;
+            color: var(--text-color) !important;
+        }
+        
+        div[data-testid="stElementToolbar"], 
+        div[data-testid="stElementToolbar"] button,
+        span[data-testid="stTooltipHoverTarget"] {
+            background-color: var(--secondary-background-color) !important;
+            color: var(--text-color) !important;
+        }
+        
+        div[data-baseweb="tooltip"], div[role="tooltip"], div.stTooltipContent {
+            background-color: var(--secondary-background-color) !important;
+            color: var(--text-color) !important;
+            border: 1px solid rgba(128, 128, 128, 0.3) !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+        }
+
         div[data-testid="stDataFrame"] {
             background-color: var(--secondary-background-color) !important;
             border: 1px solid rgba(128, 128, 128, 0.25) !important;
@@ -41,7 +73,6 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             margin-bottom: 15px;
         }
         
-        /* Dynamische Enterprise-Detail-Card angepasst an das aktive Theme */
         .enterprise-detail-card {
             background-color: var(--secondary-background-color);
             border: 1px solid var(--primary-color);
@@ -74,7 +105,8 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "e": "Mängel und technische Auffälligkeiten aus der Anlagenerfassung und Wartungsprotokollen",
             "lbl_standort": "Standort-Filter:",
             "lbl_jahr": "Wirtschaftsjahr (5-Jahres-Plan):",
-            "select_placeholder": ""  # Leeres Feld als Default-Option im Dropdown
+            "select_placeholder": "",
+            "empty_card": "Kein Vertrag ausgewählt – bitte wählen Sie links einen Eintrag aus, um die vollständigen Enterprise-Details anzuzeigen."
         }
     else:
         TXT_VA = {
@@ -93,13 +125,13 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "e": "Defects and technical abnormalities from asset registration and maintenance logs",
             "lbl_standort": "Location Filter:",
             "lbl_jahr": "Fiscal Year (5-Year Plan):",
-            "select_placeholder": ""  # Empty field as default option in dropdown
+            "select_placeholder": "",
+            "empty_card": "No contract selected – please select an entry on the left to view full enterprise details."
         }
 
     st.subheader(TXT_VA["title"])
     st.markdown(f"<div style='font-size: 13px; color: var(--text-color); opacity: 0.7; margin-bottom: 15px;'>{TXT_VA['desc']}</div>", unsafe_allow_html=True)
 
-    # Demodaten über den 5-Jahres-Horizont (2026 bis 2030) verteilt
     df = pd.DataFrame({
         "id": [i+1 for i in range(10)],
         "anlagenid": [17501 + i for i in range(10)],
@@ -192,7 +224,7 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
 
     st.dataframe(
         df_display,
-        width="stretch",
+        use_container_width=True,
         height=400,
         hide_index=True
     )
@@ -209,7 +241,6 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
         """, unsafe_allow_html=True)
 
     with col_select:
-        # Die Liste beginnt nun mit dem leeren Platzhalter als erstem Element
         vertrag_namen = [TXT_VA["select_placeholder"]] + df_filtered["bezeichnung"].tolist()
         ausgewaehlter_vertrag = st.selectbox("", options=vertrag_namen, index=0, key="enterprise_direct_select", label_visibility="collapsed")
 
@@ -236,8 +267,8 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
                 </div>
             """, unsafe_allow_html=True)
         else:
-            st.markdown("""
+            st.markdown(f"""
                 <div class="enterprise-detail-card" style="opacity: 0.6; display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-style: italic; min-height: 105px; color: var(--text-color);">
-                    Kein Vertrag ausgewählt – bitte wählen Sie links einen Eintrag aus, um die vollständigen Enterprise-Details anzuzeigen.
+                    {TXT_VA['empty_card']}
                 </div>
             """, unsafe_allow_html=True)
