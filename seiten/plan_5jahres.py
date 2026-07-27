@@ -303,14 +303,17 @@ def zeige_5jahresplan():
 
         st.markdown("---")
         if not df_chart.empty:
-            overdue_status_str = "🔴 Überfällig" if st.session_state.language == "de" else "🔴 Overdue"
-            df_roote_vertraege = df_chart[df_chart["Status"] == overdue_status_str].drop_duplicates(subset=["id"])
+            # Hier greifen wir nun auf alle im Chart sichtbaren (fälligen & anstehenden) Termine zu
+            df_roote_vertraege = df_chart.drop_duplicates(subset=["id"])
             if not df_roote_vertraege.empty:
-                fristen_subtext = "Fristen-Feinsteuerung (Wochenweise)" if st.session_state.language == "de" else "Deadline Fine-Tuning (Weekly)"
+                if st.session_state.language == "de":
+                    fristen_subtext = "Fristen-Feinsteuerung (Wochenweise) für fällige & anstehende Termine"
+                else:
+                    fristen_subtext = "Deadline Fine-Tuning (Weekly) for Due & Pending Appointments"
+
                 st.markdown(f"<p style='font-size: 11px; font-weight: bold; color: #4a90e2; letter-spacing: 1px;'>FRISTEN MANAGER &nbsp;|&nbsp; <span style='font-size: 10px; font-weight: normal; font-style: italic; opacity: 0.8;'>{fristen_subtext}</span></p>", unsafe_allow_html=True)
-                liste_roote_labels = [f"[ID: {r['id']}] {r['bezeichnung']} (Aktuell: {r['Datum'].strftime('%d.%m.%Y')})" if st.session_state.language == "de" else f"[ID: {r['id']}] {r['bezeichnung']} (Current: {r['Datum'].strftime('%m/%d/%Y')})" for _, r in df_roote_vertraege.iterrows()]
+                liste_roote_labels = [f"[ID: {r['id']}] {r['bezeichnung']} ({r['Status']}) - {r['Datum'].strftime('%d.%m.%Y')}" if st.session_state.language == "de" else f"[ID: {r['id']}] {r['bezeichnung']} ({r['Status']}) - {r['Datum'].strftime('%m/%d/%Y')}" for _, r in df_roote_vertraege.iterrows()]
                 
-                # REINER WOCHEN-ZÄHLER OHNE ALTE BUTTONS
                 col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns([4.0, 1.5, 1.5, 1.5, 1.5])
                 with col_m1:
                     sel_lbl = "Anlage wählen:" if st.session_state.language == "de" else "Select Asset:"
