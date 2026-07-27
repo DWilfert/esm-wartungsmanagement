@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 import subprocess
-import tempfile
+import base64
 from datenbank.befehle import hole_datenbank_verbindung
 
 def zeige_vertragsdokumente():
@@ -176,13 +176,13 @@ def zeige_vertragsdokumente():
     auswahl_tabelle = st.dataframe(
         df_docs,
         use_container_width=True,
-            hide_index=True,
-            on_select="rerun",
-            selection_mode="single-row",
-            column_config={
-                lbl_id: st.column_config.TextColumn(lbl_id, alignment="left")
-            }
-        )
+        hide_index=True,
+        on_select="rerun",
+        selection_mode="single-row",
+        column_config={
+            lbl_id: st.column_config.TextColumn(lbl_id, alignment="left")
+        }
+    )
     
     if auswahl_tabelle and auswahl_tabelle.selection and "rows" in auswahl_tabelle.selection and auswahl_tabelle.selection["rows"]:
         reiner_index = auswahl_tabelle.selection["rows"][0]
@@ -194,21 +194,20 @@ def zeige_vertragsdokumente():
                 with open(vollstaendiger_pfad, "rb") as f:
                     pdf_bytes = f.read()
             else:
-                pdf_bytes = b'%PDF-1.4 1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 595 842]/Parent 2 0 R/Resources<<>>/Contents 4 0 R>>endobj 4 0 obj<</Length 55>>stream\nBT /F1 18 Tf 50 750 Td (ESM Wartungsmanagement - DEMO VERTRAGSDOKUMENT) Tj ET\nendstream\nendobj\nxref\n0 5\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \n0000000228 00000 n \ntrailer<</Size 5/Root 1 0 R>>\nstartstart\nstartxref\n338\n%%EOF'
+                pdf_bytes = b'%PDF-1.4 1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 595 842]/Parent 2 0 R/Resources<<>>/Contents 4 0 R>>endobj 4 0 obj<</Length 55>>stream\nBT /F1 18 Tf 50 750 Td (ESM Wartungsmanagement - DEMO VERTRAGSDOKUMENT) Tj ET\nendstream\nendobj\xref\n0 5\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \n0000000228 00000 n \ntrailer<</Size 5/Root 1 0 R>>\nstartstart\nstartxref\n338\n%%EOF'
 
             st.write("")
             preview_title = f"##### 👁️ Dokumenten-Vorschau: {gewaehlte_datei}" if st.session_state.language == "de" else f"##### 👁️ Document Preview: {gewaehlte_datei}"
             st.markdown(preview_title)
             
-            # Wir schreiben das PDF in eine temporäre Datei und erzeugen einen stabilen URL-Pfad, 
-            # den der Browser direkt über ein sauberes <embed>-Tag ohne Blockaden rendert.
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
-                tmp_file.write(pdf_bytes)
-                tmp_path = tmp_file.name
-
-            # Einbindung über ein natives HTML-Embed, das direkt im Layout ohne Download gerendert wird
+            # Wir wandeln die Bytes in einen sauberen Base64-String um und betten ihn via object-Tag ein
+            b64_str = base64.b64encode(pdf_bytes).decode('utf-8')
+            
+            # Professionelle Einbettung, die von Chrome und Cloud-Servern fehlerfrei gerendert wird
             st.markdown(
-                f'<embed src="file://{tmp_path}" type="application/pdf" width="100%" height="700px" style="border-radius: 8px; border: 1px solid rgba(128,128,128,0.2);" />',
+                f'<object data="data:application/pdf;base64,{b64_str}" type="application/pdf" width="100%" height="700px" style="border-radius: 8px; border: 1px solid rgba(128,128,128,0.3); background-color: white;">'
+                f'<embed src="data:application/pdf;base64,{b64_str}" type="application/pdf" width="100%" height="700px" />'
+                f'</object>',
                 unsafe_allow_html=True
             )
             
