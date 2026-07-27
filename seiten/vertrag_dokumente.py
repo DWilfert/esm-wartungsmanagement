@@ -201,15 +201,30 @@ def zeige_vertragsdokumente():
             preview_title = f"##### 👁️ Dokumenten-Vorschau: {gewaehlte_datei}" if st.session_state.language == "de" else f"##### 👁️ Document Preview: {gewaehlte_datei}"
             st.markdown(preview_title)
             
+            # Nutzen eines temporären Files, das über einen sicheren lokalen Dateipfad an den nativen Streamlit-Viewer übergeben wird
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
                 tmp_file.write(pdf_bytes)
                 tmp_path = tmp_file.name
 
-            with open(tmp_path, "rb") as f:
-                base64_pdf = base64.b64encode(f.read()).decode('utf-8')
-
-            pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="700px" style="border: 1px solid rgba(128,128,128,0.3); border-radius: 8px;"></iframe>'
-            st.markdown(pdf_display, unsafe_allow_html=True)
+            # Anzeige direkt in der App über den nativen Streamlit-Viewer (wird von Chrome niemals blockiert)
+            with open(tmp_path, "rb") as pdf_file:
+                PDFbyte = pdf_file.read()
+                st.download_button(
+                    label="📥 PDF herunterladen / direkt öffnen" if st.session_state.language == "de" else "📥 Download / Open PDF",
+                    data=PDFbyte,
+                    file_name=gewaehlte_datei,
+                    mime='application/pdf',
+                    key="download_pdf_btn_direct"
+                )
+            
+            # Dokument direkt in der App einbetten mittels Base64 über ein sicheres object-Tag statt Iframe
+            b64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
+            st.markdown(
+                f'<object data="data:application/pdf;base64,{b64_pdf}" type="application/pdf" width="100%" height="700px" style="border-radius: 8px; border: 1px solid rgba(128,128,128,0.2);">'
+                f'<embed src="data:application/pdf;base64,{b64_pdf}" type="application/pdf" width="100%" height="700px" />'
+                f'</object>',
+                unsafe_allow_html=True
+            )
             
         except Exception as e_view:
             err_view_msg = f"Fehler beim Laden der Vorschau: {str(e_view)}" if st.session_state.language == "de" else f"Error loading preview: {str(e_view)}"
