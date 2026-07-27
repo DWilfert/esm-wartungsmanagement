@@ -60,16 +60,15 @@ def zeige_startseite():
             unsafe_allow_html=True
         )
 
-    st.markdown(f"<div style='font-size:13px; color:#94a3b8; margin-top:-10px; margin-bottom:10px;'>{TXT_HOME['subtitel_home']}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='font-size:13px; color:#64748b; margin-top:-10px; margin-bottom:10px;'>{TXT_HOME['subtitel_home']}</div>", unsafe_allow_html=True)
     st.write("---")
 
-    # --- ✨ DIE NEON-KPI-KARTEN (Mit stabilen Demo-Werten) ---
     st.markdown("""
         <style>
         .neon-kpi-card {
-            background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
-            border: 1px solid rgba(56, 189, 248, 0.4);
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.15);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(241, 245, 249, 0.95) 100%);
+            border: 1px solid rgba(14, 165, 233, 0.4);
+            box-shadow: 0 0 15px rgba(14, 165, 233, 0.15);
             border-radius: 10px;
             padding: 20px;
             text-align: center;
@@ -77,7 +76,7 @@ def zeige_startseite():
         }
         .neon-kpi-title {
             font-size: 12px;
-            color: #94a3b8;
+            color: #64748b;
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 8px;
@@ -85,20 +84,24 @@ def zeige_startseite():
         .neon-kpi-value {
             font-size: 26px;
             font-weight: 800;
-            color: #38bdf8;
-            text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+            color: #0284c7;
+            text-shadow: 0 0 10px rgba(14, 165, 233, 0.3);
         }
         .start-kachel {
-            background: rgba(30, 41, 59, 0.5);
-            border: 1px solid rgba(128, 128, 128, 0.2);
+            background: rgba(248, 250, 252, 0.8);
+            border: 1px solid rgba(14, 165, 233, 0.2);
+            box-shadow: 0 0 12px rgba(14, 165, 233, 0.1);
             border-radius: 10px;
             padding: 20px;
             margin-bottom: 15px;
+            color: #1e293b;
+        }
+        .start-kachel h4 {
+            color: #0f172a;
         }
         </style>
     """, unsafe_allow_html=True)
     
-    # Sofortige Demo-Vertragsdaten für die KPI-Berechnung
     total_vertraege = 10
     c_rot = 3
     c_gelb = 2
@@ -114,23 +117,23 @@ def zeige_startseite():
         """, unsafe_allow_html=True)
     with col_kpi2:
         status_text = f"{c_rot} Überfällig" if st.session_state.language == "de" else f"{c_rot} Overdue"
-        status_color = "#f87171"
+        status_color = "#dc2626"
         
         st.markdown(f"""
             <div class="neon-kpi-card">
                 <div class="neon-kpi-title">{"Fristen-Alarm" if st.session_state.language == "de" else "Deadline Status"}</div>
-                <div class="neon-kpi-value" style="color: {status_color}; text-shadow: 0 0 10px {status_color}66;">{status_text}</div>
+                <div class="neon-kpi-value" style="color: {status_color}; text-shadow: 0 0 10px {status_color}44;">{status_text}</div>
             </div>
         """, unsafe_allow_html=True)
     with col_kpi3:
         st.markdown(f"""
             <div class="neon-kpi-card">
                 <div class="neon-kpi-title">{"System-Status" if st.session_state.language == "de" else "System Status"}</div>
-                <div class="neon-kpi-value" style="color: #818cf8; text-shadow: 0 0 10px rgba(129,140,248,0.4);">Online 🟢</div>
+                <div class="neon-kpi-value" style="color: #4f46e5; text-shadow: 0 0 10px rgba(79,70,229,0.3);">Online 🟢</div>
             </div>
         """, unsafe_allow_html=True)
 
-    st.markdown(f"<div style='font-size: 12px; color: #94a3b8; margin-bottom: 15px;'>{TXT_HOME['fristen_status']} &nbsp;&nbsp;<span style='color:#f87171'>🔴 {c_rot} {TXT_HOME['ueberfaellig']}</span> &nbsp;&nbsp;&nbsp;&nbsp;<span style='color:#fbbf24'>🟡 {c_gelb} {TXT_HOME['anstehend']}</span> &nbsp;&nbsp;&nbsp;&nbsp;<span style='color:#34d399'>🟢 {c_gruen} {TXT_HOME['ordnung']}</span></div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='font-size: 12px; color: #64748b; margin-bottom: 15px;'>{TXT_HOME['fristen_status']} &nbsp;&nbsp;<span style='color:#dc2626'>🔴 {c_rot} {TXT_HOME['ueberfaellig']}</span> &nbsp;&nbsp;&nbsp;&nbsp;<span style='color:#d97706'>🟡 {c_gelb} {TXT_HOME['anstehend']}</span> &nbsp;&nbsp;&nbsp;&nbsp;<span style='color:#059669'>🟢 {c_gruen} {TXT_HOME['ordnung']}</span></div>", unsafe_allow_html=True)
     st.write("---")
 
     adresse_np = "Elise-Aulinger-Straße 21<br>81739 München"
@@ -161,10 +164,10 @@ def zeige_startseite():
             f'<div class="start-kachel">'
             f'<h4>{TXT_KACHELN["not_title"]}</h4>'
             f'<table style="width:100%; font-size: 13px; border-spacing: 0 6px;">'
-            f'<tr><td><b>{TXT_KACHELN["not_hm"]}:</b></td><td style="color:#34d399; text-align:right;">{notdienst_dict.get("Hausmeisterdienst", "")}</td></tr>'
-            f'<tr><td><b>{TXT_KACHELN["not_so"]}:</b></td><td style="color:#34d399; text-align:right;">{notdienst_dict.get("Security Officer", "")}</td></tr>'
-            f'<tr><td><b>{TXT_KACHELN["not_tn"]}:</b></td><td style="color:#fbbf24; text-align:right;">{notdienst_dict.get("Technischer Notdienst", "")}</td></tr>'
-            f'<tr><td><b>{TXT_KACHELN["not_sd"]}:</b></td><td style="color:#34d399; text-align:right;">{notdienst_dict.get("Sicherheitsdienst", "")}</td></tr>'
+            f'<tr><td><b>{TXT_KACHELN["not_hm"]}:</b></td><td style="color:#059669; text-align:right;">{notdienst_dict.get("Hausmeisterdienst", "")}</td></tr>'
+            f'<tr><td><b>{TXT_KACHELN["not_so"]}:</b></td><td style="color:#059669; text-align:right;">{notdienst_dict.get("Security Officer", "")}</td></tr>'
+            f'<tr><td><b>{TXT_KACHELN["not_tn"]}:</b></td><td style="color:#d97706; text-align:right;">{notdienst_dict.get("Technischer Notdienst", "")}</td></tr>'
+            f'<tr><td><b>{TXT_KACHELN["not_sd"]}:</b></td><td style="color:#059669; text-align:right;">{notdienst_dict.get("Sicherheitsdienst", "")}</td></tr>'
             f'</table>'
             f'</div>', 
             unsafe_allow_html=True
@@ -193,7 +196,7 @@ def zeige_startseite():
                 st.markdown(f"##### {TXT_KACHELN['not_title']}")
                 n_hm = st.text_input(TXT_KACHELN["not_hm"], value=notdienst_dict.get('Hausmeisterdienst', ''))
                 n_so = st.text_input(TXT_KACHELN["not_so"], value=notdienst_dict.get('Security Officer', ''))
-                n_tn = st.text_input(TXT_KACHELN["not_tn"], value=notdienst_dict.get('Technischer Notdienst', ''))
+                n_tn = st.text_input(TXT_KATCHELN["not_tn"] if "not_tn" in TXT_KACHELN else "Technischer Notdienst", value=notdienst_dict.get('Technischer Notdienst', ''))
                 n_sd = st.text_input(TXT_KACHELN["not_sd"], value=notdienst_dict.get('Sicherheitsdienst', ''))
                 
                 if st.form_submit_button(TXT_KACHELN["btn_save"]):
