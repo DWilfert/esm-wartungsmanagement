@@ -60,45 +60,61 @@ def zeige_startseite():
             unsafe_allow_html=True
         )
 
-    st.markdown(f"<div style='font-size:13px; color:#64748b; margin-top:-10px; margin-bottom:10px;'>{TXT_HOME['subtitel_home']}</div>", unsafe_allow_html=True)
+    ist_hell = st.session_state.app_theme in ["Premium Light", "Premium Cashmere"]
+
+    bg_kpi = "linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(241, 245, 249, 0.95) 100%)" if ist_hell else "linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%)"
+    border_kpi = "rgba(14, 165, 233, 0.4)" if ist_hell else "rgba(56, 189, 248, 0.4)"
+    shadow_kpi = "rgba(14, 165, 233, 0.15)" if ist_hell else "rgba(56, 189, 248, 0.15)"
+    color_kpi_title = "#64748b" if ist_hell else "#94a3b8"
+    color_kpi_value = "#0284c7" if ist_hell else "#38bdf8"
+    shadow_kpi_value = "rgba(14, 165, 233, 0.3)" if ist_hell else "rgba(56, 189, 248, 0.4)"
+
+    bg_kachel = "rgba(248, 250, 252, 0.8)" if ist_hell else "rgba(30, 41, 59, 0.5)"
+    border_kachel = "rgba(14, 165, 233, 0.2)" if ist_hell else "rgba(128, 128, 128, 0.2)"
+    shadow_kachel = "0 0 12px rgba(14, 165, 233, 0.1)" if ist_hell else "none"
+    color_kachel_text = "#1e293b" if ist_hell else "inherit"
+    color_kachel_h4 = "#0f172a" if ist_hell else "inherit"
+
+    sub_color = "#64748b" if ist_hell else "#94a3b8"
+    st.markdown(f"<div style='font-size:13px; color:{sub_color}; margin-top:-10px; margin-bottom:10px;'>{TXT_HOME['subtitel_home']}</div>", unsafe_allow_html=True)
     st.write("---")
 
-    st.markdown("""
+    st.markdown(f"""
         <style>
-        .neon-kpi-card {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(241, 245, 249, 0.95) 100%);
-            border: 1px solid rgba(14, 165, 233, 0.4);
-            box-shadow: 0 0 15px rgba(14, 165, 233, 0.15);
+        .neon-kpi-card {{
+            background: {bg_kpi};
+            border: 1px solid {border_kpi};
+            box-shadow: 0 0 15px {shadow_kpi};
             border-radius: 10px;
             padding: 20px;
             text-align: center;
             margin-bottom: 20px;
-        }
-        .neon-kpi-title {
+        }}
+        .neon-kpi-title {{
             font-size: 12px;
-            color: #64748b;
+            color: {color_kpi_title};
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 8px;
-        }
-        .neon-kpi-value {
+        }}
+        .neon-kpi-value {{
             font-size: 26px;
             font-weight: 800;
-            color: #0284c7;
-            text-shadow: 0 0 10px rgba(14, 165, 233, 0.3);
-        }
-        .start-kachel {
-            background: rgba(248, 250, 252, 0.8);
-            border: 1px solid rgba(14, 165, 233, 0.2);
-            box-shadow: 0 0 12px rgba(14, 165, 233, 0.1);
+            color: {color_kpi_value};
+            text-shadow: 0 0 10px {shadow_kpi_value};
+        }}
+        .start-kachel {{
+            background: {bg_kachel};
+            border: 1px solid {border_kachel};
+            box-shadow: {shadow_kachel};
             border-radius: 10px;
             padding: 20px;
             margin-bottom: 15px;
-            color: #1e293b;
-        }
-        .start-kachel h4 {
-            color: #0f172a;
-        }
+            color: {color_kachel_text};
+        }}
+        .start-kachel h4 {{
+            color: {color_kachel_h4};
+        }}
         </style>
     """, unsafe_allow_html=True)
     
@@ -117,7 +133,7 @@ def zeige_startseite():
         """, unsafe_allow_html=True)
     with col_kpi2:
         status_text = f"{c_rot} Überfällig" if st.session_state.language == "de" else f"{c_rot} Overdue"
-        status_color = "#dc2626"
+        status_color = "#dc2626" if ist_hell else "#f87171"
         
         st.markdown(f"""
             <div class="neon-kpi-card">
@@ -126,14 +142,20 @@ def zeige_startseite():
             </div>
         """, unsafe_allow_html=True)
     with col_kpi3:
+        sys_color = "#4f46e5" if ist_hell else "#818cf8"
+        sys_shadow = "rgba(79,70,229,0.3)" if ist_hell else "rgba(129,140,248,0.4)"
         st.markdown(f"""
             <div class="neon-kpi-card">
                 <div class="neon-kpi-title">{"System-Status" if st.session_state.language == "de" else "System Status"}</div>
-                <div class="neon-kpi-value" style="color: #4f46e5; text-shadow: 0 0 10px rgba(79,70,229,0.3);">Online 🟢</div>
+                <div class="neon-kpi-value" style="color: {sys_color}; text-shadow: 0 0 10px {sys_shadow};">Online 🟢</div>
             </div>
         """, unsafe_allow_html=True)
 
-    st.markdown(f"<div style='font-size: 12px; color: #64748b; margin-bottom: 15px;'>{TXT_HOME['fristen_status']} &nbsp;&nbsp;<span style='color:#dc2626'>🔴 {c_rot} {TXT_HOME['ueberfaellig']}</span> &nbsp;&nbsp;&nbsp;&nbsp;<span style='color:#d97706'>🟡 {c_gelb} {TXT_HOME['anstehend']}</span> &nbsp;&nbsp;&nbsp;&nbsp;<span style='color:#059669'>🟢 {c_gruen} {TXT_HOME['ordnung']}</span></div>", unsafe_allow_html=True)
+    c_ueberfaellig = "#dc2626" if ist_hell else "#f87171"
+    c_anstehend = "#d97706" if ist_hell else "#fbbf24"
+    c_ordnung = "#059669" if ist_hell else "#34d399"
+
+    st.markdown(f"<div style='font-size: 12px; color: {sub_color}; margin-bottom: 15px;'>{TXT_HOME['fristen_status']} &nbsp;&nbsp;<span style='color:{c_ueberfaellig}'>🔴 {c_rot} {TXT_HOME['ueberfaellig']}</span> &nbsp;&nbsp;&nbsp;&nbsp;<span style='color:{c_anstehend}'>🟡 {c_gelb} {TXT_HOME['anstehend']}</span> &nbsp;&nbsp;&nbsp;&nbsp;<span style='color:{c_ordnung}'>🟢 {c_gruen} {TXT_HOME['ordnung']}</span></div>", unsafe_allow_html=True)
     st.write("---")
 
     adresse_np = "Elise-Aulinger-Straße 21<br>81739 München"
@@ -164,10 +186,10 @@ def zeige_startseite():
             f'<div class="start-kachel">'
             f'<h4>{TXT_KACHELN["not_title"]}</h4>'
             f'<table style="width:100%; font-size: 13px; border-spacing: 0 6px;">'
-            f'<tr><td><b>{TXT_KACHELN["not_hm"]}:</b></td><td style="color:#059669; text-align:right;">{notdienst_dict.get("Hausmeisterdienst", "")}</td></tr>'
-            f'<tr><td><b>{TXT_KACHELN["not_so"]}:</b></td><td style="color:#059669; text-align:right;">{notdienst_dict.get("Security Officer", "")}</td></tr>'
-            f'<tr><td><b>{TXT_KACHELN["not_tn"]}:</b></td><td style="color:#d97706; text-align:right;">{notdienst_dict.get("Technischer Notdienst", "")}</td></tr>'
-            f'<tr><td><b>{TXT_KACHELN["not_sd"]}:</b></td><td style="color:#059669; text-align:right;">{notdienst_dict.get("Sicherheitsdienst", "")}</td></tr>'
+            f'<tr><td><b>{TXT_KACHELN["not_hm"]}:</b></td><td style="color:{c_ordnung}; text-align:right;">{notdienst_dict.get("Hausmeisterdienst", "")}</td></tr>'
+            f'<tr><td><b>{TXT_KACHELN["not_so"]}:</b></td><td style="color:{c_ordnung}; text-align:right;">{notdienst_dict.get("Security Officer", "")}</td></tr>'
+            f'<tr><td><b>{TXT_KACHELN["not_tn"]}:</b></td><td style="color:{c_anstehend}; text-align:right;">{notdienst_dict.get("Technischer Notdienst", "")}</td></tr>'
+            f'<tr><td><b>{TXT_KACHELN["not_sd"]}:</b></td><td style="color:{c_ordnung}; text-align:right;">{notdienst_dict.get("Sicherheitsdienst", "")}</td></tr>'
             f'</table>'
             f'</div>', 
             unsafe_allow_html=True
@@ -196,7 +218,7 @@ def zeige_startseite():
                 st.markdown(f"##### {TXT_KACHELN['not_title']}")
                 n_hm = st.text_input(TXT_KACHELN["not_hm"], value=notdienst_dict.get('Hausmeisterdienst', ''))
                 n_so = st.text_input(TXT_KACHELN["not_so"], value=notdienst_dict.get('Security Officer', ''))
-                n_tn = st.text_input(TXT_KATCHELN["not_tn"] if "not_tn" in TXT_KACHELN else "Technischer Notdienst", value=notdienst_dict.get('Technischer Notdienst', ''))
+                n_tn = st.text_input(TXT_KACHELN["not_tn"] if "not_tn" in TXT_KACHELN else "Technischer Notdienst", value=notdienst_dict.get('Technischer Notdienst', ''))
                 n_sd = st.text_input(TXT_KACHELN["not_sd"], value=notdienst_dict.get('Sicherheitsdienst', ''))
                 
                 if st.form_submit_button(TXT_KACHELN["btn_save"]):
