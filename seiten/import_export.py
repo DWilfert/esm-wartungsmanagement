@@ -120,7 +120,7 @@ def zeige_import_export():
             "kpi_4": "System-Status",
             "status_ok": "Online (Sicher)",
             "template_title": "📥 Interaktiver Vorlagen-Generator",
-            "template_desc": "Wählen Sie eine Tabelle aus, um das exakte Excel-Template inklusive automatischer Feld-Legende herunterzuladen.",
+            "template_desc": "Wählen Sie eine Tabelle aus, für das exakte Excel-Template herunterzuladen.",
             "template_sel": "Tabellenauswahl:",
             "log_title": "🕒 Schnittstellen-Protokoll (Audit-Trail)",
             "dl_tmpl_btn": "📥 Ausgewählte Vorlage herunterladen"
@@ -144,7 +144,7 @@ def zeige_import_export():
             "kpi_4": "System Status",
             "status_ok": "Online (Secure)",
             "template_title": "📥 Interactive Template Generator",
-            "template_desc": "Select a table to download the exact Excel template including automatic field legend.",
+            "template_desc": "Select a table to download the exact Excel template.",
             "template_sel": "Table Selection:",
             "log_title": "🕒 Interface Log (Audit Trail)",
             "dl_tmpl_btn": "📥 Download Selected Template"
@@ -166,7 +166,13 @@ def zeige_import_export():
 
     st.write("")
 
-    ie_aktion = st.radio(TXT_IE["direction_lbl"], [TXT_IE["dir_exp"], TXT_IE["dir_imp"]], horizontal=True, key="ie_haupt_aktion_final_v7")
+    # --- RICHTUNG (EXPORT / IMPORT) IN GLEICHER ZEILE WIE LABEL ---
+    col_dir_lbl, col_dir_val = st.columns([2.5, 7.5])
+    with col_dir_lbl:
+        st.markdown(f"<div style='font-size: 13px; font-weight: 600; padding-top: 6px;'>{TXT_IE['direction_lbl']}</div>", unsafe_allow_html=True)
+    with col_dir_val:
+        ie_aktion = st.radio("", [TXT_IE["dir_exp"], TXT_IE["dir_imp"]], horizontal=True, key="ie_haupt_aktion_final_v7", label_visibility="collapsed")
+
     st.write("")
 
     tabellen_liste = {
@@ -311,15 +317,14 @@ def zeige_import_export():
         st.markdown('<div class="enterprise-card">', unsafe_allow_html=True)
         st.markdown(f"##### {TXT_IE['template_title']}")
         
-        # Zeile aufteilen: Überschrift/Label links, Dropdown rechts in derselben Zeile
+        # Beschreibungstext wieder ÜBER dem Auswahlfeld
+        st.markdown(f"<p style='font-size: 11px; opacity: 0.7; margin-bottom: 12px;'>{TXT_IE['template_desc']}</p>", unsafe_allow_html=True)
+        
         col_t1, col_t2 = st.columns([3.5, 6.5])
         with col_t1:
             st.markdown(f"<div style='font-size: 13px; font-weight: 600; padding-top: 8px;'>{TXT_IE['template_sel']}</div>", unsafe_allow_html=True)
         with col_t2:
             template_wahl = st.selectbox("", [""] + list(tabellen_liste.keys()), key="interaktives_template_selectbox", label_visibility="collapsed")
-        
-        # Beschreibungstext jetzt UNTER dem Auswahlfeld
-        st.markdown(f"<p style='font-size: 11px; opacity: 0.7; margin-top: 10px; margin-bottom: 15px;'>{TXT_IE['template_desc']}</p>", unsafe_allow_html=True)
         
         if template_wahl:
             t_key = tabellen_liste[template_wahl]
