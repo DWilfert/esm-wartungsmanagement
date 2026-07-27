@@ -5,17 +5,14 @@ import json
 def zeige_einstellungen():
     st.markdown("""
         <style>
-        /* Kompakte Schriftgröße in allen Eingabefeldern, Radio-Buttons und Formularen */
         input, select, textarea, div[data-baseweb="select"] span, label, .stRadio div {
             font-size: 0.82rem !important;
         }
         
-        /* Blendet den automatischen Streamlit-Hinweis aus */
         div[data-testid="InputInstructions"] {
             display: none !important;
         }
         
-        /* Dropdown-Menüs und Popovers */
         div[data-baseweb="popover"], div[data-baseweb="menu"], ul[data-baseweb="menu"] {
             background-color: var(--secondary-background-color) !important;
         }
@@ -26,7 +23,6 @@ def zeige_einstellungen():
             font-size: 0.85rem !important;
         }
         
-        /* Dezenter, dunkler Hover-Zustand passend zum Dark-Mode */
         ul[role="listbox"] li:hover,
         ul[role="listbox"] li[aria-selected="true"],
         li[role="option"]:hover,
@@ -35,7 +31,6 @@ def zeige_einstellungen():
             color: var(--text-color) !important;
         }
         
-        /* Tooltips & Toolbar-Buttons */
         div[data-testid="stElementToolbar"], 
         div[data-testid="stElementToolbar"] button,
         span[data-testid="stTooltipHoverTarget"] {
@@ -95,7 +90,6 @@ def zeige_einstellungen():
     st.subheader(TXT_E["title"])
     st.markdown(f"<div style='font-size: 13px; color: var(--text-color); opacity: 0.7; margin-bottom: 25px;'>{TXT_E['desc']}</div>", unsafe_allow_html=True)
 
-    # Werte aus Datenbank laden (oder Fallback auf Session State)
     aktueller_modus = "manuell"
     aktuelles_theme = st.session_state.get("app_theme", "Premium Dark")
     aktuelle_startseite = st.session_state.get("startseite", "Startseite")
@@ -127,7 +121,6 @@ def zeige_einstellungen():
             except:
                 pass
 
-    # --- ENTERPRISE ZWEI-SPALTEN-GRID ---
     col_grid_1, col_grid_2 = st.columns(2, gap="medium")
 
     with col_grid_1:
@@ -173,18 +166,15 @@ def zeige_einstellungen():
 
     st.write("")
     
-    # Hinweis in kleiner, kursiver Schrift direkt vor dem Button
     st.markdown(f"<div style='font-size: 11px; font-style: italic; opacity: 0.6; margin-bottom: 4px;'>{TXT_E['hint_save']}</div>", unsafe_allow_html=True)
     
     if st.button(TXT_E["btn_save"], type="primary"):
         neuer_modus = "manuell" if wahl_modus == TXT_E["opt_manuell"] else "auto"
         
-        # In Session State aktualisieren (greift sofort in der App & im Demo-Modus)
         st.session_state.app_theme = wahl_theme
         st.session_state.startseite = wahl_start
         st.session_state.tabellen_dichte = wahl_dichte
         
-        # In Datenbank speichern, falls vorhanden
         conn = hole_datenbank_verbindung()
         if conn is not None and not isinstance(conn, str):
             try:
@@ -212,6 +202,5 @@ def zeige_einstellungen():
                 except:
                     pass
 
-        # Unabhängig von echter DB oder Demo: Erfolgsmeldung anzeigen und UI aktualisieren
         st.success(TXT_E["success"])
         st.rerun()
