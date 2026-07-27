@@ -2,21 +2,70 @@ import streamlit as st
 import pandas as pd
 
 def zeige_serviceeinsaetze():
-    # Enterprise Premium CSS für saubere Container, Karten und Typografie
     st.markdown("""
         <style>
         input, select, textarea, div[data-baseweb="select"] span, label, .stRadio div {
             font-size: 0.82rem !important;
         }
+        
         div[data-testid="InputInstructions"] {
             display: none !important;
         }
+        
+        input::placeholder, textarea::placeholder {
+            color: #94a3b8 !important;
+            font-style: italic !important;
+            opacity: 1 !important;
+        }
+        
+        div[data-baseweb="popover"], div[data-baseweb="menu"], ul[data-baseweb="menu"] {
+            background-color: var(--secondary-background-color) !important;
+        }
+        
+        ul[role="listbox"] li, li[role="option"] {
+            background-color: var(--secondary-background-color) !important;
+            color: var(--text-color) !important;
+            font-size: 0.85rem !important;
+        }
+        
+        ul[role="listbox"] li:hover,
+        ul[role="listbox"] li[aria-selected="true"],
+        li[role="option"]:hover,
+        li[role="option"][aria-selected="true"] {
+            background-color: rgba(128, 128, 128, 0.2) !important;
+            color: var(--text-color) !important;
+        }
+        
+        div[data-testid="stElementToolbar"], 
+        div[data-testid="stElementToolbar"] button,
+        span[data-testid="stTooltipHoverTarget"] {
+            background-color: var(--secondary-background-color) !important;
+            color: var(--text-color) !important;
+        }
+        
+        div[data-baseweb="tooltip"], div[role="tooltip"], div.stTooltipContent {
+            background-color: var(--secondary-background-color) !important;
+            color: var(--text-color) !important;
+            border: 1px solid rgba(128, 128, 128, 0.3) !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+        }
+
         div[data-testid="stDataFrame"] {
             background-color: var(--secondary-background-color) !important;
             border: 1px solid rgba(128, 128, 128, 0.25) !important;
             border-radius: 0.5rem;
-            padding: 4px;
+            padding: 2px;
+            background-image: linear-gradient(to right, rgba(128, 128, 128, 0.08) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(128, 128, 128, 0.08) 1px, transparent 1px);
+            background-size: 15px 15px;
         }
+        
+        div[data-testid="stDataFrame"] td {
+            padding-top: 2px !important;
+            padding-bottom: 2px !important;
+            font-size: 0.78rem !important;
+        }
+
         .enterprise-card {
             background-color: rgba(128, 128, 128, 0.05);
             border: 1px solid rgba(128, 128, 128, 0.15);
@@ -26,6 +75,9 @@ def zeige_serviceeinsaetze():
         }
         </style>
     """, unsafe_allow_html=True)
+
+    if 'language' not in st.session_state:
+        st.session_state.language = "de"
 
     if st.session_state.language == "de":
         TXT_SRV = {
@@ -64,7 +116,6 @@ def zeige_serviceeinsaetze():
     srv_aktion = st.radio(TXT_SRV["act_lbl"], [TXT_SRV["act_hist"], TXT_SRV["act_add"]], horizontal=True, key="srv_haupt_aktion_v7")
     
     if srv_aktion == TXT_SRV["act_hist"]:
-        # Sofortige Demo-Serviceeinsätze bereitstellen
         df_service = pd.DataFrame({
             "id": [1, 2, 3, 4, 5],
             "anlagenid": [17501, 17502, 17503, 17504, 17505],
@@ -114,7 +165,6 @@ def zeige_serviceeinsaetze():
                     if not df_srv_target.empty:
                         s_det = df_srv_target.iloc[0]
                         
-                        # --- MODERNE ENTERPRISE DETAIL-ANSICHT ---
                         st.markdown(f"##### {TXT_SRV['det_title']} {srv_sel_id}")
                         st.markdown(f"""
                         <div class="enterprise-card">
