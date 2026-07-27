@@ -207,8 +207,11 @@ def zeige_import_export():
                     except Exception as e: 
                         st.error(f"{TXT_IE['err_exp']} {str(e)}")
                     finally: 
-                        if conn is not None:
-                            conn.close()
+                        try:
+                            if conn is not None:
+                                conn.close()
+                        except:
+                            pass
                 else: 
                     st.error(TXT_IE["err_conn"])
 
@@ -283,8 +286,11 @@ def zeige_import_export():
                                     except Exception as db_err: 
                                         st.error(f"Datenbankfehler: {str(db_err)}" if st.session_state.language == "de" else f"Database error: {str(db_err)}")
                                     finally: 
-                                        if conn is not None:
-                                            conn.close()
+                                        try:
+                                            if conn is not None:
+                                                conn.close()
+                                        except:
+                                            pass
                                 else: st.error(TXT_IE["err_conn"])
                     except Exception as e: 
                         st.error(f"Fehler: {str(e)}")
@@ -299,9 +305,10 @@ def zeige_import_export():
         
         # Dynamische Vorlagen generieren für alle Tabellen
         for t_name, t_key in tabellen_liste.items():
-            conn_t = hole_datenbank_verbindung()
-            if conn_t is not None:
-                try:
+            conn_t = None
+            try:
+                conn_t = hole_datenbank_verbindung()
+                if conn_t is not None:
                     df_s = pd.read_sql(f"SELECT * FROM `{t_key}` LIMIT 0", conn_t)
                     df_v = df_s.drop(columns=["id"]) if "id" in df_s.columns else df_s.copy()
                     
@@ -326,11 +333,14 @@ def zeige_import_export():
                         key=f"dl_hub_tpl_{t_key}",
                         use_container_width=True
                     )
-                except Exception as ex:
-                    print(f"Template-Fehler: {ex}")
-                finally:
+            except Exception as ex:
+                pass
+            finally:
+                try:
                     if conn_t is not None:
                         conn_t.close()
+                except:
+                    pass
         
         st.markdown('</div>', unsafe_allow_html=True)
 
