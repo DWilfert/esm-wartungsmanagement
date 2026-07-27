@@ -25,7 +25,7 @@ def zeige_kontaktformular():
     if st.session_state.language == "de":
         TXT_K = {
             "title": "✉️ Support & Kontakt",
-            "desc": "Haben Sie Fragen, Fehlerberichte oder Verbesserungsvorschläge? Senden Sie mir diese direkt – ich werde mich schnellstmöglich darum kümmern. Für reine Verbindungsprobleme oder Serverangelegenheiten kontaktieren Sie bitte Ihre IT-Abteilung.",
+            "desc": "Haben Sie Fragen, Fehlerberichte oder Verbesserungsvorschläge? Senden Sie mir diese direkt – ich werde mich schnellstmöglich darum kümmern.",
             "card_form": "📝 Nachricht an mich",
             "lbl_name": "Ihr Name:",
             "lbl_email": "Ihre E-Mail-Adresse:",
@@ -42,7 +42,7 @@ def zeige_kontaktformular():
     else:
         TXT_K = {
             "title": "✉️ Support & Contact",
-            "desc": "Do you have questions, bug reports, or feature requests? Send them directly to me – I will take care of it as soon as possible. For connection issues or server matters, please contact your IT department.",
+            "desc": "Do you have questions, bug reports, or feature requests? Send them directly to me – I will take care of it as soon as possible.",
             "card_form": "📝 Message to Me",
             "lbl_name": "Your Name:",
             "lbl_email": "Your Email Address:",
