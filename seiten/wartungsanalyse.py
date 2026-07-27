@@ -3,6 +3,50 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 def zeige_wartungsanalyse():
+    st.markdown("""
+        <style>
+        input, select, textarea, div[data-baseweb="select"] span, label, .stRadio div {
+            font-size: 0.82rem !important;
+        }
+        
+        div[data-testid="InputInstructions"] {
+            display: none !important;
+        }
+        
+        div[data-baseweb="popover"], div[data-baseweb="menu"], ul[data-baseweb="menu"] {
+            background-color: var(--secondary-background-color) !important;
+        }
+        
+        ul[role="listbox"] li, li[role="option"] {
+            background-color: var(--secondary-background-color) !important;
+            color: var(--text-color) !important;
+            font-size: 0.85rem !important;
+        }
+        
+        ul[role="listbox"] li:hover,
+        ul[role="listbox"] li[aria-selected="true"],
+        li[role="option"]:hover,
+        li[role="option"][aria-selected="true"] {
+            background-color: rgba(128, 128, 128, 0.2) !important;
+            color: var(--text-color) !important;
+        }
+        
+        div[data-testid="stElementToolbar"], 
+        div[data-testid="stElementToolbar"] button,
+        span[data-testid="stTooltipHoverTarget"] {
+            background-color: var(--secondary-background-color) !important;
+            color: var(--text-color) !important;
+        }
+        
+        div[data-baseweb="tooltip"], div[role="tooltip"], div.stTooltipContent {
+            background-color: var(--secondary-background-color) !important;
+            color: var(--text-color) !important;
+            border: 1px solid rgba(128, 128, 128, 0.3) !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
     if 'language' not in st.session_state:
         st.session_state.language = "de"
 
@@ -17,7 +61,8 @@ def zeige_wartungsanalyse():
             "sec_steuerung": "⚙️ 4. Thema: Direkt-Steuerung & Notizen",
             "filter_all": "Alle",
             "filter_all_status": "Alle",
-            "lbl_status_filter": "Status Filter"
+            "lbl_status_filter": "Status Filter",
+            "no_contracts": "Keine Verträge für diese Filterkombination gefunden."
         }
     else:
         TXT_VA = {
@@ -30,7 +75,8 @@ def zeige_wartungsanalyse():
             "sec_steuerung": "⚙️ 4. Theme: Direct Control & Notes",
             "filter_all": "All",
             "filter_all_status": "All",
-            "lbl_status_filter": "Status Filter"
+            "lbl_status_filter": "Status Filter",
+            "no_contracts": "No contracts found for this filter combination."
         }
 
     st.subheader(TXT_VA["title"])
@@ -83,9 +129,6 @@ def zeige_wartungsanalyse():
     anz_rot = len(df_card[df_card["Live_Status"] == ueberfaellig_str])
     anz_gelb = len(df_card[df_card["Live_Status"] == warnung_str])
     
-    # -------------------------------------------------------------
-    # BEREICH 1: ALARME & ÜBERSICHT
-    # -------------------------------------------------------------
     with st.container(border=True):
         st.markdown(f"**{TXT_VA['sec_alarm']}**")
         st.markdown("<hr style='border: none; height: 1px; background-color: rgba(128, 128, 128, 0.3); margin: 10px 0;'>", unsafe_allow_html=True)
@@ -96,9 +139,6 @@ def zeige_wartungsanalyse():
 
     st.write("")
 
-    # -------------------------------------------------------------
-    # BEREICH 2: THEMA FILTER
-    # -------------------------------------------------------------
     with st.container(border=True):
         st.markdown(f"**{TXT_VA['sec_filter']}**")
         st.markdown("<hr style='border: none; height: 1px; background-color: rgba(128, 128, 128, 0.3); margin: 10px 0;'>", unsafe_allow_html=True)
@@ -121,9 +161,6 @@ def zeige_wartungsanalyse():
         df_filtered = df_filtered[df_filtered["Live_Status"] == fil_stat]
 
     if not df_filtered.empty:
-        # -------------------------------------------------------------
-        # BEREICH 3: THEMA VERTRAGSAUSWAHL
-        # -------------------------------------------------------------
         with st.container(border=True):
             st.markdown(f"**{TXT_VA['sec_auswahl']}**")
             st.markdown("<hr style='border: none; height: 1px; background-color: rgba(128, 128, 128, 0.3); margin: 10px 0;'>", unsafe_allow_html=True)
@@ -146,9 +183,6 @@ def zeige_wartungsanalyse():
 
         st.write("")
         
-        # -------------------------------------------------------------
-        # BEREICH 4: INFOBEREICH & STAMMDATEN
-        # -------------------------------------------------------------
         v_id = row["id"]
         v_bez = row["bezeichnung"]
         v_firma = row["firma"]
@@ -188,11 +222,7 @@ def zeige_wartungsanalyse():
 
         st.write("")
 
-        # -------------------------------------------------------------
-        # BEREICH 5: DIREKT-STEUERUNG & NOTIZEN
-        # -------------------------------------------------------------
         with st.container(border=True):
-            # Trennlinie nun exakt ÜBER der Schrift!
             st.markdown("<hr style='border: none; height: 1px; background-color: rgba(128, 128, 128, 0.3); margin: 5px 0 15px 0;'>", unsafe_allow_html=True)
             st.markdown(f"**{TXT_VA['sec_steuerung']}**")
             
@@ -223,4 +253,4 @@ def zeige_wartungsanalyse():
                     doc_info = f"Navigiere zum Vertrag im Dokumentenarchiv (ID: {v_id})" if st.session_state.language == "de" else f"Navigating to contract (ID: {v_id})"
                     st.info(doc_info)
     else:
-        st.info("Keine Verträge für diese Filterkombination gefunden.")
+        st.info(TXT_VA["no_contracts"])
