@@ -11,7 +11,7 @@ from seiten.startseite import zeige_startseite
 from seiten.admin import zeige_adminbereich
 from seiten.vertragsanalyse import zeige_vertragsanalyse
 from seiten.wartungsanalyse import zeige_wartungsanalyse
-from seiten.auffaelligkeiten import zeige_auffaelligkeiten
+from seiten.auffaelligkeiten import zeige_auffalligkeiten
 from seiten.anlagenstruktur import zeige_anlagenstruktur
 from seiten.serviceeinsaetze import zeige_serviceeinsaetze
 from seiten.plan_5jahres import zeige_5jahresplan
@@ -178,7 +178,7 @@ elif ausgewaehlter_punkt == TXT_MENU["m3"]:
 elif ausgewaehlter_punkt == TXT_MENU["m4"]:
     zeige_wartungsanalyse()
 elif ausgewaehlter_punkt == TXT_MENU["m5"]:
-    zeige_auffaelligkeiten()
+    zeige_auffalligkeiten()
 elif ausgewaehlter_punkt == TXT_MENU["m6"]:
     zeige_anlagenstruktur()
 elif ausgewaehlter_punkt == TXT_MENU["m15"]:
