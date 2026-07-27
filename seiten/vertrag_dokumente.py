@@ -194,16 +194,15 @@ def zeige_vertragsdokumente():
                 with open(vollstaendiger_pfad, "rb") as f:
                     pdf_bytes = f.read()
             else:
-                pdf_bytes = b'%PDF-1.4 1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 595 842]/Parent 2 0 R/Resources<<>>/Contents 4 0 R>>endobj 4 0 obj<</Length 55>>stream\nBT /F1 18 Tf 50 750 Td (ESM Wartungsmanagement - DEMO VERTRAGSDOKUMENT) Tj ET\nendstream\nendobj\xref\n0 5\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \n0000000228 00000 n \ntrailer<</Size 5/Root 1 0 R>>\nstartstart\nstartxref\n338\n%%EOF'
+                # Als rohes Byte-Literal mit r'' definiert, damit es keine Escape-Fehler gibt
+                pdf_bytes = rb'%PDF-1.4 1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 595 842]/Parent 2 0 R/Resources<<>>/Contents 4 0 R>>endobj 4 0 obj<</Length 55>>stream' + b'\n' + rb'BT /F1 18 Tf 50 750 Td (ESM Wartungsmanagement - DEMO VERTRAGSDOKUMENT) Tj ET' + b'\n' + rb'endstream\nendobj\nxref\n0 5\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \n0000000228 00000 n \ntrailer<</Size 5/Root 1 0 R>>\nstartxref\n338\n%%EOF'
 
             st.write("")
             preview_title = f"##### 👁️ Dokumenten-Vorschau: {gewaehlte_datei}" if st.session_state.language == "de" else f"##### 👁️ Document Preview: {gewaehlte_datei}"
             st.markdown(preview_title)
             
-            # Wir wandeln die Bytes in einen sauberen Base64-String um und betten ihn via object-Tag ein
             b64_str = base64.b64encode(pdf_bytes).decode('utf-8')
             
-            # Professionelle Einbettung, die von Chrome und Cloud-Servern fehlerfrei gerendert wird
             st.markdown(
                 f'<object data="data:application/pdf;base64,{b64_str}" type="application/pdf" width="100%" height="700px" style="border-radius: 8px; border: 1px solid rgba(128,128,128,0.3); background-color: white;">'
                 f'<embed src="data:application/pdf;base64,{b64_str}" type="application/pdf" width="100%" height="700px" />'
