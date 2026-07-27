@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 import subprocess
+import base64
 from datenbank.befehle import hole_datenbank_verbindung
 
 def zeige_vertragsdokumente():
@@ -164,10 +165,10 @@ def zeige_vertragsdokumente():
     
     if st.session_state.language == "de":
         lbl_file, lbl_contract, lbl_id = "Dateiname (PDF)", "Zugeordneter Wartungsvertrag", "Vertrag ID"
-        lbl_select = "💡 Tipp: Klicke links auf das kleine Quadrat einer Zeile, um den gewählten Vertrag im Archiv zu markieren."
+        lbl_select = "💡 Tipp: Klicke links auf das kleine Quadrat einer Zeile, um den Vertrag auszuwählen und das PDF direkt im Formular anzusehen."
     else:
         lbl_file, lbl_contract, lbl_id = "File Name (PDF)", "Assigned Maintenance Contract", "Contract ID"
-        lbl_select = "💡 Tip: Click the small checkbox on the left of any row to select the contract in the archive."
+        lbl_select = "💡 Tip: Click the small checkbox on the left of any row to select the contract and view the PDF directly in the form."
         
     df_docs.columns = [lbl_file, lbl_contract, lbl_id]
 
@@ -188,15 +189,34 @@ def zeige_vertragsdokumente():
         gewaehlte_datei = pdf_dateien[reiner_index]
         
         st.write("")
-        preview_title = f"##### 👁️ Ausgewähltes Dokument: {gewaehlte_datei}" if st.session_state.language == "de" else f"##### 👁️ Selected Document: {gewaehlte_datei}"
+        preview_title = f"##### 👁️ Direkte Dokumenten-Vorschau: {gewaehlte_datei}" if st.session_state.language == "de" else f"##### 👁️ Direct Document Preview: {gewaehlte_datei}"
         st.markdown(preview_title)
         
-        # Sauberer Hinweis für die Cloud-Demo, während die Tabellen- und Auswahl-Funktion voll erhalten bleibt
-        info_cloud_ansicht = (
-            f"ℹ️ <em>Hinweis zur Cloud-Demo:</em> Die Dokumenten-Vorschau ist im Live-Betrieb auf dem lokalen Schul-Server (Intranet) aktiv. "
-            f"Der gewählte Vertrag <b>{gewaehlte_datei}</b> ist im System erfolgreich referenziert."
-            if st.session_state.language == "de" else
-            f"ℹ️ <em>Cloud Demo Note:</em> Document preview is active during live operation on the local school server (intranet). "
-            f"The selected contract <b>{gewaehlte_datei}</b> is successfully referenced in the system."
-        )
-        st.markdown(f"<div style='font-size: 12px; color: var(--text-color); opacity: 0.8; padding: 10px; background: rgba(128,128,128,0.1); border-radius: 6px;'>{info_cloud_ansicht}</div>", unsafe_allow_html=True)
+        # Versuche, die PDF direkt im Formular anzuzeigen (Enterprise-Vorschau per IFrame)
+        vollständiger_pfad = os.path.join(doc_pfad, gewaehlte_datei) if not is_cloud_mode else None
+        
+        if not is_cloud_mode and os.path.exists(vollständiger_pfad):
+            try:
+                with open(vollständiger_pfad, "rb") as f:
+                    base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+                
+                # HTML IFrame Einbettung direkt im Enterprise-Design
+                pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="650px" type="application/pdf" style="border-radius: 8px; border: 1px solid rgba(128,128,128,0.3);"></iframe>'
+                st.markdown(pdf_display, unsafe_allow_html=True)
+            except Exception as e_pdf:
+                st.error(f"Fehler beim Laden der PDF-Vorschau: {str(e_pdf)}" if st.session_state.language == "de" else f"Error loading PDF preview: {str(e_pdf)}")
+        else:
+            # Fallback / Simulierte Vorschau für den Cloud-Modus
+            simulierter_hinweis = (
+                f"📄 <strong>Simulierte Enterprise-Vorschau für:</strong> {gewaehlte_datei}<br>"
+                f"<em>Im lokalen Schul-Intranet wird hier das echte PDF-Dokument über den IFrame direkt im Formular gerendert.</em>"
+                if st.session_state.language == "de" else
+                f"📄 <strong>Simulated Enterprise Preview for:</strong> {gewaehlte_datei}<br>"
+                f"<em>In the local school intranet, the actual PDF document is rendered directly inside the form via IFrame here.</em>"
+            )
+            st.markdown(
+                f"<div style='border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; padding: 30px; text-align: center; background: var(--secondary-background-color); color: var(--text-color);'>"
+                f"{simulierter_hinweis}"
+                f"</div>",
+                unsafe_allow_html=True
+            )
