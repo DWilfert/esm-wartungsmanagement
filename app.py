@@ -4,7 +4,6 @@ import os
 import warnings
 import json
 
-# --- IMPORTE ---
 from datenbank.befehle import initialisiere_beispieldaten, hole_datenbank_verbindung
 from datenbank.styles import lade_app_design
 from seiten.startseite import zeige_startseite
@@ -25,7 +24,6 @@ from seiten.globale_suche import zeige_globale_suche
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
-# --- SESSION STATES & SICHERHEIT ---
 if "language" not in st.session_state:
     st.session_state.language = "de"
 
@@ -35,7 +33,6 @@ if "app_theme" not in st.session_state:
 if "speicher_modus" not in st.session_state:
     st.session_state.speicher_modus = "manuell"
 
-# Einstellungen beim Start laden (vollständig fehlergeschützt für die Cloud)
 try:
     conn = hole_datenbank_verbindung()
     if conn is not None:
@@ -52,7 +49,6 @@ try:
 except Exception:
     pass
 
-# --- BILINGUALES MENÜ-WÖRTERBUCH ---
 TXT_MENU = {
     "de": {
         "hauptmenue": "### 🌟 HAUPTMENÜ",
@@ -92,7 +88,6 @@ if st.session_state.app_seite_wechseln:
     st.session_state.app_seite_wechseln = False
     st.session_state.app_ziel_seite = None
 
-# --- PAGE CONFIG ---
 st.set_page_config(
     page_title="ESM Wartungsmanagement V1.3.1.0 Enterprise",
     page_icon="📊",
@@ -100,7 +95,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- THEME FARBEN ---
 theme = st.session_state.app_theme
 
 if theme == "Premium Business":
@@ -135,7 +129,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# --- INITIALISIERUNG & LOGO ---
 lade_app_design()
 try:
     initialisiere_beispieldaten()
@@ -154,10 +147,9 @@ try:
             f'</div>', 
             unsafe_allow_html=True
         )
-except Exception as e:
+except Exception:
     pass
 
-# --- SIDEBAR INTERFACE ---
 st.sidebar.markdown(TXT_MENU["hauptmenue"])
 
 ausgewaehlter_punkt = st.sidebar.radio(
@@ -166,7 +158,6 @@ ausgewaehlter_punkt = st.sidebar.radio(
     key="haupt_navigation_final"
 )
 
-# --- ROUTING SYSTEM ---
 if ausgewaehlter_punkt == TXT_MENU["m1"]:
     zeige_startseite()  
 elif ausgewaehlter_punkt == TXT_MENU["m16"]:
