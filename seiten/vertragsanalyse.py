@@ -41,16 +41,21 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             margin-bottom: 15px;
         }
         
+        /* Dynamische Enterprise-Detail-Card angepasst an das aktive Theme */
         .enterprise-detail-card {
-            background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
-            border: 1px solid rgba(56, 189, 248, 0.5);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            background-color: var(--secondary-background-color);
+            border: 1px solid var(--primary-color);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
             border-radius: 8px;
             padding: 14px 18px;
             height: 100%;
+            color: var(--text-color);
         }
         </style>
     """, unsafe_allow_html=True)
+
+    if 'language' not in st.session_state:
+        st.session_state.language = "de"
 
     if st.session_state.language == "de":
         TXT_VA = {
@@ -69,7 +74,7 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "e": "Mängel und technische Auffälligkeiten aus der Anlagenerfassung und Wartungsprotokollen",
             "lbl_standort": "Standort-Filter:",
             "lbl_jahr": "Wirtschaftsjahr (5-Jahres-Plan):",
-            "select_placeholder": "-- Vertrag für Enterprise-Details wählen --"
+            "select_placeholder": ""  # Leeres Feld als Default-Option im Dropdown
         }
     else:
         TXT_VA = {
@@ -88,7 +93,7 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "e": "Defects and technical abnormalities from asset registration and maintenance logs",
             "lbl_standort": "Location Filter:",
             "lbl_jahr": "Fiscal Year (5-Year Plan):",
-            "select_placeholder": "-- Select contract for enterprise details --"
+            "select_placeholder": ""  # Empty field as default option in dropdown
         }
 
     st.subheader(TXT_VA["title"])
@@ -131,7 +136,6 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             )
 
         with col_ctrl2:
-            # 5-Jahres-Horizont für die Planung (2026 bis 2030)
             jahr_optionen = [TXT_VA["filter_all"], "2026", "2027", "2028", "2029", "2030"]
             ausgewaehltes_jahr = st.radio(
                 TXT_VA["lbl_jahr"],
@@ -141,11 +145,9 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             )
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # Filter anwenden (Standort)
     if ausgewaehlter_standort != TXT_VA["filter_all"] and ausgewaehlter_standort is not None:
         df = df[df["standort"] == ausgewaehlter_standort]
 
-    # Filter anwenden (Wirtschaftsjahr)
     if ausgewaehltes_jahr != TXT_VA["filter_all"] and ausgewaehltes_jahr is not None:
         df = df[df["wirtschaftsjahr"] == ausgewaehltes_jahr]
 
@@ -207,6 +209,7 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
         """, unsafe_allow_html=True)
 
     with col_select:
+        # Die Liste beginnt nun mit dem leeren Platzhalter als erstem Element
         vertrag_namen = [TXT_VA["select_placeholder"]] + df_filtered["bezeichnung"].tolist()
         ausgewaehlter_vertrag = st.selectbox("", options=vertrag_namen, index=0, key="enterprise_direct_select", label_visibility="collapsed")
 
@@ -215,18 +218,18 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             gew_vertrag = df_filtered[df_filtered["bezeichnung"] == ausgewaehlter_vertrag].iloc[0]
             st.markdown(f"""
                 <div class="enterprise-detail-card">
-                    <div style="font-size: 13px; font-weight: bold; color: #38bdf8; margin-bottom: 6px; display: flex; justify-content: space-between; border-bottom: 1px solid rgba(56, 189, 248, 0.3); padding-bottom: 4px;">
+                    <div style="font-size: 13px; font-weight: bold; color: var(--primary-color); margin-bottom: 6px; display: flex; justify-content: space-between; border-bottom: 1px solid rgba(128, 128, 128, 0.25); padding-bottom: 4px;">
                         <span>📋 {gew_vertrag['bezeichnung']}</span>
-                        <span style="font-size: 11px; color: #94a3b8; font-weight: normal;">Vertrags-Nr: {gew_vertrag['vertragsnummer']}</span>
+                        <span style="font-size: 11px; opacity: 0.7; font-weight: normal;">Vertrags-Nr: {gew_vertrag['vertragsnummer']}</span>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11.5px; line-height: 1.5; color: #f8fafc;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11.5px; line-height: 1.5; color: var(--text-color);">
                         <div><strong>🏢 Standort & ID:</strong> {gew_vertrag['standort']} (Anlagen-ID: {gew_vertrag['anlagenid']})</div>
                         <div><strong>🤝 Auftragnehmer:</strong> {gew_vertrag['firma']}</div>
-                        <div><strong>⚙️ Gewerk & Cluster:</strong> {gew_vertrag['gewerksbez']} (Klasse <span style="color: #34d399; font-weight: bold;">{gew_vertrag['gewaehrleistung']}</span>)</div>
-                        <div><strong>💰 Kosten p.a.:</strong> <span style="color: #38bdf8; font-weight: bold;">{gew_vertrag['kostenpa']:,.2f} €</span> (Benchmark: {gew_vertrag['benchmarkpa']:,.2f} €)</div>
+                        <div><strong>⚙️ Gewerk & Cluster:</strong> {gew_vertrag['gewerksbez']} (Klasse <span style="color: var(--primary-color); font-weight: bold;">{gew_vertrag['gewaehrleistung']}</span>)</div>
+                        <div><strong>💰 Kosten p.a.:</strong> <span style="color: var(--primary-color); font-weight: bold;">{gew_vertrag['kostenpa']:,.2f} €</span> (Benchmark: {gew_vertrag['benchmarkpa']:,.2f} €)</div>
                         <div><strong>📅 Laufzeit:</strong> {gew_vertrag['laufzeit_start']} bis {gew_vertrag['laufzeit_ende']} (GJ {gew_vertrag['wirtschaftsjahr']})</div>
                         <div><strong>⏱️ Kündigungsfrist:</strong> {gew_vertrag['kuendigung']}</div>
-                        <div style="grid-column: span 2; margin-top: 4px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 4px; color: #cbd5e1;">
+                        <div style="grid-column: span 2; margin-top: 4px; border-top: 1px solid rgba(128, 128, 128, 0.2); padding-top: 4px; opacity: 0.9;">
                             <strong>📞 Ansprechpartner / Service:</strong> {gew_vertrag['ansprechpartner']}
                         </div>
                     </div>
@@ -234,7 +237,7 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             """, unsafe_allow_html=True)
         else:
             st.markdown("""
-                <div class="enterprise-detail-card" style="opacity: 0.5; display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-style: italic; min-height: 105px; color: #94a3b8;">
+                <div class="enterprise-detail-card" style="opacity: 0.6; display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-style: italic; min-height: 105px; color: var(--text-color);">
                     Kein Vertrag ausgewählt – bitte wählen Sie links einen Eintrag aus, um die vollständigen Enterprise-Details anzuzeigen.
                 </div>
             """, unsafe_allow_html=True)
