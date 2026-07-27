@@ -3,6 +3,59 @@ import pandas as pd
 from datenbank.befehle import hole_datenbank_verbindung
 
 def zeige_vertragsanalyse(v_id_auswahl=""):
+    st.markdown("""
+        <style>
+        input, select, textarea, div[data-baseweb="select"] span, label, .stRadio div {
+            font-size: 0.82rem !important;
+        }
+        
+        div[data-testid="InputInstructions"] {
+            display: none !important;
+        }
+        
+        input::placeholder, textarea::placeholder {
+            color: #94a3b8 !important;
+            font-style: italic !important;
+            opacity: 1 !important;
+        }
+        
+        div[data-baseweb="popover"], div[data-baseweb="menu"], ul[data-baseweb="menu"] {
+            background-color: var(--secondary-background-color) !important;
+        }
+        
+        ul[role="listbox"] li, li[role="option"] {
+            background-color: var(--secondary-background-color) !important;
+            color: var(--text-color) !important;
+            font-size: 0.85rem !important;
+        }
+        
+        ul[role="listbox"] li:hover,
+        ul[role="listbox"] li[aria-selected="true"],
+        li[role="option"]:hover,
+        li[role="option"][aria-selected="true"] {
+            background-color: rgba(128, 128, 128, 0.2) !important;
+            color: var(--text-color) !important;
+        }
+        
+        div[data-testid="stElementToolbar"], 
+        div[data-testid="stElementToolbar"] button,
+        span[data-testid="stTooltipHoverTarget"] {
+            background-color: var(--secondary-background-color) !important;
+            color: var(--text-color) !important;
+        }
+        
+        div[data-baseweb="tooltip"], div[role="tooltip"], div.stTooltipContent {
+            background-color: var(--secondary-background-color) !important;
+            color: var(--text-color) !important;
+            border: 1px solid rgba(128, 128, 128, 0.3) !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    if 'language' not in st.session_state:
+        st.session_state.language = "de"
+
     if st.session_state.language == "de":
         TXT_VA = {
             "title": "Neuen Wartungsvertrag registrieren",
@@ -19,7 +72,7 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "desc": "Registration of new service and maintenance contracts including DIN 276 classification and deadline clustering.",
             "act_lbl": "Select Action:", "act_new": "Register New Contract",
             "v_bez": "Contract Designation / Trade:", "v_firma": "Maintenance Company / Provider:", "din276": "Cost Group DIN 276",
-            "kosten": "Cost p.a. (€):", "standort": "Location:", "anzahl": "Number of Units:", "bench_ep": "Benchmark Unit Price (€):",
+            "kosten": "Cost p.a. (€):", "location": "Location:", "anzahl": "Number of Units:", "bench_ep": "Benchmark Unit Price (€):",
             "protokoll": "Protocol Status:", "v_grund": "Legal Basis / Maintenance Scope:", "v_hinw": "Special Notes / Requirements:",
             "form_title": "Form: New Maintenance Contract"
         }
