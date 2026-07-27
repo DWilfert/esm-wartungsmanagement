@@ -181,10 +181,11 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
                 </div>
             ''', unsafe_allow_html=True)
 
+    # Im Fullscreen-Modus bekommt die Tabelle jetzt eine richtig schöne, große Höhe (720 Pixel)
     st.dataframe(
         df_display,
         width="stretch",
-        height=540 if gewaehlte_ansicht == "🖥️ Fullscreen" else 440,
+        height=720 if gewaehlte_ansicht == "🖥️ Fullscreen" else 360,
         hide_index=True
     )
 
