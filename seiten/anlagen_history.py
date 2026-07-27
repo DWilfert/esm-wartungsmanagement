@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 
 def zeige_anlagen_history():
-    # CSS mit exakter Begrenzung für das Dropdown-Feld
     st.markdown("""
         <style>
         input, select, textarea, div[data-baseweb="select"] span, label {
@@ -13,7 +12,6 @@ def zeige_anlagen_history():
             display: none !important;
         }
         
-        /* Dropdown-Feld zwingend auf 50% Breite begrenzen */
         div.stSelectbox {
             max-width: 50% !important;
         }
@@ -38,16 +36,39 @@ def zeige_anlagen_history():
         </style>
     """, unsafe_allow_html=True)
 
-    # Titel und angepasster Text
-    st.subheader("🔄 360° Anlagen-Ansicht" if st.session_state.language == "de" else "🔄 360° Asset View")
+    lang = st.session_state.get("language", "de")
+    
+    txt = {
+        "de": {
+            "titel": "🔄 360° Anlagen-Ansicht",
+            "untertitel": "Chronologische Ansicht: Alle Stammdaten, Verträge, Historien und Prüfberichte im Überblick.",
+            "label_dropdown": "Anlage auswählen (Alphabetisch):",
+            "tab1": "📋 Stammdaten",
+            "tab2": "📄 Verträge",
+            "tab3": "⏱️ Historie",
+            "tab4": "🔍 Prüfberichte",
+            "info_text": "Bitte wähle oben eine Anlage aus, um die vollständige 360°-Chronik anzuzeigen.",
+            "geladen": "Ausgewählte Anlage geladen: **{anlage}**"
+        },
+        "en": {
+            "titel": "🔄 360° Asset View",
+            "untertitel": "Chronological view: All master data, contracts, histories, and inspection reports at a glance.",
+            "label_dropdown": "Select Asset (Alphabetical):",
+            "tab1": "📋 Master Data",
+            "tab2": "📄 Contracts",
+            "tab3": "⏱️ History",
+            "tab4": "🔍 Inspection Reports",
+            "info_text": "Please select an asset above to display the complete 360° chronicle.",
+            "geladen": "Selected asset loaded: **{anlage}**"
+        }
+    }[lang]
+
+    st.subheader(txt["titel"])
     st.markdown(
-        "<div style='font-size: 13px; color: var(--text-color); opacity: 0.7; margin-bottom: 20px;'>"
-        "Chronologische Ansicht: Alle Stammdaten, Verträge, Historien und Prüfberichte im Überblick."
-        "</div>", 
+        f"<div style='font-size: 13px; color: var(--text-color); opacity: 0.7; margin-bottom: 20px;'>{txt['untertitel']}</div>", 
         unsafe_allow_html=True
     )
 
-    # Beispieldaten für die 360°-Ansicht
     df_history_anlagen = pd.DataFrame({
         "id": [17501, 17502, 17503, 17504],
         "bezeichnung": [
@@ -60,32 +81,30 @@ def zeige_anlagen_history():
         "zustand": ["Betriebsbereit", "Wartung überfällig", "Betriebsbereit", "Prüfung anstehend"]
     })
 
-    # Dropdown zur Auswahl der Anlage
     anlagen_optionen = [""] + [f"{row['id']} - {row['bezeichnung']}" for _, row in df_history_anlagen.iterrows()]
     
     ausgewaehlte_anlage = st.selectbox(
-        "Anlage auswählen (Alphabetisch):" if st.session_state.language == "de" else "Select Asset (Alphabetical):",
+        txt["label_dropdown"],
         options=anlagen_optionen,
         key="hist_anl_dropdown"
     )
 
     if ausgewaehlte_anlage:
         st.markdown("---")
-        st.success(f"Ausgewählte Anlage geladen: **{ausgewaehlte_anlage}**")
+        st.success(txt["geladen"].format(anlage=ausgewaehlte_anlage))
         
-        # Tabs für die 360-Grad-Ansicht
         t_stammdaten, t_vertraege, t_historie, t_pruefungen = st.tabs([
-            "📋 Stammdaten", "📄 Verträge", "⏱️ Historie", "🔍 Prüfberichte"
+            txt["tab1"], txt["tab2"], txt["tab3"], txt["tab4"]
         ])
         
         with t_stammdaten:
-            st.write("Hier stehen alle technischen und kaufmännischen Stammdaten der Anlage im Detail.")
+            st.write("Hier stehen alle technischen und kaufmännischen Stammdaten der Anlage im Detail." if lang == "de" else "Detailed technical and commercial master data of the asset.")
         with t_vertraege:
-            st.write("Zugeordnete Wartungs- und Serviceverträge.")
+            st.write("Zugeordnete Wartungs- und Serviceverträge." if lang == "de" else "Assigned maintenance and service contracts.")
         with t_historie:
-            st.write("Chronologischer Verlauf aller vergangenen Einsätze und Reparaturen.")
+            st.write("Chronologischer Verlauf aller vergangenen Einsätze und Reparaturen." if lang == "de" else "Chronological history of all past operations and repairs.")
         with t_pruefungen:
-            st.write("Prüfprotokolle, Mängellisten und Fristen.")
+            st.write("Prüfprotokolle, Mängellisten und Fristen." if lang == "de" else "Inspection protocols, defect lists, and deadlines.")
             
     else:
-        st.info("Bitte wähle oben eine Anlage aus, um die vollständige 360°-Chronik anzuzeigen.")
+        st.info(txt["info_text"])
