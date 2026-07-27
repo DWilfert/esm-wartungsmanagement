@@ -68,7 +68,7 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "d": "Unklare Zuordnung von Anlagen zu Wartungsverträgen",
             "e": "Mängel und technische Auffälligkeiten aus der Anlagenerfassung und Wartungsprotokollen",
             "lbl_standort": "Standort-Filter:",
-            "lbl_jahr": "Wirtschaftsjahr:",
+            "lbl_jahr": "Wirtschaftsjahr (5-Jahres-Plan):",
             "select_placeholder": "-- Vertrag für Enterprise-Details wählen --"
         }
     else:
@@ -87,18 +87,18 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             "d": "Unclear assignment of assets to maintenance contracts",
             "e": "Defects and technical abnormalities from asset registration and maintenance logs",
             "lbl_standort": "Location Filter:",
-            "lbl_jahr": "Fiscal Year:",
+            "lbl_jahr": "Fiscal Year (5-Year Plan):",
             "select_placeholder": "-- Select contract for enterprise details --"
         }
 
     st.subheader(TXT_VA["title"])
     st.markdown(f"<div style='font-size: 13px; color: var(--text-color); opacity: 0.7; margin-bottom: 15px;'>{TXT_VA['desc']}</div>", unsafe_allow_html=True)
 
-    # Erweiterte Demodaten inklusive zugeordnetem Wirtschaftsjahr
+    # Demodaten über den 5-Jahres-Horizont (2026 bis 2030) verteilt
     df = pd.DataFrame({
         "id": [i+1 for i in range(10)],
         "anlagenid": [17501 + i for i in range(10)],
-        "vertragsnummer": ["V-2024-001", "V-2023-142", "V-2022-089", "V-2025-012", "V-2023-331", "V-2024-055", "V-2022-190", "V-2024-811", "V-2023-402", "V-2025-009"],
+        "vertragsnummer": ["V-2026-001", "V-2026-142", "V-2027-089", "V-2028-012", "V-2026-331", "V-2029-055", "V-2027-190", "V-2030-811", "V-2028-402", "V-2026-009"],
         "bezeichnung": [
             "Vollwartung Personenaufzug A", "Wartungsvertrag RLT-Anlage", "Servicevertrag Heizung", 
             "Prüfvertrag Brandmeldeanlage", "Wartung Klima Serverraum", "Vollwartung Rollstuhlhebebühne", 
@@ -106,13 +106,13 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
         ],
         "firma": ["Otis GmbH", "Stulz GmbH", "Viessmann Werke", "Siemens AG", "Stulz GmbH", "Schindler AG", "Siemens AG", "Siemens AG", "Viessmann Werke", "Stulz GmbH"],
         "standort": ["NP", "FG", "NP", "FG", "NP", "FG", "NP", "FG", "NP", "FG"],
-        "wirtschaftsjahr": ["2026", "2026", "2025", "2026", "2025", "2026", "2025", "2026", "2025", "2026"],
+        "wirtschaftsjahr": ["2026", "2026", "2027", "2028", "2026", "2029", "2027", "2030", "2028", "2026"],
         "kostenpa": [2400.0, 1800.0, 3200.0, 1500.0, 2100.0, 1200.0, 950.0, 4500.0, 2800.0, 800.0],
         "benchmarkpa": [2500.0, 1900.0, 3000.0, 1600.0, 2000.0, 1250.0, 1000.0, 4200.0, 2700.0, 850.0],
         "gewerksbez": ["Fördertechnik", "Raumlufttechnik", "Wärmeversorgung", "Elektrotechnik", "Klimatechnik", "Fördertechnik", "Brandschutz", "Elektrotechnik", "Notstrom", "Sanitär"],
         "gewaehrleistung": ["A", "B", "A", "C", "A", "B", "A", "C", "B", "A"],
-        "laufzeit_start": ["01.01.2024", "15.03.2023", "01.07.2022", "01.01.2025", "01.06.2023", "15.02.2024", "01.09.2022", "01.01.2024", "15.10.2023", "01.01.2025"],
-        "laufzeit_ende": ["31.12.2026", "14.03.2028", "30.06.2027", "31.12.2027", "31.05.2028", "14.02.2027", "31.08.2027", "31.12.2029", "14.10.2028", "31.12.2027"],
+        "laufzeit_start": ["01.01.2026", "15.03.2026", "01.07.2027", "01.01.2028", "01.06.2026", "15.02.2029", "01.09.2027", "01.01.2030", "15.10.2028", "01.01.2026"],
+        "laufzeit_ende": ["31.12.2028", "14.03.2029", "30.06.2030", "31.12.2030", "31.05.2029", "14.02.2032", "31.08.2030", "31.12.2032", "14.10.2031", "31.12.2028"],
         "kuendigung": ["3 Monate zum Jahresende", "6 Monate zum Laufzeitende", "3 Monate zum Quartalsende", "3 Monate zum Jahresende", "6 Monate zum Laufzeitende", "3 Monate zum Jahresende", "3 Monate zum Quartalsende", "6 Monate zum Jahresende", "3 Monate zum Jahresende", "3 Monate zum Quartalsende"],
         "ansprechpartner": ["Herr Müller (Tel. 089/1234-1)", "Frau Huber (Tel. 089/1234-2)", "Herr Schmidt (Tel. 089/1234-3)", "Service-Center (Tel. 0800-555)", "Frau Huber (Tel. 089/1234-2)", "Herr Wagner (Tel. 089/1234-6)", "Service-Center (Tel. 0800-555)", "Herr Bauer (Tel. 089/1234-8)", "Herr Schmidt (Tel. 089/1234-3)", "Frau Huber (Tel. 089/1234-2)"]
     })
@@ -131,8 +131,8 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             )
 
         with col_ctrl2:
-            # Hier ist nun der neue Wirtschaftsjahres-Filter statt der Ansicht!
-            jahr_optionen = [TXT_VA["filter_all"], "2025", "2026"]
+            # 5-Jahres-Horizont für die Planung (2026 bis 2030)
+            jahr_optionen = [TXT_VA["filter_all"], "2026", "2027", "2028", "2029", "2030"]
             ausgewaehltes_jahr = st.radio(
                 TXT_VA["lbl_jahr"],
                 options=jahr_optionen,
@@ -188,7 +188,6 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
             </div>
         ''', unsafe_allow_html=True)
 
-    # Tabelle mit fester, übersichtlicher Höhe
     st.dataframe(
         df_display,
         width="stretch",
@@ -198,7 +197,6 @@ def zeige_vertragsanalyse(v_id_auswahl=""):
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Pulldown-Auswahl und professionelle Enterprise-Detailcard
     col_icon, col_select, col_card = st.columns([0.5, 3.5, 8])
     
     with col_icon:
