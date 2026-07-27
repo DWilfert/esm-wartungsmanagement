@@ -76,7 +76,7 @@ def zeige_wartungsanalyse():
     anz_rot = len(df_card[df_card["Live_Status"] == ueberfaellig_str])
     anz_gelb = len(df_card[df_card["Live_Status"] == warnung_str])
     
-    # KPI-Leiste oben mit feinem Rahmen
+    # 1. Bereich: Alarm-Leiste in eigener Box
     with st.container(border=True):
         if st.session_state.language == "de":
             st.markdown(f"<div style='font-size:13px; font-weight:600;'>🚨 Alarme aktiv: <span style='color:#ef4444;'>{anz_rot} Fällig</span> | <span style='color:#f59e0b;'>{anz_gelb} Warnung</span></div>", unsafe_allow_html=True)
@@ -85,8 +85,9 @@ def zeige_wartungsanalyse():
 
     st.write("")
 
-    # Filter-Leiste in gerahmtem Container
+    # 2. Bereich: Filter in eigener Box
     with st.container(border=True):
+        st.markdown("<div style='font-size: 12px; font-weight: 600; opacity: 0.8; margin-bottom: 5px;'>🔍 Filter-Steuerung</div>", unsafe_allow_html=True)
         c_f1, c_f2 = st.columns([3.0, 7.0])
         with c_f1:
             standort_optionen = [TXT_VA["filter_all"], "NP", "FG"]
@@ -105,7 +106,11 @@ def zeige_wartungsanalyse():
         df_filtered = df_filtered[df_filtered["Live_Status"] == fil_stat]
 
     if not df_filtered.empty:
+        # 3. Bereich: Vertragsauswahl in schöner Box
         with st.container(border=True):
+            st.markdown(f"##### 📑 {TXT_VA['select_contract']}")
+            st.markdown("<hr style='margin: 8px 0; opacity: 0.15;'>", unsafe_allow_html=True)
+            
             vertrag_labels = []
             for _, r in df_filtered.iterrows():
                 next_val = pd.to_datetime(r["naechstewartung"]).strftime('%d.%m.%Y') if pd.notnull(r["naechstewartung"]) else "-"
@@ -115,6 +120,7 @@ def zeige_wartungsanalyse():
             auswahl_label = st.radio(
                 TXT_VA["select_contract"],
                 options=[item[0] for item in vertrag_labels],
+                label_visibility="collapsed",
                 key="va_master_radio_list"
             )
             
@@ -123,7 +129,7 @@ def zeige_wartungsanalyse():
 
         st.write("")
         
-        # Detail-Ansicht in einer sauberen, gerahmten Premium-Karte
+        # 4. Bereich: Detail- & Steuerungs-Karte mit klaren Trennlinien
         with st.container(border=True):
             v_id = row["id"]
             v_bez = row["bezeichnung"]
@@ -163,7 +169,6 @@ def zeige_wartungsanalyse():
             
             st.write("")
 
-            # Status-Auswahl in schmaler Spalte (keine volle Bildschirmbreite mehr)
             c_stat_in, c_space = st.columns([4.0, 6.0])
             with c_stat_in:
                 status_change_lbl = "Status anpassen:" if st.session_state.language == "de" else "Update Status:"
