@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from datenbank.befehle import hole_datenbank_verbindung, schreibe_datenbank_daten
+from datenbank.befehle import hole_datenbank_verbindung
 
 def zeige_auffalligkeiten():
     st.markdown("""
@@ -51,6 +51,7 @@ def zeige_auffalligkeiten():
     st.subheader(TXT_AUF["title"])
     st.markdown(f"<div style='font-size: 13px; color: var(--text-color); opacity: 0.7; margin-bottom: 20px;'>{TXT_AUF['desc']}</div>", unsafe_allow_html=True)
 
+    # Demodaten für Auffälligkeiten
     df_auffalligkeiten = pd.DataFrame({
         "id": [1, 2, 3],
         "anlagenid": [17501, 17504, 17508],
@@ -72,7 +73,7 @@ def zeige_auffalligkeiten():
     st.write("")
 
     # -------------------------------------------------------------
-    # BEREICH 2: EINTRAG LÖSCHEN
+    # BEREICH 2: EINTRAG LÖSCHEN (Mit kompaktem Auswahlfeld)
     # -------------------------------------------------------------
     with st.container(border=True):
         st.markdown(f"**{TXT_AUF['sec_loeschen']}**")
