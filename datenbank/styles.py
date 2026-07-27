@@ -1,185 +1,115 @@
 import streamlit as st
 
 def lade_app_design():
-    valid_themes = ["Premium Dark", "Premium Business", "Premium Slate", "Premium Light", "Premium Cashmere"]
-    if 'app_theme' not in st.session_state or st.session_state.app_theme not in valid_themes:
-        st.session_state.app_theme = "Premium Dark"
-
-    theme = st.session_state.app_theme
-
-    if theme == "Premium Business":
-        bg_app = "radial-gradient(circle at top left, #1e293b 0%, #0f172a 100%)"
-        solid_bg = "#0f172a"
-        border_color = "rgba(96, 165, 250, 0.3)"
-        card_bg = "rgba(17, 27, 48, 0.7)"
-        text_main = "#f8fafc"
-        text_muted = "#94a3b8"
-        accent_color = "#60a5fa"
-        input_bg = "rgba(15, 23, 42, 0.9)"
-        
-    elif theme == "Premium Slate":
-        bg_app = "radial-gradient(circle at top left, #3f3f46 0%, #18181b 100%)"
-        solid_bg = "#18181b"
-        border_color = "rgba(161, 161, 170, 0.3)"
-        card_bg = "rgba(39, 39, 42, 0.7)"
-        text_main = "#f4f4f5"
-        text_muted = "#a1a1aa"
-        accent_color = "#a1a1aa"
-        input_bg = "rgba(24, 24, 27, 0.9)"
-
-    elif theme == "Premium Light":
-        bg_app = "radial-gradient(circle at top left, #ffffff 0%, #f1f5f9 100%)"
-        solid_bg = "#ffffff"
-        border_color = "rgba(0, 0, 0, 0.15)"
-        card_bg = "rgba(255, 255, 255, 0.9)"
-        text_main = "#0f172a"  
-        text_muted = "#64748b"
-        accent_color = "#3b82f6"
-        input_bg = "#f8fafc" 
-
+    theme = st.session_state.get("app_theme", "Premium Dark")
+    
+    # 1. Farb-Definitionen je nach Theme
+    if theme == "Premium Light":
+        bg_main = "#ffffff"
+        bg_sidebar = "#f1f5f9"
+        text_color = "#0f172a"
+        bg_card = "#ffffff"
+        bg_element = "#f8fafc"
+        border_color = "#cbd5e1"
+        dropdown_bg = "#ffffff"
+        dropdown_hover = "#e2e8f0"
     elif theme == "Premium Cashmere":
-        bg_app = "radial-gradient(circle at top left, #fdfbf7 0%, #e6e2d8 100%)"
-        solid_bg = "#fdfbf7"
-        border_color = "rgba(139, 115, 85, 0.3)"
-        card_bg = "rgba(255, 255, 255, 0.8)"
-        text_main = "#433422"  
-        text_muted = "#8b7355"
-        accent_color = "#8b7355"
-        input_bg = "#ffffff" 
+        bg_main = "#f9f6f0"
+        bg_sidebar = "#eee8dc"
+        text_color = "#2c2621"
+        bg_card = "#fdfbf7"
+        bg_element = "#f0eae1"
+        border_color = "#d6ccc2"
+        dropdown_bg = "#ffffff"
+        dropdown_hover = "#e6dfd5"
+    elif theme == "Premium Business":
+        bg_main = "#0a192f"
+        bg_sidebar = "#112240"
+        text_color = "#e2e8f0"
+        bg_card = "rgba(17, 34, 64, 0.7)"
+        bg_element = "#1d3557"
+        border_color = "rgba(255, 255, 255, 0.1)"
+        dropdown_bg = "#112240"
+        dropdown_hover = "#1d3557"
+    elif theme == "Premium Slate":
+        bg_main = "#1e293b"
+        bg_sidebar = "#0f172a"
+        text_color = "#f1f5f9"
+        bg_card = "rgba(15, 23, 42, 0.6)"
+        bg_element = "#334155"
+        border_color = "rgba(255, 255, 255, 0.1)"
+        dropdown_bg = "#0f172a"
+        dropdown_hover = "#334155"
+    else:  # Premium Dark (Standard)
+        bg_main = "#0e1117"
+        bg_sidebar = "#262730"
+        text_color = "#fafafa"
+        bg_card = "rgba(128, 128, 128, 0.04)"
+        bg_element = "#262730"
+        border_color = "rgba(128, 128, 128, 0.2)"
+        dropdown_bg = "#262730"
+        dropdown_hover = "#3d3e42"
 
-    else:
-        bg_app = "radial-gradient(circle at top left, #1a1f2c 0%, #0e1117 100%)"
-        solid_bg = "#0e1117"
-        border_color = "rgba(74, 144, 226, 0.3)"
-        card_bg = "rgba(22, 27, 38, 0.7)"
-        text_main = "#e2e8f0"
-        text_muted = "#94a3b8"
-        accent_color = "#4a90e2"
-        input_bg = "rgba(14, 17, 23, 0.9)"
-
-    bg_sidebar = bg_app
-    pfeil_farbe = accent_color
-
-    st.markdown(f"""
+    # 2. Globales CSS, das alle Komponenten weltweit einfärbt
+    st.markdown(
+        f"""
         <style>
-        :root, [data-testid="stAppViewContainer"] {{
-            --primary-color: {accent_color};
-            --background-color: {solid_bg};
-            --secondary-background-color: {input_bg};
-            --text-color: {text_main};
-            --body-text-color: {text_main};
-            --widget-background-color: {input_bg};
-            --widget-text-color: {text_main};
+        /* Allgemeine App-Hintergründe & Textfarben */
+        .stApp {{
+            background-color: {bg_main} !important;
+            color: {text_color} !important;
+        }}
+        [data-testid="stSidebar"] {{
+            background-color: {bg_sidebar} !important;
+        }}
+        
+        /* Globale Text- und Label-Farben erzwingen */
+        p, span, label, div, h1, h2, h3, h4, h5, h6 {{
+            color: {text_color} !important;
         }}
 
-        [data-testid="stHeader"] {{ background: transparent !important; }}
-        [data-testid="stDecoration"] {{ display: none !important; }}
-        [data-testid="stMainBlockContainer"] {{ padding-top: 3rem !important; }}
-        
-        .stApp {{ 
-            background: {bg_app} !important; 
-            font-family: 'Inter', sans-serif; 
-        }}
-        
-        section[data-testid="stSidebar"] > div:first-child,
-        [data-testid="stSidebar"],
-        [data-testid="stSidebarContent"] {{ 
-            background: {bg_sidebar} !important; 
-            background-color: transparent !important; 
-            border-right: 1px solid {border_color} !important; 
-        }}
-
-        h1, h2, h3, h4, h5, h6, p, span, label, div {{
-            color: {text_main} !important;
-        }}
-
-        div[data-testid="stForm"], .start-kachel {{
-            background: {card_bg} !important;
-            backdrop-filter: blur(12px) !important;
-            -webkit-backdrop-filter: blur(12px) !important;
-            border: 1px solid {border_color} !important;
-            border-radius: 12px !important;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15) !important;
-        }}
-        
-        /* RADIKALER FIX FÜR SEGMENTED CONTROLS & AUSWAHL-BUTTONS */
-        div[data-testid="stSegmentedControl"] div[role="button"],
-        div[data-testid="stSegmentedControl"] button,
-        div[data-testid="stSegmentedControl"] span,
-        div[data-testid="stSegmentedControl"] p {{
-            background-color: {input_bg} !important;
-            color: {text_main} !important;
-        }}
-        
-        div[data-testid="stSegmentedControl"] div[role="button"]:hover,
-        div[data-testid="stSegmentedControl"] button:hover {{
-            background-color: {border_color} !important;
-            color: {accent_color} !important;
-        }}
-
-        /* TABELLEN */
-        [data-testid="stDataFrame"], [data-testid="stTable"] {{
-            background-color: {card_bg} !important;
-            border: 1px solid {border_color} !important;
-            border-radius: 8px;
-        }}
-        
-        [data-testid="stDataFrame"] div[data-baseweb="base-input"] input,
-        [data-testid="stDataFrame"] table {{
-            color: {text_main} !important;
-        }}
-
-        /* MENÜS & DROPDOWNS */
-        [data-baseweb="popover"] > div,
-        [data-baseweb="menu"],
-        ul[role="listbox"],
-        li[role="option"] {{
-            background-color: {input_bg} !important;
-            color: {text_main} !important;
-        }}
-        
-        li[role="option"]:hover {{
-            background-color: {border_color} !important;
-        }}
-        
-        input, textarea, [data-baseweb="select"] div, [data-baseweb="base-input"] {{
-            background-color: {input_bg} !important;
-            color: {text_main} !important;
+        /* GLOBALE FIXES FÜR INPUTS, DROPDOWNS & SELECTIONS (Schwarze Boxen eliminieren) */
+        input, textarea {{
+            background-color: {dropdown_bg} !important;
+            color: {text_color} !important;
             border-color: {border_color} !important;
         }}
 
-        /* STANDARD-BUTTONS */
-        div[data-testid="stButton"] button,
-        div[data-testid="stFormSubmitButton"] button,
-        div[data-testid="stDownloadButton"] button {{
-            background-color: {card_bg} !important;
-            color: {text_main} !important;
+        /* Streamlit Selectbox / Multiselect Hauptbox */
+        div[data-baseweb="select"] > div, div[data-baseweb="base-input"] {{
+            background-color: {dropdown_bg} !important;
+            color: {text_color} !important;
+            border-color: {border_color} !important;
+        }}
+
+        /* Dropdown Popup-Menüs (Die aufgeklappte Liste) */
+        div[data-baseweb="popover"], div[data-baseweb="menu"], ul[data-baseweb="menu"] {{
+            background-color: {dropdown_bg} !important;
+            color: {text_color} !important;
             border: 1px solid {border_color} !important;
-            border-radius: 8px !important;
-            transition: all 0.3s ease;
         }}
-        
-        div[data-testid="stButton"] button:hover,
-        div[data-testid="stFormSubmitButton"] button:hover,
-        div[data-testid="stDownloadButton"] button:hover {{
-            border-color: {accent_color} !important;
-            color: {accent_color} !important;
+
+        /* Einzelne Elemente in Auswahllisten */
+        ul[role="listbox"] li, li[role="option"] {{
+            background-color: {dropdown_bg} !important;
+            color: {text_color} !important;
         }}
-        
-        [data-testid="stButton"] button:has(strong) p,
-        [data-testid="stButton"] button:has(em) p {{
-            display: none !important;
+
+        /* Hover-Effekt in Dropdowns lesbar machen */
+        ul[role="listbox"] li:hover,
+        ul[role="listbox"] li[aria-selected="true"],
+        li[role="option"]:hover,
+        li[role="option"][aria-selected="true"] {{
+            background-color: {dropdown_hover} !important;
+            color: {text_color} !important;
         }}
-        
-        [data-testid="stSidebarCollapseButton"] {{
-            display: inline-flex !important;
-            visibility: visible !important;
-            background-color: transparent !important;
-            z-index: 999999 !important;
-        }}
-        [data-testid="stSidebarCollapseButton"] svg {{
-            fill: {pfeil_farbe} !important;
-            color: {pfeil_farbe} !important;
+
+        /* Container & Karten global anpassen */
+        div[data-testid="stVerticalBlock"] div[data-testid="stContainer"] {{
+            background-color: {bg_card} !important;
+            border-color: {border_color} !important;
         }}
         </style>
-    """, unsafe_allow_html=True)
+        """,
+        unsafe_allow_html=True
+    )
