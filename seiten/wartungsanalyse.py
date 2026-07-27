@@ -189,11 +189,12 @@ def zeige_wartungsanalyse():
         st.write("")
 
         # -------------------------------------------------------------
-        # BEREICH 5: DIREKT-STEUERUNG & NOTIZEN (Mit Trennlinie)
+        # BEREICH 5: DIREKT-STEUERUNG & NOTIZEN
         # -------------------------------------------------------------
         with st.container(border=True):
+            # Trennlinie nun exakt ÜBER der Schrift!
+            st.markdown("<hr style='border: none; height: 1px; background-color: rgba(128, 128, 128, 0.3); margin: 5px 0 15px 0;'>", unsafe_allow_html=True)
             st.markdown(f"**{TXT_VA['sec_steuerung']}**")
-            st.markdown("<hr style='border: none; height: 1px; background-color: rgba(128, 128, 128, 0.3); margin: 10px 0;'>", unsafe_allow_html=True)
             
             c_stat_in, c_space = st.columns([4.0, 6.0])
             with c_stat_in:
