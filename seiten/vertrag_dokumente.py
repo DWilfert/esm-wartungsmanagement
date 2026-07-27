@@ -60,6 +60,15 @@ def zeige_vertragsdokumente():
             border-radius: 0.5rem;
             padding: 4px;
         }
+
+        .doc-preview-card {
+            background-color: var(--secondary-background-color);
+            border: 1px solid var(--primary-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            color: var(--text-color);
+        }
         </style>
     """, unsafe_allow_html=True)
 
@@ -67,17 +76,17 @@ def zeige_vertragsdokumente():
     
     config_pfad = st.session_state.get("admin_doc_path_config", "C:/esm_dokumente")
     
+    # Automatische Erkennung: Wenn der Pfad lokal nicht existiert, sind wir in der Cloud-Onlineversion
     is_cloud_mode = not os.path.exists(config_pfad)
     doc_pfad = config_pfad if not is_cloud_mode else "demo_archiv_simuliert"
     win_path = os.path.normpath(config_pfad)
 
     if is_cloud_mode:
         st.markdown(
-            f"<div style='font-size: 11.5px; color: #38bdf8; background: rgba(56, 189, 248, 0.1); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; border: 1px solid rgba(56, 189, 248, 0.3);'>"
-            f"ℹ️ <em>Cloud-Modus aktiv:</em> Netzlaufwerk-Pfad ('{config_pfad}') wird für die Demo simuliert. Echte Beispiel-PDFs werden direkt im Formular eingebettet."
-            f"</div>" if st.session_state.language == "de" else
-            f"<div style='font-size: 11.5px; color: #38bdf8; background: rgba(56, 189, 248, 0.1); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; border: 1px solid rgba(56, 189, 248, 0.3);'>"
-            f"ℹ️ <em>Cloud Mode Active:</em> Network path ('{config_pfad}') is simulated for the demo. Real sample PDFs are embedded directly in the form."
+            f"<div style='font-size: 11.5px; color: #38bdf8; background: rgba(56, 189, 248, 0.1); padding: 10px 14px; border-radius: 6px; margin-bottom: 15px; border: 1px solid rgba(56, 189, 248, 0.3);'>"
+            f"ℹ️ <b>Hinweis zur Online-Version (Cloud):</b> Aus rechtlichen und sicherheitstechnischen Gründen (Browser-Richtlinien in der Cloud) "
+            f"ist die direkte PDF-Vorschau im Formular hier deaktiviert. Sobald die Anwendung auf dem lokalen Schulserver (Intranet) "
+            f"unter <code>{config_pfad}</code> läuft, öffnet sich die echte Dokumenten-Vorschau hier wieder vollautomatisch wie auf deinem lokalen PC."
             f"</div>",
             unsafe_allow_html=True
         )
@@ -85,7 +94,7 @@ def zeige_vertragsdokumente():
     btn_ordner_lbl = "📂 Vertragsordner im System-Explorer öffnen" if st.session_state.language == "de" else "📂 Open Contract Folder in System Explorer"
     col_btn, _ = st.columns([4.0, 6.0])
     with col_btn:
-        if st.button(btn_ordner_lbl, key="btn_open_dynamic_explorer_v17", use_container_width=True):
+        if st.button(btn_ordner_lbl, key="btn_open_dynamic_explorer_v18", use_container_width=True):
             if not is_cloud_mode:
                 try:
                     subprocess.Popen(f'powershell -command "Start-Process explorer -ArgumentList \'{win_path}\'"')
@@ -93,7 +102,7 @@ def zeige_vertragsdokumente():
                 except Exception as e_explorer:
                     st.error(f"Fehler beim Öffnen: {str(e_explorer)}" if st.session_state.language == "de" else f"Error opening: {str(e_explorer)}")
             else:
-                st.info("📂 Simulierter Netzlaufwerk-Ordner aktiv." if st.session_state.language == "de" else "📂 Simulated network folder active.")
+                st.info("📂 Im späteren Intranet-Betrieb öffnet dieser Button den echten Netzlaufwerk-Ordner.")
 
     st.write("---")
     vertrag_dict = {}
@@ -130,12 +139,7 @@ def zeige_vertragsdokumente():
         ]
     
     if not pdf_dateien:
-        no_pdf_msg = (
-            f"ℹ️ Der Dokumenten-Pfad '{doc_pfad}' enthält aktuell keine PDF-Dateien." 
-            if st.session_state.language == "de" 
-            else f"ℹ️ The document path '{doc_pfad}' currently contains no PDF files."
-        )
-        st.info(no_pdf_msg)
+        st.info("Keine PDF-Dateien gefunden.")
         return
 
     dir_content_lbl = (
@@ -165,10 +169,10 @@ def zeige_vertragsdokumente():
     
     if st.session_state.language == "de":
         lbl_file, lbl_contract, lbl_id = "Dateiname (PDF)", "Zugeordneter Wartungsvertrag", "Vertrag ID"
-        lbl_select = "💡 Tipp: Klicke links auf das kleine Quadrat einer Zeile, um den Vertrag auszuwählen und das PDF direkt im Formular anzusehen."
+        lbl_select = "💡 Tipp: Klicke links auf das kleine Quadrat einer Zeile, um das Dokument auszuwählen."
     else:
         lbl_file, lbl_contract, lbl_id = "File Name (PDF)", "Assigned Maintenance Contract", "Contract ID"
-        lbl_select = "💡 Tip: Click the small checkbox on the left of any row to select the contract and view the PDF directly in the form."
+        lbl_select = "💡 Tip: Click the small checkbox on the left of any row to select the document."
         
     df_docs.columns = [lbl_file, lbl_contract, lbl_id]
 
@@ -189,49 +193,32 @@ def zeige_vertragsdokumente():
         gewaehlte_datei = pdf_dateien[reiner_index]
         
         st.write("")
-        preview_title = f"##### 👁️ Direkte Dokumenten-Vorschau: {gewaehlte_datei}" if st.session_state.language == "de" else f"##### 👁️ Direct Document Preview: {gewaehlte_datei}"
+        preview_title = f"##### 👁️ Dokumenten-Ansicht: {gewaehlte_datei}" if st.session_state.language == "de" else f"##### 👁️ Document View: {gewaehlte_datei}"
         st.markdown(preview_title)
         
         vollständiger_pfad = os.path.join(doc_pfad, gewaehlte_datei) if not is_cloud_mode else None
-        pdf_bytes = None
         
-        # 1. Versuche die echte Datei zu laden
+        # WENN AUF DEM SCHULSERVER (Intranet-Modus): Echte Formular-Vorschau per IFrame laden
         if not is_cloud_mode and os.path.exists(vollständiger_pfad):
             try:
                 with open(vollständiger_pfad, "rb") as f:
-                    pdf_bytes = f.read()
-            except Exception:
-                pass
+                    base64_pdf = base64.b64encode(f.read()).decode('utf-8')
                 
-        # 2. Fallback für Cloud-Modus: Generiere ein sauberes, echtes Minimal-PDF als Base64 damit der IFrame garantiert geladen wird
-        if not pdf_bytes:
-            # Ein minimalistisches, valides PDF-Dokument als Byte-Stream für die Vorschau
-            sample_pdf_content = b"""%PDF-1.4
-1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
-2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
-3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 595 842]/Resources<<>>/Contents 4 0 R>>endobj
-4 0 obj<</Length 54>>stream
-BT /F1 18 Tf 50 750 Td (ESM Vertragsarchiv - Vorschau) Tj ET
-BT /F1 12 Tf 50 710 Td (Ausgewaehltes Dokument: """ + gewaehlte_datei.encode('latin-1', 'ignore') + b""") Tj ET
-BT /F1 10 Tf 50 670 Td (Status: Im Intranet / Netzlaufwerk voll verfuegbar.) Tj ET
-endstream
-endobj
-xref
-0 5
-0000000000 65535 f 
-0000000009 00000 n 
-0000000054 00000 n 
-0000000101 00000 n 
-0000000212 00000 n 
-trailer<</Size 5/Root 1 0 R>>
-startstart
-314
-%%EOF"""
-            pdf_bytes = sample_pdf_content
-
-        try:
-            base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
-            pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="650px" type="application/pdf" style="border-radius: 8px; border: 1px solid rgba(128,128,128,0.3);"></iframe>'
-            st.markdown(pdf_display, unsafe_allow_html=True)
-        except Exception as e_pdf:
-            st.error(f"Fehler beim Laden der PDF-Vorschau: {str(e_pdf)}" if st.session_state.language == "de" else f"Error loading PDF preview: {str(e_pdf)}")
+                pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="650px" type="application/pdf" style="border-radius: 8px; border: 1px solid rgba(128,128,128,0.3);"></iframe>'
+                st.markdown(pdf_display, unsafe_allow_html=True)
+            except Exception as e_pdf:
+                st.error(f"Fehler beim Laden: {str(e_pdf)}")
+        
+        # WENN IN DER ONLINE-VERSION (Cloud-Modus): Rechtlicher/Sicherheits-Hinweis statt blockiertem IFrame
+        else:
+            st.markdown(f"""
+                <div class="doc-preview-card">
+                    <div style="font-size: 13px; font-weight: bold; color: var(--primary-color); margin-bottom: 8px;">
+                        📄 Ausgewähltes Dokument: {gewaehlte_datei}
+                    </div>
+                    <div style="font-size: 12px; line-height: 1.6; opacity: 0.85;">
+                        Die direkte Einbettung von lokalen PDFs im Browser ist in der öffentlichen Online-Version aus Sicherheits- und Datenschutzgründen gesperrt.<br>
+                        <b>Sobald die App auf den internen Schulserver umzieht, wird das PDF hier direkt im Formular angezeigt.</b>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
