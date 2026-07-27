@@ -35,7 +35,7 @@ def lade_app_design():
         text_main = "#0f172a"  
         text_muted = "#64748b"
         accent_color = "#3b82f6"
-        input_bg = "#f8fafc" 
+        input_bg = "#ffffff" 
 
     elif theme == "Premium Cashmere":
         bg_app = "radial-gradient(circle at top left, #fdfbf7 0%, #e6e2d8 100%)"
@@ -129,17 +129,33 @@ def lade_app_design():
             color: {text_main} !important;
         }}
 
-        /* MENÜS & DROPDOWNS */
-        [data-baseweb="popover"] > div,
-        [data-baseweb="menu"],
-        ul[role="listbox"],
-        li[role="option"] {{
+        /* GLOBALE FIXES FÜR MENÜS & AUFGEKLAPPTE DROPDOWNS (PULLDOWN-LISTEN) */
+        div[data-baseweb="popover"],
+        div[data-baseweb="menu"],
+        ul[data-baseweb="menu"],
+        div[role="dialog"] {{
+            background-color: {input_bg} !important;
+            color: {text_main} !important;
+        }}
+
+        ul[role="listbox"], 
+        li[role="option"],
+        div[role="option"] {{
             background-color: {input_bg} !important;
             color: {text_main} !important;
         }}
         
-        li[role="option"]:hover {{
+        li[role="option"] div,
+        li[role="option"] span,
+        ul[role="listbox"] div,
+        ul[role="listbox"] span {{
+            color: {text_main} !important;
+        }}
+        
+        li[role="option"]:hover,
+        div[role="option"]:hover {{
             background-color: {border_color} !important;
+            color: {accent_color} !important;
         }}
         
         input, textarea, [data-baseweb="select"] div, [data-baseweb="base-input"] {{
@@ -148,7 +164,7 @@ def lade_app_design():
             border-color: {border_color} !important;
         }}
 
-        /* STANDARD-BUTTONS FIX (Verhindert schwarze Buttons) */
+        /* STANDARD-BUTTONS FIX */
         div[data-testid="stButton"] button,
         div[data-testid="stFormSubmitButton"] button,
         div[data-testid="stDownloadButton"] button {{
