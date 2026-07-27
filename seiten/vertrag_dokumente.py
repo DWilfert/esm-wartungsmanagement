@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import subprocess
 import tempfile
+import base64
 from datenbank.befehle import hole_datenbank_verbindung
 
 def zeige_vertragsdokumente():
@@ -67,8 +68,6 @@ def zeige_vertragsdokumente():
     
     config_pfad = st.session_state.get("admin_doc_path_config", "C:/esm_dokumente")
     
-    # Hier wird geprüft, ob der echte Ordner existiert (lokal / Netzlaufwerk).
-    # Wenn er da ist, wird er genutzt. Falls nicht (Cloud), greift die Simulation.
     is_cloud_mode = not os.path.exists(config_pfad)
     doc_pfad = config_pfad if not is_cloud_mode else "demo_archiv_simuliert"
     win_path = os.path.normpath(config_pfad)
@@ -115,7 +114,6 @@ def zeige_vertragsdokumente():
         except Exception:
             pass
         
-    # Einlesen der Dateien vom echten Pfad oder aus der Demo
     if not is_cloud_mode:
         try:
             alle_dateien = os.listdir(doc_pfad)
@@ -192,7 +190,6 @@ def zeige_vertragsdokumente():
         gewaehlte_datei = pdf_dateien[reiner_index]
         
         try:
-            # Bytes der PDF laden (entweder vom echten lokalen Pfad oder dem Demo-Stream)
             if not is_cloud_mode:
                 vollstaendiger_pfad = os.path.join(doc_pfad, gewaehlte_datei)
                 with open(vollstaendiger_pfad, "rb") as f:
@@ -204,16 +201,13 @@ def zeige_vertragsdokumente():
             preview_title = f"##### 👁️ Dokumenten-Vorschau: {gewaehlte_datei}" if st.session_state.language == "de" else f"##### 👁️ Document Preview: {gewaehlte_datei}"
             st.markdown(preview_title)
             
-            # Die absolut sicherste Methode für Chrome: Einbindung über ein lokales temporäres PDF-File
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
                 tmp_file.write(pdf_bytes)
                 tmp_path = tmp_file.name
 
-            # Einlesen als lesbarer Stream für den HTML-Iframe ohne Sicherheitsblockade
             with open(tmp_path, "rb") as f:
                 base64_pdf = base64.b64encode(f.read()).decode('utf-8')
 
-            # Einbettung direkt in der App ohne neues Fenster
             pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="700px" style="border: 1px solid rgba(128,128,128,0.3); border-radius: 8px;"></iframe>'
             st.markdown(pdf_display, unsafe_allow_html=True)
             
