@@ -2,66 +2,27 @@ import streamlit as st
 import pandas as pd
 
 def zeige_serviceeinsaetze():
-    # Einheitlicher Design-Fix für Tooltips, Dropdowns, Toolbars und Tabellen
+    # Enterprise Premium CSS für saubere Container, Karten und Typografie
     st.markdown("""
         <style>
-        /* Kompakte Schriftgröße in allen Eingabefeldern, Radio-Buttons und Formularen */
         input, select, textarea, div[data-baseweb="select"] span, label, .stRadio div {
             font-size: 0.82rem !important;
         }
-        
-        /* Blendet den automatischen Streamlit-Hinweis aus */
         div[data-testid="InputInstructions"] {
             display: none !important;
         }
-        
-        /* Placeholder in leicht grauer Schrift und Kursiv */
-        input::placeholder, textarea::placeholder {
-            color: #94a3b8 !important;
-            font-style: italic !important;
-            opacity: 1 !important;
-        }
-        
-        /* Dropdown-Menüs und Popovers */
-        div[data-baseweb="popover"], div[data-baseweb="menu"], ul[data-baseweb="menu"] {
-            background-color: var(--secondary-background-color) !important;
-        }
-        
-        ul[role="listbox"] li, li[role="option"] {
-            background-color: var(--secondary-background-color) !important;
-            color: var(--text-color) !important;
-            font-size: 0.85rem !important;
-        }
-        
-        ul[role="listbox"] li:hover,
-        ul[role="listbox"] li[aria-selected="true"],
-        li[role="option"]:hover,
-        li[role="option"][aria-selected="true"] {
-            background-color: rgba(128, 128, 128, 0.2) !important;
-            color: var(--text-color) !important;
-        }
-        
-        /* Tooltips & Toolbar-Buttons */
-        div[data-testid="stElementToolbar"], 
-        div[data-testid="stElementToolbar"] button,
-        span[data-testid="stTooltipHoverTarget"] {
-            background-color: var(--secondary-background-color) !important;
-            color: var(--text-color) !important;
-        }
-        
-        div[data-baseweb="tooltip"], div[role="tooltip"], div.stTooltipContent {
-            background-color: var(--secondary-background-color) !important;
-            color: var(--text-color) !important;
-            border: 1px solid rgba(128, 128, 128, 0.3) !important;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
-        }
-
-        /* Automatischer Hintergrund- und Rahmen-Fix für st.dataframe */
         div[data-testid="stDataFrame"] {
             background-color: var(--secondary-background-color) !important;
             border: 1px solid rgba(128, 128, 128, 0.25) !important;
             border-radius: 0.5rem;
             padding: 4px;
+        }
+        .enterprise-card {
+            background-color: rgba(128, 128, 128, 0.05);
+            border: 1px solid rgba(128, 128, 128, 0.15);
+            border-radius: 0.5rem;
+            padding: 15px;
+            margin-bottom: 15px;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -114,7 +75,7 @@ def zeige_serviceeinsaetze():
             "intervall": ["12M", "6M", "12M", "24M", "12M"],
             "hinweis": ["Dringend veranlassen", "Material vorbestellen", "Erledigt", "Termin vereinbaren", "Dokumentiert"]
         })
-              
+            
         if df_service.empty:
             st.info(TXT_SRV["empty_db"])
         else:
@@ -152,12 +113,20 @@ def zeige_serviceeinsaetze():
                     df_srv_target = df_srv_f[df_srv_f["id"] == int(srv_sel_id)]
                     if not df_srv_target.empty:
                         s_det = df_srv_target.iloc[0]
+                        
+                        # --- MODERNE ENTERPRISE DETAIL-ANSICHT ---
                         st.markdown(f"##### {TXT_SRV['det_title']} {srv_sel_id}")
-                        st.write(f"**{TXT_SRV['anl_id']}** {s_det['anlagenid']} ({s_det['standort']})")
-                        st.write(f"**{TXT_SRV['gewerk']}** {s_det.get('klasse', '-')} - {s_det['klassebez']}")
-                        st.write(f"**{TXT_SRV['kurz']}** {s_det['kurz']}")
-                        st.write(f"**{TXT_SRV['zyklus']}** {s_det['intervall']}")
-                        st.write(f"**{TXT_SRV['hinweis']}** {s_det['hinweis']}")
+                        st.markdown(f"""
+                        <div class="enterprise-card">
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; font-size: 0.85rem;">
+                                <div><b>{TXT_SRV['anl_id']}</b><br>{s_det['anlagenid']} ({s_det['standort']})</div>
+                                <div><b>{TXT_SRV['gewerk']}</b><br>{s_det.get('klasse', '-')} - {s_det['klassebez']}</div>
+                                <div><b>{TXT_SRV['kurz']}</b><br>{s_det['kurz']}</div>
+                                <div><b>{TXT_SRV['zyklus']}</b><br>{s_det['intervall']}</div>
+                                <div style="grid-column: span 2;"><b>{TXT_SRV['hinweis']}</b><br>{s_det['hinweis']}</div>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
                         
                         bestätigt = st.checkbox(
                             "Sicherheitsabfrage: Wirklich löschen?" if st.session_state.language == "de" else "Security check: Really delete?",
