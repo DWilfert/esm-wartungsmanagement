@@ -118,7 +118,6 @@ def zeige_anlagenstruktur():
             s_l = anl_suche.lower()
             df_endlos = df_endlos[df_endlos["bezeichnung"].str.lower().str.contains(s_l, na=False)]
         
-        # Sicherer Zugriff auf Spalten mit Fallback
         verfuegbare_spalten = [col for col in ["id", "standort", "bezeichnung", "hersteller", "typ", "zustand"] if col in df_endlos.columns]
         st.dataframe(df_endlos[verfuegbare_spalten], use_container_width=True, hide_index=True)
 
@@ -194,33 +193,98 @@ def zeige_anlagenstruktur():
             st.session_state.ziel_vertrags_id = None
 
     else:
-        st.markdown("#### 📋 Neue Anlage erfassen" if st.session_state.language == "de" else "#### 📋 Register New Asset")
-        with st.form("anl_form_n_einmalig", clear_on_submit=True):
+        st.markdown("#### 📋 Neue Anlage erfassen (Vollständige Felder)" if st.session_state.language == "de" else "#### 📋 Register New Asset (Complete Fields)")
+        with st.form("anl_form_n_vollstaendig", clear_on_submit=True):
             
+            # Sektion 1: Basisdaten & Zuordnung
             st.markdown("##### 1. Basisdaten & Kennzeichnung" if st.session_state.language == "de" else "##### 1. Basic Data & Identification")
-            c1, c2, c3, c4, c5, c6 = st.columns([0.8, 1.5, 1.5, 2.0, 1.5, 4.0])
-            with c1: anl_standort = st.selectbox("Standort *" if st.session_state.language == "de" else "Location *", ["", "FG", "NP"], key="anl_ins_std_v16")
-            with c2: 
-                anl_id_raw = st.text_input("Anlagen-ID *" if st.session_state.language == "de" else "Asset ID *", max_chars=6, placeholder="z. B. 17501" if st.session_state.language == "de" else "e.g. 17501", key="anl_ins_id_v16")
-            with c3: anl_bauteilid = st.text_input("Bauteil-ID" if st.session_state.language == "de" else "Component ID", placeholder="z. B. 123" if st.session_state.language == "de" else "e.g. 123", key="anl_ins_btid_v16")
-            with c4: anl_anlagentyp = st.text_input("Anlagentyp" if st.session_state.language == "de" else "Asset Type", placeholder="z. B. Aufzug" if st.session_state.language == "de" else "e.g. Elevator", key="anl_ins_altyp_v16")
-            with c5: anl_untergewerk = st.text_input("Untergewerk" if st.session_state.language == "de" else "Sub-Trade", placeholder="z. B. 1" if st.session_state.language == "de" else "e.g. 1", key="anl_ins_ugew_v16")
-            with c6: anl_bez = st.text_input("Bezeichnung der Anlage *" if st.session_state.language == "de" else "Asset Designation *", placeholder="z. B. Personenaufzug A" if st.session_state.language == "de" else "e.g. Passenger Elevator A", key="anl_ins_bez_v16")
+            c1, c2, c3, c4, c5 = st.columns([1.0, 1.8, 1.8, 2.4, 3.0])
+            with c1: anl_standort = st.selectbox("Standort *" if st.session_state.language == "de" else "Location *", ["", "FG", "NP"], key="f_std")
+            with c2: anl_id = st.text_input("Anlagen-ID *" if st.session_state.language == "de" else "Asset ID *", placeholder="z. B. 17501", key="f_aid")
+            with c3: anl_typ_kat = st.text_input("Anlagentyp" if st.session_state.language == "de" else "Asset Type", placeholder="z. B. Fördertechnik", key="f_atyp")
+            with c4: anl_bauteil = st.text_input("Bauteil der Anlage" if st.session_state.language == "de" else "Component", placeholder="z. B. Antrieb", key="f_bauteil")
+            with c5: anl_bez_name = st.text_input("Anlagenname *" if st.session_state.language == "de" else "Asset Name *", placeholder="z. B. Personenaufzug A", key="f_aname")
 
-            c7, c8 = st.columns([3, 3])
-            with c7: anl_aks = st.text_input("AKS-Bezeichnung" if st.session_state.language == "de" else "AKS Designation", placeholder="z. B. AK-10" if st.session_state.language == "de" else "e.g. AK-10", key="anl_ins_aks_v16")
+            c6, c7, c8, c9 = st.columns([1.5, 2.0, 3.0, 3.5])
+            with c6: anl_untergewerk = st.text_input("Untergewerk" if st.session_state.language == "de" else "Sub-Trade", placeholder="z. B. 1", key="f_ugew")
+            with c7: anl_aks = st.text_input("AKS-Bezeichnung" if st.session_state.language == "de" else "AKS Designation", placeholder="z. B. AK-10", key="f_aks")
             
             din_276_optionen = [
                 "",
-                "100 - Grundstück" if st.session_state.language == "de" else "100 - Site",
-                "200 - Vorbereitende Maßnahmen" if st.session_state.language == "de" else "200 - Preparatory Measures",
-                "300 - Bauwerk - Baukonstruktion" if st.session_state.language == "de" else "300 - Building - Construction",
-                "400 - Bauwerk - Technische Anlagen" if st.session_state.language == "de" else "400 - Building - Technical Installations",
-                "500 - Außenanlagen und Freiflächen" if st.session_state.language == "de" else "500 - Outdoor Facilities and Open Spaces"
+                "100 - Grundstück",
+                "200 - Vorbereitende Maßnahmen",
+                "300 - Bauwerk - Baukonstruktion",
+                "400 - Bauwerk - Technische Anlagen",
+                "500 - Außenanlagen und Freiflächen"
             ]
-            with c8: anl_din = st.selectbox("Kostengruppe DIN 276" if st.session_state.language == "de" else "Cost Group DIN 276", din_276_optionen, key="anl_ins_din_v16")
+            with c8: anl_din = st.selectbox("Kostengruppe (DIN 276)" if st.session_state.language == "de" else "Cost Group (DIN 276)", din_276_optionen, key="f_din")
+            with c9: anl_dingruppe_bez = st.text_input("Kostengruppenbezeichnung" if st.session_state.language == "de" else "Cost Group Description", placeholder="z. B. Förderanlagen", key="f_dingr_bez")
+
+            st.markdown("---")
+            
+            # Sektion 2: Kennzeichnungen 1 bis 5
+            st.markdown("##### 2. Interne Kennzeichnungen (1 - 5)" if st.session_state.language == "de" else "##### 2. Internal Designations (1 - 5)")
+            k_cols = st.columns(5)
+            k1 = k_cols[0].text_input("Kennzeichnung 1", key="f_k1")
+            k2 = k_cols[1].text_input("Kennzeichnung 2", key="f_k2")
+            k3 = k_cols[2].text_input("Kennzeichnung 3", key="f_k3")
+            k4 = k_cols[3].text_input("Kennzeichnung 4", key="f_k4")
+            k5 = k_cols[4].text_input("Kennzeichnung 5", key="f_k5")
+
+            st.markdown("---")
+
+            # Sektion 3: Beschreibung, Technik & Hersteller
+            st.markdown("##### 3. Technische Daten & Beschreibung" if st.session_state.language == "de" else "##### 3. Technical Data & Description")
+            st.text_area("Beschreibung der Anlage" if st.session_state.language == "de" else "Asset Description", placeholder="Detaillierte Funktionsbeschreibung...", height=70, key="f_beschr")
+
+            t_cols1 = st.columns(4)
+            with t_cols1[0]: st.text_input("Baujahr", placeholder="z. B. 2020", key="f_bj")
+            with t_cols1[1]: st.text_input("Anzahl", placeholder="1", key="f_anz")
+            with t_cols1[2]: st.text_input("Bezugsmenge EP", placeholder="z. B. Stk", key="f_bep")
+            with t_cols1[3]: st.text_input("Hersteller", placeholder="z. B. Otis GmbH", key="f_herst")
+
+            t_cols2 = st.columns(4)
+            with t_cols2[0]: st.text_input("Typ / Modell", placeholder="z. B. Gen2", key="f_typ")
+            with t_cols2[1]: st.text_input("Seriennummer", placeholder="SN-12345", key="f_sn")
+            with t_cols2[2]: st.text_input("Lebensdauer (rechnerisch)", placeholder="z. B. 20J", key="f_ldauer")
+            with t_cols2[3]: st.text_input("Lebensende", placeholder="z. B. 2040", key="f_lende")
+
+            st.markdown("---")
+
+            # Sektion 4: Standort im Gebäude & Zustand
+            st.markdown("##### 4. Gebäude- und Standortzuordnung" if st.session_state.language == "de" else "##### 4. Building & Location Assignment")
+            o_cols = st.columns(6)
+            with o_cols[0]: st.text_input("Gebäudeteil", placeholder="Hauptgebäude", key="f_gteil")
+            with o_cols[1]: st.text_input("Etage", placeholder="OG 1", key="f_etage")
+            with o_cols[2]: st.text_input("Raum", placeholder="R-101", key="f_raum")
+            with o_cols[3]: st.text_input("Raumbezeichnung", placeholder="Büro", key="f_rbez")
+            with o_cols[4]: st.text_input("Zustand", placeholder="Betriebsbereit", key="f_zustand")
+
+            st.markdown("---")
+
+            # Sektion 5: Merkmale A bis K (Alphabetisch)
+            st.markdown("##### 5. Zusätzliche Merkmale (Merkmal A bis K)" if st.session_state.language == "de" else "##### 5. Additional Attributes (Attribute A to K)")
+            
+            # Wir verteilen die 11 Merkmale in 3 saubere Reihen (z.B. 4 + 4 + 3 Spalten)
+            mk_row1 = st.columns(4)
+            ma = mk_row1[0].text_input("Merkmal a", key="f_m_a")
+            mb = mk_row1[1].text_input("Merkmal b", key="f_m_b")
+            mc = mk_row1[2].text_input("Merkmal c", key="f_m_c")
+            md = mk_row1[3].text_input("Merkmal d", key="f_m_d")
+
+            mk_row2 = st.columns(4)
+            me = mk_row2[0].text_input("Merkmal e", key="f_m_e")
+            mf = mk_row2[1].text_input("Merkmal f", key="f_m_f")
+            mg = mk_row2[2].text_input("Merkmal g", key="f_m_g")
+            mh = mk_row2[3].text_input("Merkmal h", key="f_m_h")
+
+            mk_row3 = st.columns(3)
+            mi = mk_row3[0].text_input("Merkmal i", key="f_m_i")
+            mj = mk_row3[1].text_input("Merkmal j", key="f_m_j")
+            mk = mk_row3[2].text_input("Merkmal k", key="f_m_k")
 
             st.write("")
-            if st.form_submit_button("Anlage im System speichern" if st.session_state.language == "de" else "Save Asset in System"):
-                st.success("✅ Anlage erfolgreich in der Demo-Umgebung registriert!" if st.session_state.language == "de" else "✅ Asset successfully registered in demo mode!")
+            st.write("")
+            if st.form_submit_button("💾 Vollständige Anlage im System speichern" if st.session_state.language == "de" else "💾 Save Complete Asset in System"):
+                st.success("✅ Anlage mit allen Feldern und Merkmalen A–K erfolgreich in der Demo-Umgebung registriert!" if st.session_state.language == "de" else "✅ Asset with all fields and attributes A–K successfully registered in demo mode!")
                 st.rerun()
