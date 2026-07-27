@@ -76,23 +76,27 @@ def zeige_wartungsanalyse():
     anz_rot = len(df_card[df_card["Live_Status"] == ueberfaellig_str])
     anz_gelb = len(df_card[df_card["Live_Status"] == warnung_str])
     
-    # KPI-Leiste oben
-    if st.session_state.language == "de":
-        st.markdown(f"<div style='font-size:13px; font-weight:600; margin-bottom:15px;'>🚨 Alarme aktiv: <span style='color:#ef4444;'>{anz_rot} Fällig</span> | <span style='color:#f59e0b;'>{anz_gelb} Warnung</span></div>", unsafe_allow_html=True)
-    else:
-        st.markdown(f"<div style='font-size:13px; font-weight:600; margin-bottom:15px;'>🚨 Active Alarms: <span style='color:#ef4444;'>{anz_rot} Due</span> | <span style='color:#f59e0b;'>{anz_gelb} Warning</span></div>", unsafe_allow_html=True)
+    # KPI-Leiste oben mit feinem Rahmen
+    with st.container(border=True):
+        if st.session_state.language == "de":
+            st.markdown(f"<div style='font-size:13px; font-weight:600;'>🚨 Alarme aktiv: <span style='color:#ef4444;'>{anz_rot} Fällig</span> | <span style='color:#f59e0b;'>{anz_gelb} Warnung</span></div>", unsafe_allow_html=True)
+        else:
+            st.markdown(f"<div style='font-size:13px; font-weight:600;'>🚨 Active Alarms: <span style='color:#ef4444;'>{anz_rot} Due</span> | <span style='color:#f59e0b;'>{anz_gelb} Warning</span></div>", unsafe_allow_html=True)
 
-    # Filter-Leiste für den Standort
-    c_f1, c_f2 = st.columns([3.0, 7.0])
-    with c_f1:
-        standort_optionen = [TXT_VA["filter_all"], "NP", "FG"]
-        fil_std = st.radio("Standort-Filter", options=standort_optionen, horizontal=True, key="va_master_std_radio")
-    with c_f2:
-        erledigt_str = "🟢 Erledigt" if st.session_state.language == "de" else "🟢 Completed"
-        status_optionen = [TXT_VA["filter_all_status"], ueberfaellig_str, warnung_str, erledigt_str]
-        fil_stat = st.radio(TXT_VA["lbl_status_filter"], options=status_optionen, horizontal=True, key="va_master_stat_radio")
+    st.write("")
 
-    st.markdown("---")
+    # Filter-Leiste in gerahmtem Container
+    with st.container(border=True):
+        c_f1, c_f2 = st.columns([3.0, 7.0])
+        with c_f1:
+            standort_optionen = [TXT_VA["filter_all"], "NP", "FG"]
+            fil_std = st.radio("Standort-Filter", options=standort_optionen, horizontal=True, key="va_master_std_radio")
+        with c_f2:
+            erledigt_str = "🟢 Erledigt" if st.session_state.language == "de" else "🟢 Completed"
+            status_optionen = [TXT_VA["filter_all_status"], ueberfaellig_str, warnung_str, erledigt_str]
+            fil_stat = st.radio(TXT_VA["lbl_status_filter"], options=status_optionen, horizontal=True, key="va_master_stat_radio")
+
+    st.write("")
 
     df_filtered = df_card.copy()
     if fil_std != TXT_VA["filter_all"]:
@@ -101,26 +105,25 @@ def zeige_wartungsanalyse():
         df_filtered = df_filtered[df_filtered["Live_Status"] == fil_stat]
 
     if not df_filtered.empty:
-        # Wir bauen eine saubere Radio-Auswahlliste (modernes Karten-Feeling ohne Dropdown)
-        vertrag_labels = []
-        for _, r in df_filtered.iterrows():
-            next_val = pd.to_datetime(r["naechstewartung"]).strftime('%d.%m.%Y') if pd.notnull(r["naechstewartung"]) else "-"
-            label = f"{r['Live_Status']} | {r['bezeichnung']} ({r['firma']}) - 📍 {r['standort']} (Nächste: {next_val})"
-            vertrag_labels.append((label, r["id"]))
+        with st.container(border=True):
+            vertrag_labels = []
+            for _, r in df_filtered.iterrows():
+                next_val = pd.to_datetime(r["naechstewartung"]).strftime('%d.%m.%Y') if pd.notnull(r["naechstewartung"]) else "-"
+                label = f"{r['Live_Status']} | {r['bezeichnung']} ({r['firma']}) - 📍 {r['standort']} (Nächste: {next_val})"
+                vertrag_labels.append((label, r["id"]))
 
-        # Modernes Radio-Auswahlfeld (zeigt alle Einträge direkt untereinander als Klick-Optionen)
-        auswahl_label = st.radio(
-            TXT_VA["select_contract"],
-            options=[item[0] for item in vertrag_labels],
-            key="va_master_radio_list"
-        )
-        
-        selected_id = next(item[1] for item in vertrag_labels if item[0] == auswahl_label)
-        row = df_card[df_card["id"] == selected_id].iloc[0]
+            auswahl_label = st.radio(
+                TXT_VA["select_contract"],
+                options=[item[0] for item in vertrag_labels],
+                key="va_master_radio_list"
+            )
+            
+            selected_id = next(item[1] for item in vertrag_labels if item[0] == auswahl_label)
+            row = df_card[df_card["id"] == selected_id].iloc[0]
 
-        st.markdown("---")
+        st.write("")
         
-        # Detail-Ansicht direkt darunter in einer sauberen Enterprise-Karte
+        # Detail-Ansicht in einer sauberen, gerahmten Premium-Karte
         with st.container(border=True):
             v_id = row["id"]
             v_bez = row["bezeichnung"]
@@ -131,6 +134,8 @@ def zeige_wartungsanalyse():
             st.markdown(f"##### 📋 {v_status} | {v_bez} (ID: {v_id})")
             st.markdown(f"<div style='font-size: 11px; opacity: 0.7; margin-bottom: 10px;'>Wartungsfirma: <b>{v_firma}</b> | Standort: <b>{row['standort']}</b> | Nächste Wartung: <b>{v_next}</b></div>", unsafe_allow_html=True)
             
+            st.markdown("<hr style='margin: 10px 0; opacity: 0.2;'>", unsafe_allow_html=True)
+
             c_det_sub1, c_det_sub2 = st.columns(2)
             with c_det_sub1:
                 dl_lbl = "Dienstleister / Firma" if st.session_state.language == "de" else "Service Provider"
@@ -153,18 +158,27 @@ def zeige_wartungsanalyse():
                 v_last = pd.to_datetime(row["letztewartung"]).strftime('%d.%m.%Y') if pd.notnull(row["letztewartung"]) else "-"
                 st.markdown(f"📅 **{last_m_lbl}:** {v_last}")
 
-            st.markdown("---")
+            st.markdown("<hr style='margin: 15px 0; opacity: 0.2;'>", unsafe_allow_html=True)
             st.markdown("⚙️ **Direkt-Steuerung & Notizen**")
             
-            status_change_lbl = "Status anpassen:" if st.session_state.language == "de" else "Update Status:"
-            aktuelle_optionen = ["In Ordnung", "Überfällig", "Anstehend", "Erledigt"]
-            neuer_status = st.selectbox(status_change_lbl, options=aktuelle_optionen, index=0, key=f"sel_status_{v_id}")
+            st.write("")
+
+            # Status-Auswahl in schmaler Spalte (keine volle Bildschirmbreite mehr)
+            c_stat_in, c_space = st.columns([4.0, 6.0])
+            with c_stat_in:
+                status_change_lbl = "Status anpassen:" if st.session_state.language == "de" else "Update Status:"
+                aktuelle_optionen = ["In Ordnung", "Überfällig", "Anstehend", "Erledigt"]
+                neuer_status = st.selectbox(status_change_lbl, options=aktuelle_optionen, index=0, key=f"sel_status_{v_id}")
             
+            st.write("")
+
             notiz_lbl = "Schnellnotiz / Vermerk:" if st.session_state.language == "de" else "Quick Note:"
             aktuelle_bemerkung = str(row['bemerkung']) if str(row['bemerkung']) != 'nan' else ""
             neue_notiz = st.text_area(notiz_lbl, value=aktuelle_bemerkung, height=75, key=f"txt_notiz_{v_id}")
             
-            btn_col1, btn_col2 = st.columns(2)
+            st.write("")
+
+            btn_col1, btn_col2, _ = st.columns([3.0, 3.0, 4.0])
             with btn_col1:
                 save_lbl = "💾 Speichern" if st.session_state.language == "de" else "💾 Save"
                 if st.button(save_lbl, key=f"btn_save_{v_id}", use_container_width=True):
