@@ -189,7 +189,7 @@ def zeige_wartungsanalyse():
         st.write("")
 
         # -------------------------------------------------------------
-        # BEREICH 5: DIREKT-STEUERUNG & NOTIZEN
+        # BEREICH 5: DIREKT-STEUERUNG & NOTIZEN (Mit Trennlinie)
         # -------------------------------------------------------------
         with st.container(border=True):
             st.markdown(f"**{TXT_VA['sec_steuerung']}**")
