@@ -28,7 +28,6 @@ def zeige_wartungsanalyse():
     st.subheader(TXT_VA["title"])
     st.markdown(f"<div style='font-size: 13px; opacity: 0.7; margin-bottom: 20px;'>{TXT_VA['desc']}</div>", unsafe_allow_html=True)
 
-    # Lokale Demo-Daten erzwingen
     df_card = pd.DataFrame({
         "id": [i+1 for i in range(20)],
         "anlagenid": [17501 + i for i in range(20)],
@@ -76,7 +75,7 @@ def zeige_wartungsanalyse():
     anz_rot = len(df_card[df_card["Live_Status"] == ueberfaellig_str])
     anz_gelb = len(df_card[df_card["Live_Status"] == warnung_str])
     
-    # 1. Bereich: Alarm-Leiste in eigener Box
+    # 1. Sektion: Alarm-Leiste in einem sauberen Rahmen
     with st.container(border=True):
         if st.session_state.language == "de":
             st.markdown(f"<div style='font-size:13px; font-weight:600;'>🚨 Alarme aktiv: <span style='color:#ef4444;'>{anz_rot} Fällig</span> | <span style='color:#f59e0b;'>{anz_gelb} Warnung</span></div>", unsafe_allow_html=True)
@@ -85,9 +84,11 @@ def zeige_wartungsanalyse():
 
     st.write("")
 
-    # 2. Bereich: Filter in eigener Box
+    # 2. Sektion: Filter-Steuerung in einem eigenen Bereich mit Rahmen
     with st.container(border=True):
         st.markdown("<div style='font-size: 12px; font-weight: 600; opacity: 0.8; margin-bottom: 5px;'>🔍 Filter-Steuerung</div>", unsafe_allow_html=True)
+        st.markdown("<hr style='margin: 5px 0 10px 0; opacity: 0.15;'>", unsafe_allow_html=True)
+        
         c_f1, c_f2 = st.columns([3.0, 7.0])
         with c_f1:
             standort_optionen = [TXT_VA["filter_all"], "NP", "FG"]
@@ -106,7 +107,7 @@ def zeige_wartungsanalyse():
         df_filtered = df_filtered[df_filtered["Live_Status"] == fil_stat]
 
     if not df_filtered.empty:
-        # 3. Bereich: Vertragsauswahl in schöner Box
+        # 3. Sektion: Vertragsauswahl klar umragt
         with st.container(border=True):
             st.markdown(f"##### 📑 {TXT_VA['select_contract']}")
             st.markdown("<hr style='margin: 8px 0; opacity: 0.15;'>", unsafe_allow_html=True)
@@ -129,7 +130,7 @@ def zeige_wartungsanalyse():
 
         st.write("")
         
-        # 4. Bereich: Detail- & Steuerungs-Karte mit klaren Trennlinien
+        # 4. Sektion: Detail- & Steuerungsbereich in einer klaren Enterprise-Karte mit Sparten-Trennlinie
         with st.container(border=True):
             v_id = row["id"]
             v_bez = row["bezeichnung"]
