@@ -5,29 +5,24 @@ def zeige_anlagenstruktur():
     # CSS für kompakte Schriftgröße, Dropdown-Fix und kursive, hellgraue Placeholder
     st.markdown("""
         <style>
-        /* Kompakte Schriftgröße in allen Eingabefeldern und Formularen */
         input, select, textarea, div[data-baseweb="select"] span, label {
             font-size: 0.82rem !important;
         }
         
-        /* Blendet den automatischen Streamlit-Hinweis 'Press enter to submit form' aus */
         div[data-testid="InputInstructions"] {
             display: none !important;
         }
         
-        /* Placeholder (Beispieltexte) in leicht grauer Schrift und Kursiv */
         input::placeholder, textarea::placeholder {
             color: #94a3b8 !important;
             font-style: italic !important;
             opacity: 1 !important;
         }
         
-        /* Erzwingt einen sauberen Hintergrund für das gesamte Dropdown-Menü */
         div[data-baseweb="popover"], div[data-baseweb="menu"], ul[data-baseweb="menu"] {
             background-color: var(--secondary-background-color) !important;
         }
         
-        /* Jedes einzelne Listenelement im Dropdown */
         div[data-baseweb="popover"] ul li, 
         ul[data-baseweb="menu"] li,
         li[role="option"] {
@@ -36,7 +31,6 @@ def zeige_anlagenstruktur():
             font-size: 0.85rem !important;
         }
         
-        /* Markierter/ausgewählter Balken (Hover & Highlight) */
         div[data-baseweb="popover"] ul li:hover,
         div[data-baseweb="popover"] ul li[aria-selected="true"],
         ul[data-baseweb="menu"] li:hover,
@@ -47,7 +41,6 @@ def zeige_anlagenstruktur():
             color: var(--text-color) !important;
         }
         
-        /* Tooltips & Toolbar-Buttons */
         div[data-testid="stElementToolbar"], 
         div[data-testid="stElementToolbar"] button,
         span[data-testid="stTooltipHoverTarget"] {
@@ -62,7 +55,6 @@ def zeige_anlagenstruktur():
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
         }
 
-        /* Fix für st.dataframe Container */
         div[data-testid="stDataFrame"] {
             border: 1px solid rgba(128, 128, 128, 0.25) !important;
             border-radius: 0.5rem;
@@ -104,7 +96,6 @@ def zeige_anlagenstruktur():
     if "showendlos" not in st.session_state:
         st.session_state.showendlos = False
             
-    # Umbenannter Button für Endlosliste & Neuerfassung
     btn_text = "🔄 Endlosliste & Neuerfassung umschalten" if st.session_state.language == "de" else "🔄 Toggle List & Registration"
     if st.button(btn_text, key="anl_toggle_btn_main"):
         st.session_state.showendlos = not st.session_state.showendlos
@@ -114,8 +105,10 @@ def zeige_anlagenstruktur():
 
     if st.session_state.showendlos and not df_anlagen.empty:
         col_filt, col_src = st.columns([4.0, 6.0])
-        with col_filt: anl_filter = st.radio("Standort filtern:" if st.session_state.language == "de" else "Filter Location:", ["Beide" if st.session_state.language == "de" else "Both", "NP", "FG"], horizontal=True, key="anl_std_filter_v7")
-        with col_src: anl_suche = st.text_input("🔍 Echtzeit-Suche:" if st.session_state.language == "de" else "🔍 Real-time Search:", autocomplete="off", key="anl_src_input_v7")
+        with col_filt: 
+            anl_filter = st.radio("Standort filtern:" if st.session_state.language == "de" else "Filter Location:", ["Beide" if st.session_state.language == "de" else "Both", "NP", "FG"], horizontal=True, key="anl_std_filter_v7")
+        with col_src: 
+            anl_suche = st.text_input("🔍 Echtzeit-Suche:" if st.session_state.language == "de" else "🔍 Real-time Search:", autocomplete="off", key="anl_src_input_v7")
 
         df_endlos = df_anlagen.copy()
         if_anl_filter = anl_filter != ("Beide" if st.session_state.language == "de" else "Both")
@@ -125,7 +118,9 @@ def zeige_anlagenstruktur():
             s_l = anl_suche.lower()
             df_endlos = df_endlos[df_endlos["bezeichnung"].str.lower().str.contains(s_l, na=False)]
         
-        st.dataframe(df_endlos[["id", "standort", "bezeichnung", "hersteller", "typ", "zustand"]], use_container_width=True, hide_index=True)
+        # Sicherer Zugriff auf Spalten mit Fallback
+        verfuegbare_spalten = [col for col in ["id", "standort", "bezeichnung", "hersteller", "typ", "zustand"] if col in df_endlos.columns]
+        st.dataframe(df_endlos[verfuegbare_spalten], use_container_width=True, hide_index=True)
 
         id_liste = [""] + [str(i) for i in df_endlos["id"].tolist()]
         vorauswahl_index = 0
@@ -167,7 +162,6 @@ def zeige_anlagenstruktur():
                     st.write(f"**{'Etage' if st.session_state.language == 'de' else 'Floor'}:** {row_det.get('etage', '-')}")
                     st.write(f"**{'Raum / -bez.' if st.session_state.language == 'de' else 'Room / Descr.'}:** {row_det.get('raum', '-')} ({row_det.get('raumbezeichnung', '-')})")
                 with t4:
-                    # Demo-Historie bereitstellen
                     df_hist = pd.DataFrame({
                         "id": [1, 2],
                         "klassebez": ["Wartung", "Prüfung"],
