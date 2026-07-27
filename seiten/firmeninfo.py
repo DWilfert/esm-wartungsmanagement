@@ -175,7 +175,11 @@ def zeige_firmeninfo():
             name_col = "firmenname" if "firmenname" in df_firmen.columns else df_firmen.columns[1]
             unbenannt_text = "Unbenannt" if st.session_state.language == "de" else "Unnamed"
             firmen_liste = [""] + [f"[ID: {row['id']}] {row.get(name_col, unbenannt_text)}" for _, row in df_firmen.iterrows()]
-            ausgewaehlte_firma = st.selectbox(TXT_FIRMA["sel_del"], firmen_liste, key="firmen_del_selectbox_v1")
+            
+            # --- AUSWAHLFELD AUF CA. 60% BREITE BEGRENZT ---
+            col_sel, _ = st.columns([6.0, 4.0])
+            with col_sel:
+                ausgewaehlte_firma = st.selectbox(TXT_FIRMA["sel_del"], firmen_liste, key="firmen_del_selectbox_v1")
 
             if ausgewaehlte_firma:
                 # Firmenname aus der Auswahl extrahieren, um Verträge zu filtern
