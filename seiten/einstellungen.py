@@ -66,6 +66,7 @@ def zeige_einstellungen():
             "density_label": "Tabellen-Zeilendichte:",
             "opt_compact": "Kompakt (Maximale Übersicht)",
             "opt_comfort": "Komfortabel (Mehr Abstand)",
+            "hint_save": "*Wirksam erst nach Speichern*",
             "btn_save": "Änderungen speichern",
             "success": "Benutzer-Einstellungen erfolgreich aktualisiert!"
         }
@@ -83,6 +84,7 @@ def zeige_einstellungen():
             "density_label": "Table Row Density:",
             "opt_compact": "Compact (Maximum overview)",
             "opt_comfort": "Comfortable (More spacing)",
+            "hint_save": "*Effective only after saving*",
             "btn_save": "Save Changes",
             "success": "User settings successfully updated!"
         }
@@ -97,7 +99,7 @@ def zeige_einstellungen():
     aktuelle_dichte = st.session_state.get("tabellen_dichte", "Kompakt")
     
     conn = hole_datenbank_verbindung()
-    if conn is not None:
+    if conn is not None and not isinstance(conn, str):
         try:
             cursor = conn.cursor(dictionary=True)
             cursor.execute("SELECT schluessel, wert FROM `user_einstellungen` WHERE schluessel IN ('speicher_modus', 'app_theme', 'startseite', 'tabellen_dichte')")
@@ -117,7 +119,7 @@ def zeige_einstellungen():
             print(f"Lade-Fehler: {e}")
         finally:
             try:
-                if conn is not None:
+                if conn is not None and not isinstance(conn, str):
                     conn.close()
             except:
                 pass
@@ -160,7 +162,6 @@ def zeige_einstellungen():
             except ValueError:
                 dichte_index = 0
 
-            # Kompakte 50%-Spalten für die Dropdowns innerhalb der Karte
             col_dd1, _ = st.columns([6.0, 4.0])
             with col_dd1:
                 wahl_theme = st.selectbox(TXT_E["theme_label"], options=themen_optionen, index=theme_index, key="einstellungen_theme_select")
@@ -168,7 +169,10 @@ def zeige_einstellungen():
                 wahl_dichte = st.selectbox(TXT_E["density_label"], options=dichte_optionen, index=dichte_index, key="einstellungen_dichte_select")
 
     st.write("")
-    st.write("")
+    
+    # Hinweis in kleiner, kursiver Schrift direkt vor dem Button
+    st.markdown(f"<div style='font-size: 11px; font-style: italic; opacity: 0.6; margin-bottom: 4px;'>{TXT_E['hint_save']}</div>", unsafe_allow_html=True)
+    
     if st.button(TXT_E["btn_save"], type="primary"):
         neuer_modus = "manuell" if wahl_modus == TXT_E["opt_manuell"] else "auto"
         
@@ -179,7 +183,7 @@ def zeige_einstellungen():
         
         # In Datenbank speichern
         conn = hole_datenbank_verbindung()
-        if conn is not None:
+        if conn is not None and not isinstance(conn, str):
             try:
                 cursor = conn.cursor()
                 
@@ -205,9 +209,10 @@ def zeige_einstellungen():
                 st.error(f"Fehler beim Speichern: {e}" if st.session_state.language == "de" else f"Error while saving: {e}")
             finally:
                 try:
-                    if conn is not None:
+                    if conn is not None and not isinstance(conn, str):
                         conn.close()
                 except:
                     pass
         else:
-            st.error("Keine Verbindung zur Datenbank." if st.session_state.language == "de" else "No database connection.")
+            errmsg = conn if isinstance(conn, str) else "Keine Verbindung zur Datenbank."
+            st.error(errmsg if st.session_state.language == "de" else f"Database error: {errmsg}")
