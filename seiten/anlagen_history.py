@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 def zeige_anlagen_history():
-    # CSS für kompakte Schriftgröße, Dropdown-Fix und 40% verkleinertes Dropdown-Feld
+    # CSS für kompakte Schriftgröße, Dropdown-Fix und um 50% verkürztes Dropdown-Feld
     st.markdown("""
         <style>
         input, select, textarea, div[data-baseweb="select"] span, label {
@@ -13,9 +13,9 @@ def zeige_anlagen_history():
             display: none !important;
         }
         
-        /* Dropdown-Feld um 40% verkleinern (Breite auf 60% gesetzt) */
+        /* Dropdown-Feld um 50% verkürzen (Breite auf 50% gesetzt) */
         div[data-baseweb="select"] {
-            max-width: 60% !important;
+            max-width: 50% !important;
         }
         
         div[data-baseweb="popover"], div[data-baseweb="menu"], ul[data-baseweb="menu"] {
@@ -60,7 +60,7 @@ def zeige_anlagen_history():
         "zustand": ["Betriebsbereit", "Wartung überfällig", "Betriebsbereit", "Prüfung anstehend"]
     })
 
-    # Dropdown zur Auswahl der Anlage (jetzt 40% schmaler)
+    # Dropdown zur Auswahl der Anlage (jetzt um 50% verkürzt)
     anlagen_optionen = [""] + [f"{row['id']} - {row['bezeichnung']}" for _, row in df_history_anlagen.iterrows()]
     
     ausgewaehlte_anlage = st.selectbox(
@@ -81,7 +81,7 @@ def zeige_anlagen_history():
         with t_stammdaten:
             st.write("Hier stehen alle technischen und kaufmännischen Stammdaten der Anlage im Detail.")
         with t_vertraege:
-            st.write("zugeordnete Wartungs- und Serviceverträge.")
+            st.write("Zugeordnete Wartungs- und Serviceverträge.")
         with t_historie:
             st.write("Chronologischer Verlauf aller vergangenen Einsätze und Reparaturen.")
         with t_pruefungen:
