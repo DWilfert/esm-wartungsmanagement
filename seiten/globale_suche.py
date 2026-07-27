@@ -4,18 +4,15 @@ from datetime import datetime
 from datenbank.befehle import hole_datenbank_verbindung
 
 def formatiere_datum(wert):
-    """Hilfsfunktion: Wandelt SQL-Datumsangaben (z.B. YYYY-MM-DD oder Zeitstempel) ins deutsche Format TT.MM.JJJJ um."""
     if pd.isna(wert) or not wert:
         return "-"
     try:
-        # Falls es bereits ein String im ISO-Format ist
         s_val = str(wert).strip()
         if len(s_val) >= 10 and '-' in s_val[:10]:
             parts = s_val[:10].split('-')
             if len(parts) == 3:
                 jahr, monat, tag = parts
                 return f"{tag}.{monat}.{jahr}"
-        # Falls es ein datetime-Objekt ist
         if hasattr(wert, 'strftime'):
             return wert.strftime('%d.%m.%Y')
     except Exception:
@@ -23,7 +20,6 @@ def formatiere_datum(wert):
     return str(wert)
 
 def zeige_globale_suche():
-    # Kompaktes Enterprise-Design
     st.markdown("""
         <style>
         input, select, textarea, div[data-baseweb="select"] span, label, .stRadio div {
@@ -69,7 +65,6 @@ def zeige_globale_suche():
     st.subheader(TXT_GS["title"])
     st.markdown(f"<div style='font-size: 13px; color: var(--text-color); opacity: 0.7; margin-bottom: 15px;'>{TXT_GS['desc']}</div>", unsafe_allow_html=True)
 
-    # Das Suchfeld auf 50% Breite gekürzt
     col_suche, _ = st.columns([5.0, 5.0])
     with col_suche:
         suchbegriff = st.text_input("", placeholder=TXT_GS["placeholder"], label_visibility="collapsed", key="globaler_such_input")
@@ -109,19 +104,25 @@ def zeige_globale_suche():
         """, (such_id, such_pattern, such_pattern))
         res_vertraege = cursor.fetchall()
 
-        cursor.execute("""
-            SELECT id, kurz, gesetzliche_grundlage, qualifikation 
-            FROM serviceeinsaetze 
-            WHERE id = %s OR kurz LIKE %s OR gesetzliche_grundlage LIKE %s OR qualifikation LIKE %s
-        """, (such_id, such_pattern, such_pattern, such_pattern))
-        res_service = cursor.fetchall()
+        try:
+            cursor.execute("""
+                SELECT id, kurz, gesetzliche_grundlage, qualifikation 
+                FROM serviceeinsaetze 
+                WHERE id = %s OR kurz LIKE %s OR gesetzliche_grundlage LIKE %s OR qualifikation LIKE %s
+            """, (such_id, such_pattern, such_pattern, such_pattern))
+            res_service = cursor.fetchall()
+        except Exception:
+            res_service = []
 
-        cursor.execute("""
-            SELECT id, bezeichnung, bemerkung, firma, protokoll 
-            FROM wartungsplanung 
-            WHERE id = %s OR bezeichnung LIKE %s OR bemerkung LIKE %s OR firma LIKE %s OR protokoll LIKE %s
-        """, (such_id, such_pattern, such_pattern, such_pattern, such_pattern))
-        res_auffaelligkeiten = cursor.fetchall()
+        try:
+            cursor.execute("""
+                SELECT id, bezeichnung, bemerkung, firma, protokoll 
+                FROM wartungsplanung 
+                WHERE id = %s OR bezeichnung LIKE %s OR bemerkung LIKE %s OR firma LIKE %s OR protokoll LIKE %s
+            """, (such_id, such_pattern, such_pattern, such_pattern, such_pattern))
+            res_auffaelligkeiten = cursor.fetchall()
+        except Exception:
+            res_auffaelligkeiten = []
 
         cursor.close()
     except Exception as e:
@@ -150,7 +151,6 @@ def zeige_globale_suche():
     if res_vertraege:
         st.markdown(f"##### {TXT_GS['res_vertraege']} ({len(res_vertraege)})")
         df_v = pd.DataFrame(res_vertraege)
-        # Datum formatisieren, falls Spalte vorhanden
         if 'naechstewartung' in df_v.columns:
             df_v['naechstewartung'] = df_v['naechstewartung'].apply(formatiere_datum)
             
