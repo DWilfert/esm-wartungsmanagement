@@ -4,10 +4,7 @@ import pandas as pd
 from datenbank.befehle import hole_datenbank_verbindung
 
 def zeige_adminbereich():
-    # -------------------------------------------------------------
-    # SICHERHEIT: Passwortschutz für den Admin-Bereich
-    # -------------------------------------------------------------
-    admin_passwort = "esm2026"  # Hier kannst du das Passwort anpassen
+    admin_passwort = "esm"
     
     eingabe_passwort = st.text_input(
         "🔑 Bitte Admin-Passwort eingeben:" if st.session_state.get("language", "de") == "de" else "🔑 Please enter Admin password:",
@@ -17,11 +14,8 @@ def zeige_adminbereich():
     if eingabe_passwort != admin_passwort:
         if eingabe_passwort != "":
             st.error("Falsches Passwort!" if st.session_state.get("language", "de") == "de" else "Incorrect password!")
-        st.stop()  # Stoppt die Ausführung hier, solange das Passwort nicht stimmt
+        st.stop()
     
-    # -------------------------------------------------------------
-    # Eigentlicher Admin-Bereich (wird erst nach erfolgreichem Passwort angezeigt)
-    # -------------------------------------------------------------
     lang = st.session_state.get("language", "de")
     
     txt = {
@@ -84,7 +78,7 @@ def zeige_adminbereich():
             user_val = st.text_input(txt["user_label"], value="root")
             schema_val = st.text_input(txt["schema_label"], value="esm_wartung")
         with col2:
-            pass_val = st.text_input(txt["pass_label"], type="password", value="Gaa6125ESM**")
+            pass_val = st.text_input(txt["pass_label"], type="password", value="esm")
             port_val = st.number_input(txt["port_label"], value=3306, step=1)
 
         pfad_val = st.text_input(txt["pfad_label"], value="C:/esm_dokumente")
