@@ -10,19 +10,27 @@ def zeige_wartungsanalyse():
         TXT_VA = {
             "title": "Wartungsverträge & Risikoanalyse",
             "desc": "Live-Zustandsüberwachung aller Fristen inklusive automatisiertem Eskalationsmanagement bei Wartungsverzug.",
-            "select_contract": "Wählen Sie einen Vertrag aus:",
-            "lbl_status_filter": "Status Filter",
+            "sec_alarm": "🚨 Live-Alarme & Übersicht",
+            "sec_filter": "🔍 1. Themen: Filter-Steuerung",
+            "sec_auswahl": "📑 2. Themen: Vertragsauswahl",
+            "sec_info": "📋 3. Themen: Infobereich & Stammdaten",
+            "sec_steuerung": "⚙️ 4. Themen: Direkt-Steuerung & Notizen",
             "filter_all": "Alle",
-            "filter_all_status": "Alle"
+            "filter_all_status": "Alle",
+            "lbl_status_filter": "Status Filter"
         }
     else:
         TXT_VA = {
             "title": "Maintenance Contracts & Risk Analysis",
             "desc": "Live condition monitoring of all deadlines including automated escalation management in case of maintenance delay.",
-            "select_contract": "Select a contract:",
-            "lbl_status_filter": "Status Filter",
+            "sec_alarm": "🚨 Live Alarms & Overview",
+            "sec_filter": "🔍 1. Theme: Filter Control",
+            "sec_auswahl": "📑 2. Theme: Contract Selection",
+            "sec_info": "📋 3. Theme: Info Area & Master Data",
+            "sec_steuerung": "⚙️ 4. Theme: Direct Control & Notes",
             "filter_all": "All",
-            "filter_all_status": "All"
+            "filter_all_status": "All",
+            "lbl_status_filter": "Status Filter"
         }
 
     st.subheader(TXT_VA["title"])
@@ -75,19 +83,25 @@ def zeige_wartungsanalyse():
     anz_rot = len(df_card[df_card["Live_Status"] == ueberfaellig_str])
     anz_gelb = len(df_card[df_card["Live_Status"] == warnung_str])
     
-    # 1. Sektion: Alarm-Leiste in einem sauberen Rahmen
+    # -------------------------------------------------------------
+    # BEREICH 1: ALARME & ÜBERSICHT
+    # -------------------------------------------------------------
     with st.container(border=True):
+        st.markdown(f"**{TXT_VA['sec_alarm']}**")
+        st.markdown("<hr style='margin: 8px 0; opacity: 0.2;'>", unsafe_allow_html=True)
         if st.session_state.language == "de":
-            st.markdown(f"<div style='font-size:13px; font-weight:600;'>🚨 Alarme aktiv: <span style='color:#ef4444;'>{anz_rot} Fällig</span> | <span style='color:#f59e0b;'>{anz_gelb} Warnung</span></div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='font-size:13px;'>Aktive Alarme: <span style='color:#ef4444; font-weight:600;'>{anz_rot} Fällig</span> | <span style='color:#f59e0b; font-weight:600;'>{anz_gelb} Warnung</span></div>", unsafe_allow_html=True)
         else:
-            st.markdown(f"<div style='font-size:13px; font-weight:600;'>🚨 Active Alarms: <span style='color:#ef4444;'>{anz_rot} Due</span> | <span style='color:#f59e0b;'>{anz_gelb} Warning</span></div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='font-size:13px;'>Active Alarms: <span style='color:#ef4444; font-weight:600;'>{anz_rot} Due</span> | <span style='color:#f59e0b; font-weight:600;'>{anz_gelb} Warning</span></div>", unsafe_allow_html=True)
 
     st.write("")
 
-    # 2. Sektion: Filter-Steuerung in einem eigenen Bereich mit Rahmen
+    # -------------------------------------------------------------
+    # BEREICH 2: THEMA FILTER
+    # -------------------------------------------------------------
     with st.container(border=True):
-        st.markdown("<div style='font-size: 12px; font-weight: 600; opacity: 0.8; margin-bottom: 5px;'>🔍 Filter-Steuerung</div>", unsafe_allow_html=True)
-        st.markdown("<hr style='margin: 5px 0 10px 0; opacity: 0.15;'>", unsafe_allow_html=True)
+        st.markdown(f"**{TXT_VA['sec_filter']}**")
+        st.markdown("<hr style='margin: 8px 0; opacity: 0.2;'>", unsafe_allow_html=True)
         
         c_f1, c_f2 = st.columns([3.0, 7.0])
         with c_f1:
@@ -107,10 +121,12 @@ def zeige_wartungsanalyse():
         df_filtered = df_filtered[df_filtered["Live_Status"] == fil_stat]
 
     if not df_filtered.empty:
-        # 3. Sektion: Vertragsauswahl klar umragt
+        # -------------------------------------------------------------
+        # BEREICH 3: THEMA VERTRAGSAUSWAHL
+        # -------------------------------------------------------------
         with st.container(border=True):
-            st.markdown(f"##### 📑 {TXT_VA['select_contract']}")
-            st.markdown("<hr style='margin: 8px 0; opacity: 0.15;'>", unsafe_allow_html=True)
+            st.markdown(f"**{TXT_VA['sec_auswahl']}**")
+            st.markdown("<hr style='margin: 8px 0; opacity: 0.2;'>", unsafe_allow_html=True)
             
             vertrag_labels = []
             for _, r in df_filtered.iterrows():
@@ -119,7 +135,7 @@ def zeige_wartungsanalyse():
                 vertrag_labels.append((label, r["id"]))
 
             auswahl_label = st.radio(
-                TXT_VA["select_contract"],
+                "Vertragsauswahl Radio",
                 options=[item[0] for item in vertrag_labels],
                 label_visibility="collapsed",
                 key="va_master_radio_list"
@@ -130,18 +146,24 @@ def zeige_wartungsanalyse():
 
         st.write("")
         
-        # 4. Sektion: Detail- & Steuerungsbereich in einer klaren Enterprise-Karte mit Sparten-Trennlinie
+        # -------------------------------------------------------------
+        # BEREICH 4 & 5: INFOBEREICH & DIREKT-STEUERUNG (In getrennten Kacheln)
+        # -------------------------------------------------------------
+        v_id = row["id"]
+        v_bez = row["bezeichnung"]
+        v_firma = row["firma"]
+        v_status = row["Live_Status"]
+        v_next = pd.to_datetime(row["naechstewartung"]).strftime('%d.%m.%Y') if pd.notnull(row["naechstewartung"]) else "-"
+        
+        # Infobereich-Kachel
         with st.container(border=True):
-            v_id = row["id"]
-            v_bez = row["bezeichnung"]
-            v_firma = row["firma"]
-            v_status = row["Live_Status"]
-            v_next = pd.to_datetime(row["naechstewartung"]).strftime('%d.%m.%Y') if pd.notnull(row["naechstewartung"]) else "-"
+            st.markdown(f"**{TXT_VA['sec_info']}**")
+            st.markdown("<hr style='margin: 8px 0; opacity: 0.2;'>", unsafe_allow_html=True)
             
             st.markdown(f"##### 📋 {v_status} | {v_bez} (ID: {v_id})")
             st.markdown(f"<div style='font-size: 11px; opacity: 0.7; margin-bottom: 10px;'>Wartungsfirma: <b>{v_firma}</b> | Standort: <b>{row['standort']}</b> | Nächste Wartung: <b>{v_next}</b></div>", unsafe_allow_html=True)
             
-            st.markdown("<hr style='margin: 10px 0; opacity: 0.2;'>", unsafe_allow_html=True)
+            st.markdown("<hr style='margin: 10px 0; opacity: 0.15;'>", unsafe_allow_html=True)
 
             c_det_sub1, c_det_sub2 = st.columns(2)
             with c_det_sub1:
@@ -165,11 +187,13 @@ def zeige_wartungsanalyse():
                 v_last = pd.to_datetime(row["letztewartung"]).strftime('%d.%m.%Y') if pd.notnull(row["letztewartung"]) else "-"
                 st.markdown(f"📅 **{last_m_lbl}:** {v_last}")
 
-            st.markdown("<hr style='margin: 15px 0; opacity: 0.2;'>", unsafe_allow_html=True)
-            st.markdown("⚙️ **Direkt-Steuerung & Notizen**")
-            
-            st.write("")
+        st.write("")
 
+        # Direkt-Steuerung & Notizen-Kachel
+        with st.container(border=True):
+            st.markdown(f"**{TXT_VA['sec_steuerung']}**")
+            st.markdown("<hr style='margin: 8px 0; opacity: 0.2;'>", unsafe_allow_html=True)
+            
             c_stat_in, c_space = st.columns([4.0, 6.0])
             with c_stat_in:
                 status_change_lbl = "Status anpassen:" if st.session_state.language == "de" else "Update Status:"
