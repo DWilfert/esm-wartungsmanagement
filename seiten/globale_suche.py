@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from datenbank.befehle import hole_anlagen_daten, hole_wartungsvertraege_daten, hole_datenbank_verbindung
+from datenbank.befehle import hole_anlagen_daten, hole_wartungsvertraege_daten
 
 def formatiere_datum(wert):
     if pd.isna(wert) or not wert:
@@ -41,11 +41,9 @@ def zeige_globale_suche():
         TXT_GS = {
             "title": "🔍 Globale 360° Volltextsuche",
             "desc": "Durchsuchen Sie das gesamte ESM Wartungsmanagement in Echtzeit (Anlagen, Verträge, Serviceeinsätze, Firmen & Mängel).",
-            "placeholder": "Suchbegriff oder Anlagen-ID eingeben (z.B. Aufzug, Otis, Siemens)...",
+            "placeholder": "Suchbegriff eingeben (z.B. Aufzug, Otis, Heizung, Lüftung)...",
             "res_anlagen": "🏫 Treffer bei Anlagen & Gebäuden",
             "res_vertraege": "📑 Treffer bei Verträgen & Firmen",
-            "res_service": "🛠️ Treffer bei Service-Historie",
-            "res_auffaelligkeiten": "⚠️ Treffer bei Mängeln & Auffälligkeiten",
             "no_results": "Keine Treffer im System gefunden für:",
             "prompt_start": "👆 Bitte geben Sie einen Suchbegriff ein, um das System zu durchforsten."
         }
@@ -53,11 +51,9 @@ def zeige_globale_suche():
         TXT_GS = {
             "title": "🔍 Global 360° Full-Text Search",
             "desc": "Search across the entire ESM maintenance management system in real-time (assets, contracts, service history, companies & defects).",
-            "placeholder": "Enter search term or asset ID (e.g. elevator, Otis, Siemens)...",
+            "placeholder": "Enter search term (e.g. elevator, Otis, heating)...",
             "res_anlagen": "🏫 Matching Assets & Buildings",
             "res_vertraege": "📑 Matching Contracts & Companies",
-            "res_service": "🛠️ Matching Service History",
-            "res_auffaelligkeiten": "⚠️ Matching Defects & Discrepancies",
             "no_results": "No results found in the system for:",
             "prompt_start": "👆 Please enter a search term to scan the system."
         }
@@ -77,22 +73,17 @@ def zeige_globale_suche():
 
     term = suchbegriff.strip().lower()
 
-    # Verbindung prüfen
-    conn = hole_datenbank_verbindung()
-    if conn is None:
-        st.error("Datenbankverbindung fehlgeschlagen!")
-        return
-
-    # Daten laden
+    # Demodaten direkt aus den Befehlen laden
     df_anlagen = hole_anlagen_daten()
     df_vertraege = hole_wartungsvertraege_daten()
 
-    # Universelle Volltextsuche über ALLE Spalten hinweg (Globaler Scan)
+    # Suche in den Anlagen-Demodaten über alle Spalten
     res_anlagen = []
     if not df_anlagen.empty:
         mask_a = df_anlagen.astype(str).apply(lambda col: col.str.lower().str.contains(term, na=False)).any(axis=1)
         res_anlagen = df_anlagen[mask_a].to_dict(orient="records")
 
+    # Suche in den Vertrags-Demodaten über alle Spalten
     res_vertraege = []
     if not df_vertraege.empty:
         mask_v = df_vertraege.astype(str).apply(lambda col: col.str.lower().str.contains(term, na=False)).any(axis=1)
@@ -100,12 +91,6 @@ def zeige_globale_suche():
 
     res_service = []
     res_auffaelligkeiten = []
-
-    if hasattr(conn, "close"):
-        try:
-            conn.close()
-        except Exception:
-            pass
 
     gesamt_treffer = len(res_anlagen) + len(res_vertraege) + len(res_service) + len(res_auffaelligkeiten)
 
